@@ -1,0 +1,1313 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>더스물하나 네트워크 관리자 시스템 — 운영 대시보드</title>
+  <meta name="description" content="더스물하나 네트워크 관리자 시스템">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: { sans: ['Pretendard','system-ui','sans-serif'] } } }
+    }
+  </script>
+  <style>
+    :root{
+      --bg:#f4efe8; --header:#faf6f0; --panel:#ffffff; --panel-soft:#faf7f2;
+      --border:#e9e1d6; --border-soft:#f0e9df;
+      --text:#2c2620; --text-soft:#5c544a; --muted:#9b9286;
+      --accent:#9c7d49; --accent-strong:#83663a; --accent-soft:#f2ead9;
+      --gold:#b8935a; --teal:#3f6377;
+      --side:#231f1a; --side-2:#1c1813; --side-text:#a89f92; --side-muted:#6f675b;
+      --side-active-bg:rgba(184,147,90,.14); --side-active:#d9b676; --side-border:#332d25;
+      --good:#16794a; --good-bg:#e6f4ec; --bad:#c0362c; --bad-bg:#fbe9e7; --blue:#2563eb;
+    }
+    html.dark{
+      --bg:#181410; --header:#1f1a15; --panel:#221d17; --panel-soft:#1d1813;
+      --border:#332c23; --border-soft:#2a241c;
+      --text:#ece5da; --text-soft:#b9b0a3; --muted:#8a8175;
+      --accent-soft:#2c2417;
+    }
+    body{ font-family:'Pretendard',system-ui,sans-serif; background:var(--bg); color:var(--text); }
+    .panel{ background:var(--panel); border:1px solid var(--border); }
+    .ico{ display:inline-flex; align-items:center; justify-content:center; }
+    .navlink{ transition:background .15s, color .15s; }
+    .navlink:hover{ background:rgba(255,255,255,.04); color:#cdc4b6; }
+    .navlink.active{ background:var(--side-active-bg); color:var(--side-active); }
+    .navlink.active .navdot{ opacity:1; }
+    .grp-body{ overflow:hidden; transition:max-height .28s ease; }
+    .chev{ transition:transform .2s; }
+    .grp.open .chev{ transform:rotate(180deg); }
+    .view{ display:none; }
+    .view.active{ display:block; animation:fade .35s ease; }
+    @keyframes fade{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+    .no-sb::-webkit-scrollbar{ width:6px; } .no-sb::-webkit-scrollbar-thumb{ background:#473f34; border-radius:6px; }
+    .tbl th, .tbl td{ text-align:left; }
+    .chip{ font-size:11px; font-weight:600; padding:3px 9px; border-radius:999px; }
+    .btn-gold{ background:var(--accent); color:#fff; }
+    .btn-gold:hover{ background:var(--accent-strong); }
+    .bar{ transition:height .6s cubic-bezier(.16,1,.3,1); }
+    /* collapsed sidebar */
+    body.collapsed #sidebar{ width:0; transform:translateX(-100%); }
+    body.collapsed #main{ margin-left:0; }
+    @media (max-width:1024px){
+      #sidebar{ transform:translateX(-100%); }
+      #main{ margin-left:0 !important; }
+      body.nav-open #sidebar{ transform:translateX(0); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===================== SIDEBAR ===================== -->
+  <aside id="sidebar" class="no-sb fixed top-0 left-0 z-40 h-screen w-[260px] overflow-y-auto transition-transform duration-300"
+         style="background:var(--side); border-right:1px solid var(--side-border)">
+    <!-- brand -->
+    <div class="px-5 py-5 flex items-center gap-3" style="border-bottom:1px solid var(--side-border)">
+      <span class="w-10 h-10 rounded-xl grid place-items-center text-white font-extrabold text-lg shrink-0"
+            style="background:linear-gradient(135deg,#c79a5b,#9a7438)">K</span>
+      <div class="leading-tight">
+        <p class="text-[15px] font-bold" style="color:#e9e0d2">더스물하나 네트워크 관리자 시스템</p>
+        <p class="text-[12px]" style="color:var(--side-muted)">운영 대시보드</p>
+      </div>
+    </div>
+    <nav id="nav" class="py-3 px-2.5 text-[14px]"></nav>
+    <div class="px-5 py-5 text-[11px]" style="color:var(--side-muted); border-top:1px solid var(--side-border)">
+      © 2026 THE 21 NETWORKS
+    </div>
+  </aside>
+
+  <!-- ===================== MAIN ===================== -->
+  <div id="main" class="ml-[260px] transition-[margin] duration-300 min-h-screen">
+
+    <!-- topbar -->
+    <header class="sticky top-0 z-30" style="background:var(--header); border-bottom:1px solid var(--border)">
+      <div class="px-4 sm:px-6 lg:px-8 py-3 grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+        <!-- left -->
+        <div class="flex items-center gap-2">
+          <button onclick="toggleSidebar()" class="w-9 h-9 rounded-lg grid place-items-center hover:bg-black/5"
+                  style="color:var(--text-soft)" title="사이드바">
+            <iconify-icon icon="solar:siderbar-linear" width="20"></iconify-icon>
+          </button>
+          <button class="px-3 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5"
+                  style="background:var(--panel); border:1px solid var(--border); color:var(--text-soft)">
+            <iconify-icon icon="solar:map-point-linear" width="15"></iconify-icon> 화정
+          </button>
+          <button onclick="toggleTheme()" class="w-9 h-9 rounded-lg grid place-items-center hover:bg-black/5"
+                  style="color:var(--text-soft)" title="테마">
+            <iconify-icon id="themeIcon" icon="solar:sun-linear" width="19"></iconify-icon>
+          </button>
+        </div>
+        <!-- center welcome -->
+        <div class="text-center leading-tight hidden sm:block">
+          <p class="text-[15px] font-bold">justinkang88님 반갑습니다.</p>
+          <p class="text-[11.5px]" style="color:var(--muted)">최근 로그인: 2026. 06. 26. 오후 04:01</p>
+        </div>
+        <!-- right -->
+        <div class="flex items-center justify-end gap-2">
+          <button class="px-3.5 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5"
+                  style="background:var(--panel); border:1px solid var(--border); color:var(--text-soft)">
+            <iconify-icon icon="solar:settings-linear" width="16"></iconify-icon><span class="hidden sm:inline">보안 설정</span>
+          </button>
+          <button class="px-3.5 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5 btn-gold">
+            <iconify-icon icon="solar:logout-2-linear" width="16"></iconify-icon><span class="hidden sm:inline">로그아웃</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- view container -->
+    <main class="px-4 sm:px-6 lg:px-8 py-6">
+
+      <!-- ============ DASHBOARD ============ -->
+      <section id="view-dashboard" class="view active">
+        <div class="panel rounded-2xl p-5 sm:p-7">
+          <!-- header row -->
+          <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4 mb-6">
+            <div>
+              <h1 class="text-2xl font-bold tracking-tight">예약 대시보드</h1>
+              <p class="text-[13.5px] mt-1.5" style="color:var(--muted)">지점별 예약 흐름과 시술 인사이트를 한 화면에서 확인합니다.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 text-[13px]">
+              <span class="px-3 h-9 rounded-lg grid place-items-center font-semibold" style="background:var(--accent-soft); color:var(--accent-strong)">지점: 화정</span>
+              <select class="px-3 h-9 rounded-lg" style="background:var(--panel); border:1px solid var(--border); color:var(--text-soft)">
+                <option>이번 주</option><option>지난 주</option><option>이번 달</option>
+              </select>
+              <input type="date" value="2026-06-22" class="px-2.5 h-9 rounded-lg" style="background:var(--panel); border:1px solid var(--border); color:var(--text-soft)">
+              <span style="color:var(--muted)">~</span>
+              <input type="date" value="2026-06-28" class="px-2.5 h-9 rounded-lg" style="background:var(--panel); border:1px solid var(--border); color:var(--text-soft)">
+              <label class="flex items-center gap-1.5 px-2" style="color:var(--text-soft)"><input type="checkbox" checked class="accent-[var(--accent)]"> 중복 통합</label>
+              <button class="px-3 h-9 rounded-lg font-semibold flex items-center gap-1.5" style="background:var(--panel); border:1px solid var(--border); color:var(--text-soft)">
+                <iconify-icon icon="solar:download-minimalistic-linear" width="15"></iconify-icon> CSV
+              </button>
+            </div>
+          </div>
+
+          <!-- stat cards -->
+          <div id="statCards" class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-7"></div>
+
+          <!-- chart -->
+          <div class="rounded-xl p-5 mb-6" style="background:var(--panel-soft); border:1px solid var(--border-soft)">
+            <h2 class="text-[16px] font-bold">일자별 예약 추이</h2>
+            <p class="text-[12.5px] mb-5" style="color:var(--muted)">전체 예약과 초진 비중을 기간별로 비교합니다.</p>
+            <div id="chart" class="relative"></div>
+            <div class="flex items-center justify-center gap-6 mt-4 text-[12.5px]" style="color:var(--text-soft)">
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm" style="background:var(--gold)"></span> 전체</span>
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm" style="background:var(--teal)"></span> 초진</span>
+            </div>
+          </div>
+
+          <!-- 3 panels -->
+          <div class="grid lg:grid-cols-3 gap-4 mb-6">
+            <div class="rounded-xl overflow-hidden" style="border:1px solid var(--border)">
+              <div class="px-4 py-3 font-bold text-[15px]" style="border-bottom:1px solid var(--border)">지점별 집계</div>
+              <table class="tbl w-full text-[13.5px]"><thead><tr style="background:var(--panel-soft); color:var(--muted)"><th class="px-4 py-2.5 font-semibold">지점</th><th class="px-4 py-2.5 font-semibold">건수</th></tr></thead>
+                <tbody><tr style="border-top:1px solid var(--border-soft)"><td class="px-4 py-3">화정</td><td class="px-4 py-3 font-semibold">32</td></tr></tbody></table>
+            </div>
+            <div class="rounded-xl overflow-hidden" style="border:1px solid var(--border)">
+              <div class="px-4 py-3 font-bold text-[15px]" style="border-bottom:1px solid var(--border)">시간대별</div>
+              <table class="tbl w-full text-[13.5px]"><thead><tr style="background:var(--panel-soft); color:var(--muted)"><th class="px-4 py-2.5 font-semibold">시간</th><th class="px-4 py-2.5 font-semibold">건수</th></tr></thead>
+                <tbody id="timeRows"></tbody></table>
+            </div>
+            <div class="rounded-xl overflow-hidden" style="border:1px solid var(--border)">
+              <div class="px-4 py-3 font-bold text-[15px]" style="border-bottom:1px solid var(--border)">시술 Top</div>
+              <table class="tbl w-full text-[13px]"><thead><tr style="background:var(--panel-soft); color:var(--muted)"><th class="px-4 py-2.5 font-semibold">시술명</th><th class="px-4 py-2.5 font-semibold text-right">건수</th></tr></thead>
+                <tbody id="topRows"></tbody></table>
+            </div>
+          </div>
+
+          <!-- 예약 목록 -->
+          <div class="rounded-xl overflow-hidden" style="border:1px solid var(--border)">
+            <div class="px-4 py-3 flex items-center justify-between" style="border-bottom:1px solid var(--border)">
+              <span class="font-bold text-[15px]">예약 목록 <span style="color:var(--muted)" class="font-normal text-[13px]">(32건 · 중복 통합)</span></span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="tbl w-full text-[13px] whitespace-nowrap">
+                <thead><tr style="background:var(--panel-soft); color:var(--muted)">
+                  <th class="px-3 py-2.5 font-semibold">지점</th><th class="px-3 py-2.5 font-semibold">날짜</th><th class="px-3 py-2.5 font-semibold">시간</th>
+                  <th class="px-3 py-2.5 font-semibold">이름</th><th class="px-3 py-2.5 font-semibold">전화</th><th class="px-3 py-2.5 font-semibold">초진</th>
+                  <th class="px-3 py-2.5 font-semibold">확정</th><th class="px-3 py-2.5 font-semibold">중복</th><th class="px-3 py-2.5 font-semibold whitespace-normal min-w-[280px]">시술</th>
+                </tr></thead>
+                <tbody id="resvRows"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- placeholder views injected by JS -->
+      <div id="placeholders"></div>
+
+    </main>
+  </div>
+
+  <!-- mobile nav backdrop -->
+  <div id="backdrop" onclick="document.body.classList.remove('nav-open')" class="fixed inset-0 z-30 bg-black/40 hidden lg:hidden"></div>
+
+  <script>
+  /* ===================== SHARED STORE (admin ↔ front) ===================== */
+  const KK = {
+    ns:'kkeut:',
+    get(k, def){ try{ const v=localStorage.getItem(this.ns+k); return v!==null? JSON.parse(v): def; }catch(e){ return def; } },
+    set(k, val){ try{ localStorage.setItem(this.ns+k, JSON.stringify(val)); return true; }catch(e){ return false; } },
+  };
+  const STORAGE_OK = (()=>{ try{ localStorage.setItem('kkeut:_t','1'); localStorage.removeItem('kkeut:_t'); return true; }catch(e){ return false; } })();
+  function toast(msg, ok=true){
+    let t=document.getElementById('kkToast');
+    if(!t){ t=document.createElement('div'); t.id='kkToast';
+      t.style.cssText='position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);z-index:90;padding:11px 18px;border-radius:12px;font-size:13.5px;font-weight:600;color:#fff;opacity:0;transition:.3s;box-shadow:0 8px 30px rgba(0,0,0,.25)';
+      document.body.appendChild(t); }
+    t.style.background = ok? '#2f6b46':'#b0392f';
+    t.textContent = msg;
+    requestAnimationFrame(()=>{ t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)'; });
+    clearTimeout(t._h); t._h=setTimeout(()=>{ t.style.opacity='0'; t.style.transform='translateX(-50%) translateY(20px)'; }, 2200);
+  }
+  /* canonical defaults shared with the front-end (index.html must match) */
+  const DEFAULT_SETTINGS = {
+    biz:'연오재한의원', addr1:'경기 고양시 덕양구 화중로 60, 화정빌딩 2층 205·206호', addr2:'(화정역 2번 출구 404m)',
+    hWeek:'09:00 ~ 18:00', hWeekend:'09:00 ~ 17:00', hHoliday:'휴무',
+    extra:'주차 가능 · 무선 인터넷 · 남/녀 화장실 구분',
+    tel:'0507-1485-2378', ceo:'(대표원장)', reg:'(등록번호)',
+    naver:'https://booking.naver.com/booking/13/bizes/889', kakao:'',
+    insta:'', whatsapp:'', wechat:'', line:'', seo:'화정역, 고양 한의원',
+  };
+  const DEFAULT_CATEGORIES = ['전체보기','[안꿋나는] 레이저 제모','[투명하게] 미백/기미/홍조/잡티','[탄력UP!] 리프팅/탄력/비대칭','[희석없는] 스킨케어','[피부영양제] 스킨부스터/피하수액','필러no!-콜라겐볼륨침','점/편평사마귀/검버섯/쥐젖 등','여드름/모공/흉터','윤곽/지방제거','[고농도, 개인 맞춤] 다이어트/한약','[꼼꼼한 원장님] 문신/타투 제거','[빠르다] 비만/체형','[집에서 편하게] 비대면','패키지시술','상담 후 결정하기','[이것도 치료되나?] 잘 모르는 피부 고민/질환','[진짜주름치료] No!톡스'];
+  const DEFAULT_PRODUCTS = [
+    {cat:'[탄력UP!] 리프팅/탄력/비대칭', type:'promo', script:'마이크로웨이브로 비대칭까지 바로잡는', big:'온다 리프팅', title:'[탄력은 더하고, 통증은 줄이고] 온다 리프팅 (6/26 입고 예정)', event:'[첫 시술 EVENT] 온다 리프팅 10kj(1만줄)', price:45000, on:true},
+    {cat:'[탄력UP!] 리프팅/탄력/비대칭', type:'promo', script:'고출력, 열제어시스템 온도상승 디테일차이', big:'볼뉴머 리프팅', title:'[볼륨과 탄력을 한번에] 볼뉴머 리프팅', event:'[첫 시술 EVENT] 정품팁 볼뉴머 100샷', price:89000, on:true},
+    {cat:'[탄력UP!] 리프팅/탄력/비대칭', type:'promo', script:'높은 에너지로 강하고 오래가는', big:'슈링크 유니버스', title:'[탄력은 더하고, 통증은 줄이고] 슈링크 유니버스', event:'[첫 시술 EVENT] 정품팁 슈링크 유니버스 100샷', price:7900, on:true},
+    {cat:'[탄력UP!] 리프팅/탄력/비대칭', type:'promo', script:'페이크 타이머 NO! 에너지 시간만 카운트', big:'인모드 리프팅', title:'[정량 그대로] 인모드 리프팅', event:'[첫 시술 EVENT] 인모드 FX 1부위', price:2900, on:true},
+    {cat:'[안꿋나는] 레이저 제모', type:'photo', script:'OK할 때까지 안 꿋나요', big:'남자 레이저 제모', title:'[OK 할 때까지 꿋!] 남성 레이저 제모', event:'[첫 시술 EVENT] 남자 인중 or 앞턱 제모 1회', price:100, on:true},
+    {cat:'[안꿋나는] 레이저 제모', type:'photo', script:'여성 원장님 상주', big:'여자 레이저 제모', title:'[털 고민 이제 꿋!] 여성 레이저 제모 (여성 원장님 진료)', event:'[첫 시술 EVENT] 여자 인중 or 겨드랑이 제모 1회', price:100, on:true},
+    {cat:'[투명하게] 미백/기미/홍조/잡티', type:'promo', script:'고민마다 다른설계 1:1 프리미엄 맞춤', big:'듀얼 토닝', title:'듀얼 토닝, 한 단계 더 섬세하게', event:'[첫 시술 EVENT] 듀얼 토닝 (맞춤 모드 2000샷)', price:36000, on:true},
+    {cat:'[투명하게] 미백/기미/홍조/잡티', type:'promo', script:'한 끗 차이 결과', big:'레이저 토닝', title:'레이저 토닝, 맑아지는 피부톤', event:'[첫 시술 EVENT] 레이저 토닝 (1000샷)', price:100, on:true},
+    {cat:'[피부영양제] 스킨부스터/피하수액', type:'photo', script:'4-D 레이어링 방식으로 흡수율을 끌어올린', big:'쥬베룩 스킨부스터', title:'쥬베룩 스킨부스터, 피부 속 콜라겐 관리', event:'[EVENT] 쥬베룩 스킨부스터 2cc + 모델링팩', price:20000, on:true},
+    {cat:'점/편평사마귀/검버섯/쥐젖 등', type:'ba', script:'어붐+CO2 듀얼레이저', big:'흉터 적은 점제거', title:'[재발한 점까지] 점,돌출점 제거', event:'[EVENT] 점 제거(2mm이하) 개당', price:100, on:true},
+    {cat:'[희석없는] 스킨케어', type:'promo', script:'12분 이상 꽉채운', big:'LDM 관리', title:'LDM 고밀도 초음파 관리 [12분 이상 꽉 채워 진행!]', event:'[첫 시술 EVENT] LDM 초음파 관리 (국산) 60분', price:9900, on:true},
+    {cat:'여드름/모공/흉터', type:'ba', script:'3단계 패인흉터 케어 표피부터 진피하부까지', big:'흉터 새살침', title:'[흉터 재생을 위한] 흉터 새살침', event:'[첫 시술 EVENT] 새살침 1포인트 (0.5*0.5 미만)', price:43000, on:true},
+    {cat:'[투명하게] 미백/기미/홍조/잡티', type:'promo', script:'여러 피부 고민 한 번에', big:'토닝 레이저', title:'[잡티·기미 한 번에] 레이저 토닝', event:'[첫 시술 EVENT] 토닝 2000샷', price:9900, on:true},
+    {cat:'[희석없는] 스킨케어', type:'photo', script:'각질·노폐물 클렌징', big:'아쿠아필', title:'[속부터 맑게] 아쿠아필 딥클렌징', event:'[EVENT] 아쿠아필 1회', price:30000, on:true},
+    {cat:'여드름/모공/흉터', type:'promo', script:'모공·흉터 동시 케어', big:'포텐자', title:'[모공·흉터 리셋] 포텐자', event:'[첫 시술 EVENT] 포텐자 1부위', price:99000, on:true},
+    {cat:'[진짜주름치료] No!톡스', type:'photo', script:'주름 잡는 한 끗', big:'이마 보톡스', title:'[진짜주름치료] No!톡스 이마/미간', event:'[EVENT] 국산 보톡스 1부위', price:5900, on:true},
+  ];
+  const DEFAULT_POPUPS = [
+    {title:'오픈특가 이벤트', link:'https://www.kkeutclinic-hongdae.co.kr/clinicPrice', on:true, order:1, seed:'popup-open'},
+    {title:'아쿠아필 특가', link:'https://www.kkeutclinic-hongdae.co.kr/clinicPrice/gEnFbnGEGEfBA775hChk', on:true, order:2, seed:'popup-aqua'},
+    {title:'LDM 특가', link:'https://www.kkeutclinic-hongdae.co.kr/clinicPrice/7PQcq2XSB9cMHUmx6s1M', on:true, order:3, seed:'popup-ldm'},
+  ];
+  const DEFAULT_REVIEWS = [
+    {n:'김**', t:'원장님께서 친절하게 상담해주셔서 감사했습니다.'},
+    {n:'이**', t:'직원분들이 정말 친절하고 세심하게 케어해주셨어요.'},
+    {n:'박**', t:'시술 후 피부가 많이 좋아졌어요.'},
+    {n:'최**', t:'시설도 깨끗하고 대기시간도 짧아 만족스러웠습니다.'},
+    {n:'정**', t:'전문적인 상담과 시술로 효과를 바로 봤어요.'},
+    {n:'강**', t:'친구 소개로 방문했는데 정말 만족스럽네요.'},
+  ];
+  const DEFAULT_NOTES = [
+    {t:'수두흉터치료', sub:'수두 흉터와 패인 자국 개선, 포텐자가 흉터에 작용하는 방식', on:true},
+    {t:'여드름흉터필러', sub:'여드름 흉터 치료, 필러의 짧은 효과 vs 포텐자의 긴 지속력.', on:true},
+    {t:'등털제모', sub:'쉐이빙 없이 등 털 제모를 편안하게 받는 방법', on:true},
+    {t:'셀엑소좀', sub:'여드름 피부에 셀엑소좀? 어떤 효과가 있길래 주목받을까요', on:true},
+    {t:'피부과잡티제거', sub:'피부과 잡티 제거, 토닝과 잡티 레이저! 당신에게 맞는 시술은?', on:true},
+    {t:'쥬베룩시술', sub:'포텐자 X 쥬베룩 시술, 왜 환상의 시너지를 만들까?', on:true},
+    {t:'무통리쥬란', sub:'수면마취 없이도 OK! 무통 리쥬란 시술 통증 줄이는 3가지 노하우', on:true},
+    {t:'쥬베룩볼륨', sub:'쥬베룩 볼륨, 코바 차이점 총정리: 현명한 선택을 위한 가이드', on:true},
+    {t:'온다레이저', sub:'화정 온다 레이저: 지방과 처짐, 마이크로웨이브로 동시에 케어하세요', on:true},
+  ];
+  const DEFAULT_CARE = [
+    {title:'점, 편평사마귀, 비립종, 한관종, 피지선증식증 등 돌출병변 제거', on:true, body:'시술 후 일시적으로 출혈·삼출액·딱지가 생길 수 있으며 정상적인 회복 과정입니다. 시술 부위는 초기에 패여 보일 수 있으나 2~4주 차부터 새살이 차오릅니다. 딱지는 인위적으로 제거하지 마세요. 세안·샤워는 다음 날부터 미온수로 가볍게 가능합니다.'},
+    {title:'새살레이저 (비후성 흉터)', on:true, body:'붉은기는 1개월에서 최대 6개월 이상 지속될 수 있으나 시간이 지나며 옅어집니다. 시술 후 1주간은 미백·고농축 앰플 등 자극이 될 수 있는 제품 사용을 중단해 주세요.'},
+    {title:'여드름 압출', on:true, body:'압출 후 붉은기와 미세한 딱지가 생길 수 있습니다. 손으로 만지지 마시고, 자외선 차단제를 꼼꼼히 발라 색소침착을 예방하세요.'},
+    {title:'주근깨, 흑자 레이저', on:true, body:'시술 후 딱지가 생기며 7~14일에 걸쳐 자연 탈락합니다. 억지로 떼면 색소침착이 남을 수 있습니다.'},
+    {title:'골드 PPT', on:true, body:'시술 직후 미세한 따끔거림과 붉은기가 있을 수 있으며 수 시간 내 가라앉습니다.'},
+    {title:'스킨부스터 시술 (엔드란, PDRN주사, 쥬베룩, 엑소좀)', on:true, body:'주사 부위에 멍·부기가 있을 수 있고 3~7일 내 호전됩니다. 당일 음주·사우나는 피해 주세요.'},
+    {title:'리프팅 시술 (온다, 텐써마, 올리지오, 슈링크, 인모드, 끗다)', on:true, body:'시술 후 일시적 붉은기·부기가 있을 수 있습니다. 충분한 수분 섭취와 보습을 권장합니다.'},
+    {title:'제모', on:true, body:'시술 후 모낭 주변 붉은기가 정상적으로 나타날 수 있습니다. 24시간 내 사우나·격한 운동·태닝을 피해 주세요.'},
+    {title:'VIP 회원권 및 환불/변경 규정', on:true, body:'할인된 금액으로 결제 후 취소 시 10%의 위약금이 차감됩니다. 환불 금액은 정상가 1회 기준으로 환산하여 남은 금액을 산정합니다.'},
+  ];
+  const DEFAULT_DOCTORS = [
+    {name:'민경욱', role:'대표원장 · 한의사', desc:'피부·미용 시술 전문. 더스물하나 네트워크 · 연오재 대표원장.', seed:'doc-min'},
+  ];
+  const DEFAULT_NONINSURED = [
+    {name:'보톡스 (국산)', unit:'1부위', price:'5,900원'},
+    {name:'보톡스 (수입)', unit:'1부위', price:'29,000원'},
+    {name:'레이저 토닝', unit:'1회', price:'9,900원'},
+    {name:'포텐자', unit:'1부위', price:'99,000원'},
+    {name:'LDM 고밀도 초음파', unit:'60분', price:'9,900원'},
+    {name:'쥬베룩 스킨부스터', unit:'2cc', price:'20,000원'},
+    {name:'새살침(흉터 재생)', unit:'1포인트', price:'43,000원'},
+    {name:'아쿠아필 딥클렌징', unit:'1회', price:'30,000원'},
+  ];
+  const DEFAULT_NETWORK = [
+    {name:'연오재 (화정 본점)', addr:'경기 고양시 덕양구 화중로 60', phone:'0507-1485-2378', open:true},
+    {name:'더스물하나 2호점 (오픈예정)', addr:'-', phone:'-', open:false},
+    {name:'더스물하나 3호점 (오픈예정)', addr:'-', phone:'-', open:false},
+  ];
+
+  /* ===================== NAV STRUCTURE ===================== */
+  const NAV = [
+    {type:'item', id:'dashboard', label:'메인 대시보드', icon:'solar:home-2-linear'},
+    {type:'section', label:'지점별 관리'},
+    {type:'branch', label:'화정', icon:'solar:buildings-2-linear', groups:[
+      {label:'운영/설정', icon:'solar:settings-linear', items:[
+        {id:'settings', label:'기본 설정', icon:'solar:settings-linear'},
+        {id:'admins', label:'관리자 관리', icon:'solar:user-linear'},
+        {id:'menus', label:'메뉴 관리', icon:'solar:list-linear'},
+        {id:'popups', label:'팝업 관리', icon:'solar:gallery-wide-linear'},
+      ]},
+      {label:'병원/마케팅', icon:'solar:soundwave-linear', items:[
+        {id:'intro', label:'병원 소개 문구 관리', icon:'solar:pen-linear'},
+        {id:'doctors', label:'의료진 소개 관리', icon:'solar:users-group-rounded-linear'},
+        {id:'blog', label:'블로그', icon:'solar:notebook-linear'},
+        {id:'referral', label:'추천인 관리', icon:'solar:list-check-linear'},
+        {id:'notes', label:'시술노트', icon:'solar:book-2-linear'},
+        {id:'concerns', label:'고민별 접근', icon:'solar:book-bookmark-linear'},
+        {id:'noninsured', label:'비급여 항목 관리', icon:'solar:bill-list-linear'},
+      ]},
+      {label:'시술/진료 관리', icon:'solar:stethoscope-linear', items:[
+        {id:'products', label:'시술 상품 관리', icon:'solar:folder-linear'},
+        {id:'events', label:'기간별 이벤트', icon:'solar:calendar-linear'},
+        {id:'categories', label:'카테고리 관리', icon:'solar:gallery-linear'},
+        {id:'beforeafter', label:'시술 전후 관리', icon:'solar:code-square-linear'},
+        {id:'care', label:'시술 후 주의사항', icon:'solar:document-text-linear'},
+      ]},
+      {label:'예약/고객 관리', icon:'solar:calendar-mark-linear', items:[
+        {id:'reservations', label:'예약 목록 확인', icon:'solar:calendar-linear'},
+        {id:'satisfaction', label:'고객 만족도 조사', icon:'solar:like-linear'},
+      ]},
+    ]},
+    {type:'item', id:'remote', label:'비대면 진료(앱결제)', icon:'solar:hand-stars-linear'},
+  ];
+
+  /* page titles + subtitles for placeholder views */
+  const PAGES = {
+    settings:['기본 설정','지점 정보·연락처·SNS·SEO를 다국어로 관리합니다.'],
+    admins:['관리자 관리','지점 관리자 계정과 권한을 관리합니다.'],
+    menus:['메뉴 관리','드래그하여 순서를 변경하거나 하위 메뉴를 옮길 수 있습니다.'],
+    popups:['팝업 관리','메인 노출 팝업을 다국어·기간별로 등록합니다.'],
+    intro:['병원 소개 문구 관리','각 지점의 소개·오시는 길·주차 안내를 관리합니다.'],
+    doctors:['의료진 소개 수정','지점별 의료진 프로필을 등록·수정합니다.'],
+    blog:['블로그 관리','블로그 글을 등록하고 노출을 관리합니다.'],
+    referral:['추천인 코드 관리','추천인 코드를 발급하고 사용 현황을 확인합니다.'],
+    notes:['시술노트 관리','시술노트(아티클)를 다국어·지점별로 관리합니다.'],
+    concerns:['시술 노트 - 고민별 접근 관리','고민 카테고리·세부 고민과 추천 시술을 연결합니다.'],
+    noninsured:['비급여 항목 관리','의료법 고지용 비급여 진료비를 관리합니다.'],
+    products:['시술 상품 관리','시술 상품과 가격·옵션을 관리합니다.'],
+    events:['기간별 이벤트','기간 한정 이벤트를 등록하고 노출을 제어합니다.'],
+    categories:['카테고리 관리','시술 카테고리 구조를 관리합니다.'],
+    beforeafter:['시술전후 관리','시술 전후 사진을 다국어·카테고리별로 관리합니다.'],
+    care:['시술 후 주의사항 관리','시술별 주의사항 문서를 순서대로 관리합니다.'],
+    reservations:['고객 예약 목록','접수된 예약을 조회하고 상태를 관리합니다.'],
+    satisfaction:['설문 응답 목록','고객 만족도 조사 응답을 확인합니다.'],
+    remote:['비대면 주문 관리','비대면 진료(앱결제) 주문과 매출을 관리합니다.'],
+  };
+
+  /* ===================== RENDER SIDEBAR ===================== */
+  function navItem(it, sub){
+    return `<button data-view="${it.id}" onclick="go('${it.id}')"
+      class="navlink active:scale-[.99] w-full flex items-center gap-2.5 ${sub?'pl-9 pr-3':'px-3'} py-2.5 rounded-lg text-left"
+      style="color:var(--side-text)">
+      <iconify-icon icon="${it.icon}" width="${sub?16:18}" class="shrink-0" style="color:var(--side-muted)"></iconify-icon>
+      <span class="truncate">${it.label}</span>
+      <span class="navdot ml-auto w-1.5 h-1.5 rounded-full shrink-0" style="background:var(--side-active); opacity:0"></span>
+    </button>`;
+  }
+  function renderNav(){
+    let html='';
+    NAV.forEach((n,i)=>{
+      if(n.type==='item'){ html += navItem(n,false); }
+      else if(n.type==='section'){
+        html += `<p class="px-3 pt-4 pb-1.5 text-[11px] font-semibold tracking-wide" style="color:var(--side-muted)">${n.label}</p>`;
+      }
+      else if(n.type==='branch'){
+        html += `<div class="mb-1">
+          <button onclick="toggleGrp(this)" class="grp open w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg" style="color:#cdc4b6">
+            <iconify-icon icon="${n.icon}" width="18" class="shrink-0" style="color:var(--side-active)"></iconify-icon>
+            <span class="font-semibold">${n.label}</span>
+            <iconify-icon icon="solar:alt-arrow-down-linear" width="16" class="chev ml-auto" style="color:var(--side-muted)"></iconify-icon>
+          </button>
+          <div class="grp-body" style="max-height:2000px"><div class="pl-2 mt-0.5 space-y-0.5">`;
+        n.groups.forEach(g=>{
+          html += `<div>
+            <button onclick="toggleGrp(this)" class="grp open w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-[13.5px]" style="color:var(--side-text)">
+              <iconify-icon icon="${g.icon}" width="16" class="shrink-0" style="color:var(--side-muted)"></iconify-icon>
+              <span class="font-medium">${g.label}</span>
+              <iconify-icon icon="solar:alt-arrow-down-linear" width="14" class="chev ml-auto" style="color:var(--side-muted)"></iconify-icon>
+            </button>
+            <div class="grp-body" style="max-height:1000px"><div class="space-y-0.5 mt-0.5">
+              ${g.items.map(it=>navItem(it,true)).join('')}
+            </div></div></div>`;
+        });
+        html += `</div></div></div>`;
+      }
+    });
+    document.getElementById('nav').innerHTML = html;
+  }
+  function toggleGrp(btn){
+    btn.classList.toggle('open');
+    const body = btn.nextElementSibling;
+    if(btn.classList.contains('open')){ body.style.maxHeight = body.scrollHeight+200+'px'; }
+    else { body.style.maxHeight = '0px'; }
+  }
+
+  /* ===================== VIEW BUILDERS ===================== */
+  const BUILDERS = {};
+
+  function makeView(id){
+    const el = document.createElement('section');
+    el.id = 'view-'+id; el.className='view';
+    document.getElementById('placeholders').appendChild(el);
+    return el;
+  }
+  function pageHead(title, sub, right){
+    return `<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+      <div><h1 class="text-2xl font-bold tracking-tight">${title}</h1>
+      ${sub?`<p class="text-[13.5px] mt-1.5" style="color:var(--muted)">${sub}</p>`:''}</div>
+      ${right?`<div class="flex flex-wrap items-center gap-2">${right}</div>`:''}
+    </div>`;
+  }
+
+  /* ---------- 기본 설정 (editable + saves to KK store) ---------- */
+  function fieldCard(icon, label, value, key, opt={}){
+    return `<div class="rounded-xl p-4" style="background:var(--panel); border:1px solid var(--border)">
+      <div class="flex items-center gap-2 mb-2.5">
+        <iconify-icon icon="${icon}" width="16" style="color:var(--accent)"></iconify-icon>
+        <span class="text-[13px] font-semibold">${label}</span>
+        <span class="chip ml-auto" style="background:var(--accent-soft); color:var(--accent-strong)">KO</span>
+      </div>
+      <input data-sk="${key}" value="${(value||'').replace(/"/g,'&quot;')}" ${opt.ph?`placeholder="${opt.ph}"`:''}
+        class="w-full px-3 py-2.5 rounded-lg text-[13.5px]" style="background:var(--panel-soft); border:1px solid var(--border); color:var(--text)">
+      ${opt.key2!==undefined?`<input data-sk="${opt.key2}" value="${(opt.value2||'').replace(/"/g,'&quot;')}" class="w-full px-3 py-2.5 rounded-lg text-[13.5px] mt-2" style="background:var(--panel-soft); border:1px solid var(--border); color:var(--text)">`:''}
+      ${opt.hint?`<p class="text-[11.5px] mt-1.5" style="color:var(--muted)">${opt.hint}</p>`:''}
+    </div>`;
+  }
+  function saveSettings(){
+    const s = KK.get('settings', DEFAULT_SETTINGS);
+    document.querySelectorAll('#view-settings [data-sk]').forEach(inp=>{ s[inp.dataset.sk] = inp.value.trim(); });
+    KK.set('settings', s);
+    document.getElementById('settingsBadge').innerHTML = '<span class="w-1.5 h-1.5 rounded-full" style="background:var(--good)"></span> 모든 변경사항 저장됨';
+    toast(STORAGE_OK? '저장됐습니다. 홈페이지(index.html)에 반영됩니다.' : '미리보기 환경에선 저장이 제한됩니다. 다운로드 후 테스트하세요.', STORAGE_OK);
+  }
+  BUILDERS.settings = function(){
+    const s = Object.assign({}, DEFAULT_SETTINGS, KK.get('settings', {}));
+    const langTabs = [['KR','KO',1],['US','EN',0],['JP','JA',0],['CN','ZH',0],['TH','TH',0]].map(([c,l,on])=>
+      `<button onclick="pickLang(this)" data-lang="${l}" class="langtab px-3 h-9 rounded-lg text-[12.5px] font-bold flex items-center gap-1.5 ${on?'is-on':''}"
+        style="${on?'background:var(--side);color:#fff':'background:var(--panel);border:1px solid var(--border);color:var(--text-soft)'}">
+        <span class="opacity-60 text-[10px]">${c}</span> ${l}</button>`).join('');
+    const right = `
+      <button class="px-3 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)">
+        <iconify-icon icon="solar:translation-linear" width="15"></iconify-icon> 언어 선택</button>
+      <div class="flex items-center gap-1.5">${langTabs}</div>
+      <button class="px-3 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--accent-soft);color:var(--accent-strong)">✦ KO → 빈칸 채우기</button>
+      <button onclick="saveSettings()" class="px-4 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5 btn-gold">
+        <iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 저장하기</button>`;
+
+    const sectionTitle = (icon,t)=>`<div class="flex items-center gap-2 mt-8 mb-3.5 first:mt-0">
+        <iconify-icon icon="${icon}" width="18" style="color:var(--accent)"></iconify-icon>
+        <h2 class="text-[16px] font-bold">${t}</h2></div>`;
+
+    const el = makeView('settings');
+    el.innerHTML =
+      pageHead('기본 설정',
+        '<span id="settingsBadge" class="inline-flex items-center gap-1.5 text-[12.5px] font-semibold" style="color:var(--good)"><span class="w-1.5 h-1.5 rounded-full" style="background:var(--good)"></span> 모든 변경사항 저장됨</span>',
+        right) +
+      `<div class="panel rounded-2xl p-5 sm:p-7">
+        ${sectionTitle('solar:translation-linear','지점 정보 (다국어)')}
+        <div class="grid md:grid-cols-2 gap-3.5">
+          ${fieldCard('solar:map-point-linear','주소', s.addr1, 'addr1', {key2:'addr2', value2:s.addr2})}
+          ${fieldCard('solar:buildings-2-linear','상호명', s.biz, 'biz')}
+          ${fieldCard('solar:clock-circle-linear','운영시간 (평일)', s.hWeek, 'hWeek')}
+          ${fieldCard('solar:clock-circle-linear','운영시간 (주말 및 공휴일)', s.hWeekend, 'hWeekend')}
+          ${fieldCard('solar:clock-circle-linear','운영시간 (추석, 설날 포함 공휴일)', s.hHoliday, 'hHoliday')}
+          ${fieldCard('solar:info-circle-linear','추가정보', s.extra, 'extra')}
+        </div>
+
+        ${sectionTitle('solar:link-circle-linear','연락처 & 링크')}
+        <div class="grid md:grid-cols-2 gap-3.5">
+          ${fieldCard('solar:phone-linear','전화번호', s.tel, 'tel')}
+          ${fieldCard('solar:user-id-linear','대표자명', s.ceo, 'ceo')}
+          ${fieldCard('solar:hashtag-linear','사업자등록번호', s.reg, 'reg')}
+          ${fieldCard('solar:link-linear','네이버예약링크', s.naver, 'naver', {hint:'http(s)로 시작하지 않으면 저장/포커스 아웃 시 자동으로 https://가 붙습니다.'})}
+          ${fieldCard('solar:chat-round-dots-linear','카카오톡링크', s.kakao, 'kakao', {hint:'http(s)로 시작하지 않으면 저장/포커스 아웃 시 자동으로 https://가 붙습니다.'})}
+          ${fieldCard('solar:link-linear','인스타그램 링크', s.insta, 'insta', {hint:'프로필/DM 연결 URL을 넣어주세요.'})}
+          ${fieldCard('solar:chat-round-dots-linear','WhatsApp 링크', s.whatsapp, 'whatsapp', {ph:'예) https://wa.me/82XXXXXXXX', hint:'권장: wa.me 링크(국가코드 포함).'})}
+          ${fieldCard('solar:chat-round-dots-linear','WeChat 링크', s.wechat, 'wechat', {ph:'예) 위챗 QR 페이지 URL 또는 weixin://', hint:'weixin:// 같은 스킴도 그대로 저장됩니다(자동 https:// 덧붙이지 않음).'})}
+          ${fieldCard('solar:chat-round-dots-linear','LINE 링크', s.line, 'line', {ph:'예) https://line.me/R/ti/p/xxxx', hint:'공식 라인 추가 URL을 넣어주세요.'})}
+        </div>
+
+        ${sectionTitle('solar:tag-linear','SEO')}
+        <div class="grid md:grid-cols-2 gap-3.5">
+          ${fieldCard('solar:tag-linear','SEO 키워드', s.seo, 'seo', {hint:'쉼표(,)로 구분해 입력하세요. 예) 수원 피부과, 영통 제모, 여드름 치료'})}
+        </div>
+
+        <div class="mt-7 rounded-xl px-4 py-3.5 text-[12.5px] flex items-center gap-2" style="background:var(--accent-soft); color:var(--accent-strong)">
+          <iconify-icon icon="solar:info-circle-linear" width="16"></iconify-icon>
+          값을 수정하고 <b>저장하기</b>를 누르면 같은 브라우저에서 연 <b>홈페이지(index.html)</b>의 하단·오시는 길에 즉시 반영됩니다.
+        </div>
+      </div>`;
+  };
+  function pickLang(btn){
+    document.querySelectorAll('.langtab').forEach(b=>{
+      b.classList.remove('is-on');
+      b.style.cssText='background:var(--panel);border:1px solid var(--border);color:var(--text-soft)';
+    });
+    btn.classList.add('is-on');
+    btn.style.cssText='background:var(--side);color:#fff';
+  }
+
+  /* small shared language pill row (KO active) */
+  function langRow(){
+    return ['KO','EN','JA','ZH','TH'].map((l,i)=>
+      `<button class="px-3 h-8 rounded-lg text-[12px] font-bold ${i===0?'':'opacity-80'}"
+        style="${i===0?'background:var(--side);color:#fff':'background:var(--panel);border:1px solid var(--border);color:var(--text-soft)'}">${l}</button>`).join('');
+  }
+
+  /* ---------- 관리자 관리 ---------- */
+  BUILDERS.admins = function(){
+    const rows = [
+      {email:'justinkang88@hanmail.net', branch:'화정', grade:'지점관리자 (2)', status:'승인됨'},
+    ];
+    const el = makeView('admins');
+    el.innerHTML = pageHead('관리자 관리','지점 관리자 계정과 권한을 관리합니다.') +
+      `<div class="panel rounded-2xl overflow-hidden">
+        <table class="tbl w-full text-[14px]">
+          <thead><tr style="background:var(--panel-soft); color:var(--muted)">
+            <th class="px-6 py-3.5 font-semibold">이메일</th><th class="px-4 py-3.5 font-semibold">지점</th>
+            <th class="px-4 py-3.5 font-semibold">등급</th><th class="px-4 py-3.5 font-semibold">권한 상태</th>
+            <th class="px-4 py-3.5 font-semibold text-right">액션</th></tr></thead>
+          <tbody>${rows.map(r=>`
+            <tr style="border-top:1px solid var(--border-soft)">
+              <td class="px-6 py-4 font-medium">${r.email}</td>
+              <td class="px-4 py-4" style="color:var(--text-soft)">${r.branch}</td>
+              <td class="px-4 py-4"><span class="chip" style="background:#e7edff;color:#2549b8">${r.grade}</span></td>
+              <td class="px-4 py-4"><span class="chip" style="background:var(--good-bg);color:var(--good)">${r.status}</span></td>
+              <td class="px-4 py-4">
+                <div class="flex items-center justify-end gap-2">
+                  <button class="px-3 h-8 rounded-lg text-[12.5px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--muted)">승인됨</button>
+                  <button class="px-3 h-8 rounded-lg text-[12.5px] font-semibold text-white" style="background:var(--bad)">삭제하기</button>
+                </div>
+              </td>
+            </tr>`).join('')}</tbody>
+        </table>
+      </div>`;
+  };
+
+  /* ---------- 메뉴 관리 ---------- */
+  BUILDERS.menus = function(){
+    const menus = [
+      {label:'시술메뉴/이벤트', slug:'/clinicPrice', on:true, children:[]},
+      {label:'온라인예약', slug:'/reserve', on:true, children:[
+        {label:'온라인예약', slug:'/reserve', on:true},
+        {label:'비대면 진료 예약', slug:'/remoteReserve', on:false},
+        {label:'예약 변경/취소', slug:'/reserveChange', on:true},
+      ]},
+      {label:'시술전후', slug:'/before', on:true, children:[]},
+      {label:'시술 후 주의사항', slug:'/care', on:false, children:[]},
+      {label:'더스물하나', slug:'/about/brand', on:true, children:[
+        {label:'브랜드 소개', slug:'/about/brand', on:true},
+        {label:'원장 소개', slug:'/main/about/doctors', on:false},
+        {label:'지점 안내', slug:'/network', on:true},
+        {label:'가맹문의', slug:'https://kkeutnetworks.com/index.html', on:true},
+        {label:'해외/마케팅 제휴 문의', slug:'/partnership', on:true},
+      ]},
+    ];
+    const toggle = (on)=>`<span class="inline-flex items-center gap-1.5">
+        ${on?'<span class="text-[12px] font-semibold" style="color:var(--blue)">노출중</span>':'<span class="text-[12px] font-semibold" style="color:var(--muted)">숨김</span>'}
+        <span class="w-9 h-5 rounded-full relative" style="background:${on?'var(--blue)':'#cbc4ba'}">
+          <span class="absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all" style="${on?'right:2px':'left:2px'}"></span></span></span>`;
+    const actionBtns = `<div class="flex items-center gap-1.5">
+        <button class="w-8 h-8 rounded-lg grid place-items-center" style="background:var(--accent-soft);color:var(--accent-strong)"><iconify-icon icon="solar:pen-linear" width="15"></iconify-icon></button>
+        <button class="w-8 h-8 rounded-lg grid place-items-center text-white" style="background:var(--bad)"><iconify-icon icon="solar:trash-bin-trash-linear" width="15"></iconify-icon></button></div>`;
+    const right = `
+      <select class="px-3 h-9 rounded-lg text-[13px]" style="background:var(--panel);border:1px solid var(--border);color:var(--muted)"><option>가져올 지점 선택</option></select>
+      <button class="px-3 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)">다른 지점 메뉴 가져오기</button>
+      <button class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:add-circle-linear" width="15"></iconify-icon> 새 메뉴 추가</button>`;
+    const el = makeView('menus');
+    el.innerHTML = pageHead('메뉴 관리','드래그하여 순서를 변경하거나 하위 메뉴를 다른 상위 메뉴로 옮길 수 있습니다.', right) +
+      `<div class="space-y-3">${menus.map(m=>`
+        <div class="panel rounded-2xl p-3.5">
+          <div class="flex items-center gap-3 px-2 py-2">
+            <iconify-icon icon="solar:menu-dots-bold" width="16" style="color:var(--muted)" class="cursor-grab"></iconify-icon>
+            <span class="chip text-white" style="background:#6d5ce0">상위</span>
+            <span class="font-bold text-[15px]">${m.label}</span>
+            <span class="text-[12.5px]" style="color:var(--accent-strong)">${m.slug}</span>
+            <span class="ml-auto flex items-center gap-3">${toggle(m.on)}${actionBtns}</span>
+          </div>
+          <div class="mt-2 rounded-xl p-1.5" style="background:var(--panel-soft); border:1px dashed var(--border)">
+            ${m.children.length? m.children.map(c=>`
+              <div class="flex items-center gap-3 px-3 py-2.5 rounded-lg" style="background:var(--panel); border:1px solid var(--border-soft); margin:4px">
+                <iconify-icon icon="solar:menu-dots-bold" width="14" style="color:var(--muted)"></iconify-icon>
+                <iconify-icon icon="solar:arrow-right-down-linear" width="14" style="color:var(--muted)"></iconify-icon>
+                <span class="text-[14px] font-medium">${c.label}</span>
+                <span class="text-[12px]" style="color:var(--accent-strong)">${c.slug}</span>
+                <span class="ml-auto flex items-center gap-3">${toggle(c.on)}${actionBtns}</span>
+              </div>`).join('')
+              : `<p class="text-center text-[12.5px] py-3" style="color:var(--muted)">하위 메뉴 없음 — 다른 하위 메뉴를 여기로 드래그하여 이동할 수 있습니다.</p>`}
+          </div>
+        </div>`).join('')}</div>`;
+  };
+
+  /* ---------- 팝업 관리 ---------- */
+  function savePopups(){
+    const cards = document.querySelectorAll('#view-popups [data-pop]');
+    const arr = [];
+    cards.forEach(c=>{
+      arr.push({
+        title: c.querySelector('[data-pf="title"]').value.trim(),
+        link: c.querySelector('[data-pf="link"]').value.trim(),
+        on: c.querySelector('[data-pf="on"]').checked,
+        order: parseInt(c.querySelector('[data-pf="order"]').value)||1,
+        seed: c.dataset.pop,
+      });
+    });
+    arr.sort((a,b)=>a.order-b.order);
+    KK.set('popups', arr);
+    toast(STORAGE_OK? '팝업이 저장됐습니다. 홈페이지 첫 화면에 노출됩니다.' : '미리보기 환경에선 저장이 제한됩니다.', STORAGE_OK);
+  }
+  BUILDERS.popups = function(){
+    const popups = KK.get('popups', DEFAULT_POPUPS);
+    const dates = {'popup-open':'2026. 6. 10. 오후 4:07:50','popup-aqua':'2026. 6. 10. 오후 4:08:18','popup-ldm':'2026. 6. 10. 오후 4:08:45'};
+    const el = makeView('popups');
+    el.innerHTML = pageHead('팝업 관리','메인 노출 팝업을 다국어·기간별로 등록합니다.',
+      `<button onclick="savePopups()" class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 전체 저장 (홈 반영)</button>`) +
+      `<div class="panel rounded-2xl p-5 mb-5">
+        <div class="flex items-center gap-1.5 mb-4">${langRow()}</div>
+        <div class="grid lg:grid-cols-[1fr_1fr_240px] gap-3 mb-4">
+          <input placeholder="제목 (ko)" class="px-3 h-10 rounded-lg text-[13.5px]" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text)">
+          <input placeholder="링크 (ko)" class="px-3 h-10 rounded-lg text-[13.5px]" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text)">
+          <button class="px-3 h-10 rounded-lg text-[13px] text-left" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--muted)">파일 선택  선택된 파일 없음</button>
+        </div>
+        <label class="flex items-center gap-2 text-[13px] mb-4" style="color:var(--text-soft)"><input type="checkbox" class="accent-[var(--accent)]"> 기간 제한 사용</label>
+        <button class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold">팝업 등록</button>
+      </div>
+      <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-4">${popups.map(p=>`
+        <div class="panel rounded-2xl p-4" data-pop="${p.seed}">
+          <div class="flex items-center justify-between mb-3">
+            <span class="font-bold text-[15px]">${p.title}</span>
+            <button class="w-7 h-7 grid place-items-center" style="color:var(--bad)"><iconify-icon icon="solar:trash-bin-trash-linear" width="16"></iconify-icon></button>
+          </div>
+          <div class="flex items-center gap-1.5 mb-3">${langRow()}</div>
+          <div class="rounded-xl overflow-hidden mb-2" style="border:1px solid var(--border)">
+            <div class="h-40 grid place-items-center text-center px-4" style="background:linear-gradient(135deg,#fbeef0,#f6e2e8)">
+              <div><p class="text-[13px] font-bold" style="color:#8a5a66">${p.title}</p><p class="text-[11px] mt-1" style="color:#b08792">팝업 이미지 (KO)</p></div>
+            </div>
+          </div>
+          <p class="text-[11.5px] mb-3" style="color:var(--muted)">등록일: ${dates[p.seed]||'-'}</p>
+          <input data-pf="title" value="${(p.title||'').replace(/"/g,'&quot;')}" class="w-full px-3 py-2 rounded-lg text-[13px] mb-2" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text)">
+          <input data-pf="link" value="${(p.link||'').replace(/"/g,'&quot;')}" class="w-full px-3 py-2 rounded-lg text-[12px] mb-2" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">
+          <button class="w-full py-2 rounded-lg text-[12.5px] font-semibold btn-gold mb-3">이미지 교체 (KO)</button>
+          <div class="flex items-center gap-3 rounded-lg px-3 py-2.5" style="background:var(--panel-soft);border:1px solid var(--border)">
+            <label class="flex items-center gap-1.5 text-[12.5px]" style="color:var(--text-soft)"><input type="checkbox" data-pf="on" ${p.on?'checked':''} class="accent-[var(--accent)]"> 공개 여부</label>
+            <span class="text-[12.5px]" style="color:var(--text-soft)">순서</span>
+            <input data-pf="order" value="${p.order}" class="w-14 px-2 py-1 rounded text-[12.5px] text-center" style="background:var(--panel);border:1px solid var(--border);color:var(--text)">
+          </div>
+        </div>`).join('')}</div>`;
+  };
+
+  /* ---------- shared: rich-text editor toolbar ---------- */
+  function rteToolbar(){
+    const ic = (i)=>`<button class="w-8 h-8 grid place-items-center rounded hover:bg-black/5" style="color:var(--text-soft)"><iconify-icon icon="${i}" width="16"></iconify-icon></button>`;
+    return `<div class="flex flex-wrap items-center gap-0.5 px-2 py-1.5 rounded-t-lg" style="background:var(--panel-soft);border:1px solid var(--border)">
+      <select class="px-2 h-8 rounded text-[12px] mr-1" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"><option>12px</option></select>
+      <select class="px-2 h-8 rounded text-[12px] mr-1" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"><option>Normal</option></select>
+      ${['solar:text-bold-linear','solar:text-italic-linear','solar:text-underline-linear','solar:text-cross-linear','solar:quote-up-linear','solar:list-linear','solar:list-bold-linear','solar:text-field-linear','solar:palette-linear','solar:align-left-linear','solar:link-linear','solar:gallery-linear','solar:videocamera-linear','solar:eraser-linear'].map(ic).join('')}
+    </div>`;
+  }
+
+  /* ---------- 병원 소개 문구 관리 ---------- */
+  BUILDERS.intro = function(){
+    const el = makeView('intro');
+    el.innerHTML = pageHead('병원 소개 문구 관리','각 지점의 소개·오시는 길·주차 안내를 관리합니다.', `<div class="flex items-center gap-1.5">${langRow()}</div>`) +
+      `<div class="panel rounded-2xl p-5">
+        ${rteToolbar()}
+        <div class="rounded-b-lg px-4 py-4 min-h-[460px] text-[13.5px]" style="background:var(--panel);border:1px solid var(--border);border-top:0;color:var(--muted)">내용을 입력하세요...</div>
+      </div>`;
+  };
+
+  /* ---------- 의료진 소개 관리 ---------- */
+  function saveDoctors(){
+    const arr=[];
+    document.querySelectorAll('#view-doctors [data-doc]').forEach(c=>{
+      arr.push({ seed:c.dataset.doc, name:c.querySelector('[data-df="name"]').value.trim(), role:c.querySelector('[data-df="role"]').value.trim(), desc:c.querySelector('[data-df="desc"]').value.trim() });
+    });
+    KK.set('doctors', arr);
+    toast(STORAGE_OK? '저장됐습니다. 홈페이지 「의료진 소개」에 반영됩니다.' : '미리보기 환경에선 저장이 제한됩니다.', STORAGE_OK);
+  }
+  BUILDERS.doctors = function(){
+    const docs = KK.get('doctors', DEFAULT_DOCTORS);
+    const el = makeView('doctors');
+    el.innerHTML = pageHead('의료진 소개 수정','지점별 의료진 프로필을 등록·수정합니다. (수정 → 저장 시 홈 반영)',
+      `<button onclick="saveDoctors()" class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 전체 저장 (홈 반영)</button>`) +
+      `<div class="grid md:grid-cols-2 gap-4">${docs.map(d=>`
+        <div class="panel rounded-2xl p-5" data-doc="${d.seed}">
+          <div class="flex items-start gap-4">
+            <div class="w-20 h-24 rounded-xl shrink-0 grid place-items-center" style="background:linear-gradient(135deg,#e9e1d6,#d8cabb)"><iconify-icon icon="solar:user-linear" width="28" style="color:var(--accent-strong)"></iconify-icon></div>
+            <div class="flex-1 space-y-2">
+              <input data-df="name" value="${(d.name||'').replace(/"/g,'&quot;')}" placeholder="이름" class="w-full px-3 py-2 rounded-lg text-[14px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text)">
+              <input data-df="role" value="${(d.role||'').replace(/"/g,'&quot;')}" placeholder="직책" class="w-full px-3 py-2 rounded-lg text-[13px]" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">
+            </div>
+          </div>
+          <textarea data-df="desc" rows="3" placeholder="소개" class="w-full px-3 py-2 rounded-lg text-[13px] mt-3 break-keep" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">${d.desc||''}</textarea>
+          <div class="flex items-center justify-end gap-1.5 mt-3">
+            <button class="px-3 h-8 rounded-lg text-[12.5px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">사진 변경</button>
+            <button class="w-8 h-8 rounded-lg grid place-items-center text-white" style="background:var(--bad)"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button>
+          </div>
+        </div>`).join('')}
+        <button class="panel rounded-2xl p-14 text-center grid place-items-center" style="border-style:dashed;color:var(--muted)"><span><iconify-icon icon="solar:add-circle-linear" width="24" style="color:var(--accent)"></iconify-icon><br>의료진 추가</span></button>
+      </div>`;
+  };
+
+  /* ---------- 블로그 ---------- */
+  BUILDERS.blog = function(){
+    const el = makeView('blog');
+    el.innerHTML = pageHead('블로그 관리','블로그 글을 등록하고 노출을 관리합니다.',
+      `<button class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:add-circle-linear" width="15"></iconify-icon> 새 글 추가</button>`) +
+      `<div class="panel rounded-2xl overflow-hidden">
+        <table class="tbl w-full text-[13.5px]">
+          <thead><tr style="background:var(--panel-soft);color:var(--muted)">
+            ${['순서','썸네일','제목','URL','미리보기','활성','액션'].map(h=>`<th class="px-4 py-3.5 font-semibold text-center">${h}</th>`).join('')}
+          </tr></thead>
+          <tbody><tr><td colspan="7" class="text-center py-16" style="color:var(--muted)">등록된 글이 없습니다.</td></tr></tbody>
+        </table>
+        <div class="flex items-center justify-center gap-1.5 py-5">
+          <button class="px-3 h-8 rounded-lg text-[12.5px]" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--muted)">이전</button>
+          <button class="px-3 h-8 rounded-lg text-[12.5px] font-bold" style="color:var(--text)">페이지 1</button>
+          <button class="px-3 h-8 rounded-lg text-[12.5px]" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--muted)">다음</button>
+        </div>
+      </div>`;
+  };
+
+  /* ---------- 추천인 관리 ---------- */
+  BUILDERS.referral = function(){
+    const el = makeView('referral');
+    el.innerHTML = pageHead('추천인 코드 관리','추천인 코드를 발급하고 사용 현황을 확인합니다.') +
+      `<div class="flex flex-wrap items-center gap-2 mb-5">
+        <input placeholder="이름으로 검색" class="px-3 h-9 rounded-lg text-[13px] w-56" style="background:var(--panel);border:1px solid var(--border);color:var(--text)">
+        <select class="px-3 h-9 rounded-lg text-[13px]" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"><option>전체</option></select>
+        <button class="px-3 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">검색 초기화</button>
+        <button class="ml-auto px-4 h-9 rounded-lg text-[13px] font-semibold text-white flex items-center gap-1.5" style="background:#5849d4"><iconify-icon icon="solar:add-circle-linear" width="15"></iconify-icon> 새 코드</button>
+      </div>
+      <div class="panel rounded-2xl p-14 text-center"><p style="color:var(--text-soft)">등록된 추천인 코드가 없습니다.</p></div>`;
+  };
+
+  /* ---------- 시술노트 (store-backed; publishes to front /notes page) ---------- */
+  function saveNotes(){
+    const arr = [];
+    document.querySelectorAll('#view-notes [data-note]').forEach(c=>{
+      arr.push({ t:c.dataset.note, sub:c.querySelector('[data-nf="sub"]').value.trim(), on:c.querySelector('[data-nf="on"]').checked });
+    });
+    KK.set('notes', arr);
+    toast(STORAGE_OK? '시술노트가 저장됐습니다. 홈페이지 「시술 노트」에 노출됩니다.' : '미리보기 환경에선 저장이 제한됩니다.', STORAGE_OK);
+  }
+  BUILDERS.notes = function(){
+    const notes = KK.get('notes', DEFAULT_NOTES);
+    const langDots = ['KO','EN','JA','ZH','TH'].map(l=>`<span class="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded" style="background:var(--accent-soft);color:var(--accent-strong)">${l} <span class="w-1.5 h-1.5 rounded-full" style="background:var(--good)"></span></span>`).join('');
+    const el = makeView('notes');
+    el.innerHTML = pageHead('시술노트 관리','시술노트(아티클)를 다국어·지점별로 관리합니다.',
+      `<button class="px-3 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)">✦ 일괄 다국어/스피닝 적용</button>
+       <button onclick="saveNotes()" class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 전체 저장 (홈 반영)</button>`) +
+      `<div class="flex items-center gap-3 mb-4">
+        <input placeholder="검색어를 입력하세요" class="px-3 h-10 rounded-lg text-[13.5px] w-80" style="background:var(--panel);border:1px solid var(--border);color:var(--text)">
+        <span class="ml-auto px-3 h-9 rounded-full text-[12.5px] font-semibold grid place-items-center" style="background:var(--side);color:#fff">한국어</span>
+      </div>
+      <p class="text-[12.5px] mb-4" style="color:var(--muted)">전체 159개 · 1 / 14 페이지 · <b style="color:var(--accent-strong)">공개 여부를 끄면 홈페이지에서 숨겨집니다</b></p>
+      <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">${notes.map(n=>`
+        <div class="panel rounded-2xl overflow-hidden" data-note="${(n.t||'').replace(/"/g,'&quot;')}">
+          <div class="relative h-36 grid place-items-center px-4 text-center" style="background:linear-gradient(135deg,#f3ede6,#e8ded2)">
+            <h3 class="text-2xl font-extrabold tracking-tight" style="color:#2c2620">${n.t}</h3>
+            <span class="absolute top-0 right-0 px-2 py-3 text-[9px] font-bold tracking-widest text-white" style="background:#d98a9a;writing-mode:vertical-rl">THE 21</span>
+          </div>
+          <div class="p-4">
+            <span class="chip" style="background:#e7edff;color:#2549b8">다른 지점 글 · 연오재(화정 본점)</span>
+            <input data-nf="sub" value="${(n.sub||'').replace(/"/g,'&quot;')}" class="w-full px-3 py-2 rounded-lg text-[13px] mt-2.5" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text)">
+            <div class="flex flex-wrap gap-1 mt-3">${langDots}</div>
+            <div class="flex items-center justify-between mt-3">
+              <label class="flex items-center gap-1.5 text-[12.5px]" style="color:var(--text-soft)"><input type="checkbox" data-nf="on" ${n.on!==false?'checked':''} class="accent-[var(--accent)]"> 공개</label>
+              <div class="flex items-center gap-1.5">
+                ${['solar:arrow-up-linear','solar:arrow-down-linear','solar:pen-linear'].map(i=>`<button class="w-8 h-8 rounded-lg grid place-items-center" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="${i}" width="14"></iconify-icon></button>`).join('')}
+                <button class="w-8 h-8 rounded-lg grid place-items-center text-white" style="background:var(--bad)"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button>
+              </div>
+            </div>
+          </div>
+        </div>`).join('')}</div>`;
+  };
+
+  /* ---------- 고민별 접근 ---------- */
+  BUILDERS.concerns = function(){
+    const cats = [
+      '리프팅 & 윤곽 (Lifting & Contour)','색소 & 화이트닝 (Brightening)','안면홍조 & 혈관 (Redness & Vascular)',
+      '피부 요철 & 양성 종양 (Surface Bump)','모공 & 피지 & 결 (Pore & Texture)','여드름 & 트러블 (Acne Care)',
+      '흉터 & 흔적 (Scar & Mark)','문신 제거 (Tattoo Removal)','레이저 제모 (Laser Hair Removal)','다이어트 & 바디관리 (Diet & Body)'];
+    const details = [
+      ['모공 & 피지 & 결 (Pore & Texture)','블랙헤드/화이트헤드','블랙헤드-화이트헤드'],
+      ['피부 요철 & 양성 종양 (Surface Bump)','점 (모반)','점-모반'],
+      ['문신 제거 (Tattoo Removal)','난치성/잔여 문신','난치성-잔여-문신'],
+      ['안면홍조 & 혈관 (Redness & Vascular)','갱년기/감정 홍조','갱년기-감정-홍조'],
+      ['리프팅 & 윤곽 (Lifting & Contour)','이중턱','이중턱'],
+      ['색소 & 화이트닝 (Brightening)','기미 (난치성 색소)','기미-난치성-색소'],
+      ['레이저 제모 (Laser Hair Removal)','난치성/반복 제모','난치성-반복-제모'],
+      ['흉터 & 흔적 (Scar & Mark)','여드름 흉터','여드름-흉터'],
+      ['여드름 & 트러블 (Acne Care)','청소년기 여드름','청소년기-여드름'],
+    ];
+    const editBtns = `<div class="flex items-center justify-end gap-1.5">
+      <button class="w-8 h-8 rounded-lg grid place-items-center" style="background:var(--accent-soft);color:var(--accent-strong)"><iconify-icon icon="solar:pen-linear" width="14"></iconify-icon></button>
+      <button class="w-8 h-8 rounded-lg grid place-items-center text-white" style="background:var(--bad)"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button></div>`;
+    const el = makeView('concerns');
+    el.innerHTML = pageHead('시술 노트 - 고민별 접근 관리','고민 카테고리·세부 고민과 추천 시술을 연결합니다.') +
+      `<div class="panel rounded-2xl overflow-hidden mb-5">
+        <div class="px-5 py-4 flex items-center justify-between" style="border-bottom:1px solid var(--border)">
+          <span class="font-bold text-[16px]">고민 카테고리 관리</span>
+          <button class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:add-circle-linear" width="15"></iconify-icon> 카테고리 추가</button>
+        </div>
+        <table class="tbl w-full text-[14px]">
+          <thead><tr style="background:var(--panel-soft);color:var(--muted)"><th class="px-5 py-3 font-semibold">순서</th><th class="px-4 py-3 font-semibold">카테고리명</th><th class="px-4 py-3 font-semibold">상태</th><th class="px-4 py-3 font-semibold text-right">관리</th></tr></thead>
+          <tbody>${cats.map((c,i)=>`<tr style="border-top:1px solid var(--border-soft)"><td class="px-5 py-3.5">${i+1}</td><td class="px-4 py-3.5 font-medium">${c}</td><td class="px-4 py-3.5"><span class="chip" style="background:var(--good-bg);color:var(--good)">노출</span></td><td class="px-4 py-3.5">${editBtns}</td></tr>`).join('')}</tbody>
+        </table>
+      </div>
+      <div class="panel rounded-2xl overflow-hidden">
+        <div class="px-5 py-4 flex items-center justify-between" style="border-bottom:1px solid var(--border)">
+          <span class="font-bold text-[16px]">상세 고민 관리</span>
+          <button class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:add-circle-linear" width="15"></iconify-icon> 상세 고민 추가</button>
+        </div>
+        <table class="tbl w-full text-[14px]">
+          <thead><tr style="background:var(--panel-soft);color:var(--muted)"><th class="px-5 py-3 font-semibold">카테고리</th><th class="px-4 py-3 font-semibold">고민명 (Slug)</th><th class="px-4 py-3 font-semibold">순서</th><th class="px-4 py-3 font-semibold">상태</th><th class="px-4 py-3 font-semibold text-right">관리</th></tr></thead>
+          <tbody>${details.map(d=>`<tr style="border-top:1px solid var(--border-soft)"><td class="px-5 py-3.5" style="color:var(--text-soft)">${d[0]}</td><td class="px-4 py-3.5"><p class="font-semibold">${d[1]}</p><p class="text-[12px]" style="color:var(--muted)">${d[2]}</p></td><td class="px-4 py-3.5">1</td><td class="px-4 py-3.5"><span class="chip" style="background:var(--good-bg);color:var(--good)">노출</span></td><td class="px-4 py-3.5">${editBtns}</td></tr>`).join('')}</tbody>
+        </table>
+      </div>`;
+  };
+
+  /* ---------- 비급여 항목 관리 (store-backed → front /noninsured page) ---------- */
+  function saveNoninsured(){
+    const arr=[];
+    document.querySelectorAll('#view-noninsured [data-ni]').forEach(tr=>{
+      arr.push({ name:tr.querySelector('[data-nif="name"]').value.trim(), unit:tr.querySelector('[data-nif="unit"]').value.trim(), price:tr.querySelector('[data-nif="price"]').value.trim() });
+    });
+    KK.set('noninsured', arr);
+    toast(STORAGE_OK? '저장됐습니다. 홈페이지 「비급여 안내」에 반영됩니다.' : '미리보기 환경에선 저장이 제한됩니다.', STORAGE_OK);
+  }
+  BUILDERS.noninsured = function(){
+    const items = KK.get('noninsured', DEFAULT_NONINSURED);
+    const el = makeView('noninsured');
+    el.innerHTML = pageHead('비급여 항목 관리','「의료법」 제45조에 따른 비급여 진료비용 고지 항목을 관리합니다. (수정 → 저장 시 홈 반영)',
+      `<button onclick="saveNoninsured()" class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 전체 저장 (홈 반영)</button>`) +
+      `<div class="panel rounded-2xl overflow-hidden">
+        <table class="tbl w-full text-[14px]">
+          <thead><tr style="background:var(--panel-soft);color:var(--muted)"><th class="px-6 py-3.5 font-semibold">항목명</th><th class="px-4 py-3.5 font-semibold w-36">기준</th><th class="px-4 py-3.5 font-semibold w-36">비용</th><th class="px-4 py-3.5 font-semibold text-right w-24">관리</th></tr></thead>
+          <tbody>${items.map(it=>`<tr style="border-top:1px solid var(--border-soft)" data-ni>
+            <td class="px-6 py-3"><input data-nif="name" value="${(it.name||'').replace(/"/g,'&quot;')}" class="w-full px-3 py-2 rounded-lg text-[14px] font-medium" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text)"></td>
+            <td class="px-4 py-3"><input data-nif="unit" value="${(it.unit||'').replace(/"/g,'&quot;')}" class="w-full px-3 py-2 rounded-lg text-[13px]" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)"></td>
+            <td class="px-4 py-3"><input data-nif="price" value="${(it.price||'').replace(/"/g,'&quot;')}" class="w-full px-3 py-2 rounded-lg text-[13px] text-right" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--accent-strong);font-weight:600"></td>
+            <td class="px-4 py-3"><div class="flex items-center justify-end"><button class="w-8 h-8 rounded-lg grid place-items-center text-white" style="background:var(--bad)"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button></div></td>
+          </tr>`).join('')}</tbody>
+        </table>
+      </div>`;
+  };
+
+  /* ---------- 시술 상품 관리 (store-backed; price + visibility editable → front category page) ---------- */
+  function saveProducts(){
+    const base = KK.get('products', DEFAULT_PRODUCTS);
+    document.querySelectorAll('#view-products [data-prow]').forEach(tr=>{
+      const i = parseInt(tr.dataset.prow);
+      base[i].price = parseInt((tr.querySelector('[data-pf="price"]').value||'0').replace(/[^0-9]/g,''))||0;
+      base[i].on = tr.querySelector('[data-pf="on"]').checked;
+    });
+    KK.set('products', base);
+    toast(STORAGE_OK? '상품이 저장됐습니다. 홈페이지 「시술메뉴/이벤트」에 반영됩니다.' : '미리보기 환경에선 저장이 제한됩니다.', STORAGE_OK);
+  }
+  BUILDERS.products = function(){
+    const products = KK.get('products', DEFAULT_PRODUCTS);
+    const el = makeView('products');
+    el.innerHTML = pageHead('시술 상품 관리','시술 상품과 가격·노출을 관리합니다. (가격·노출 수정 → 저장 시 홈 반영)',
+      `<input placeholder="상품명 검색" class="px-3 h-9 rounded-lg text-[13px] w-56" style="background:var(--panel);border:1px solid var(--border);color:var(--text)">
+       <button onclick="saveProducts()" class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 전체 저장 (홈 반영)</button>`) +
+      `<div class="panel rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="tbl w-full text-[13.5px] whitespace-nowrap">
+        <thead><tr style="background:var(--panel-soft);color:var(--muted)"><th class="px-4 py-3.5 font-semibold">카테고리</th><th class="px-4 py-3.5 font-semibold">상품명</th><th class="px-4 py-3.5 font-semibold">대표 이벤트</th><th class="px-4 py-3.5 font-semibold">이벤트가(원)</th><th class="px-4 py-3.5 font-semibold">노출</th><th class="px-4 py-3.5 font-semibold text-right">관리</th></tr></thead>
+        <tbody>${products.map((p,i)=>`<tr style="border-top:1px solid var(--border-soft)" data-prow="${i}">
+          <td class="px-4 py-3.5" style="color:var(--text-soft)">${p.cat}</td>
+          <td class="px-4 py-3.5 font-semibold">${p.big}</td>
+          <td class="px-4 py-3.5" style="color:var(--text-soft)">${p.event}</td>
+          <td class="px-4 py-3.5"><input data-pf="price" value="${p.price}" class="w-28 px-2 py-1.5 rounded text-[13px] text-right" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--accent-strong);font-weight:600"></td>
+          <td class="px-4 py-3.5"><label class="inline-flex items-center gap-1.5 text-[12.5px]" style="color:var(--text-soft)"><input type="checkbox" data-pf="on" ${p.on!==false?'checked':''} class="accent-[var(--accent)]"> 노출</label></td>
+          <td class="px-4 py-3.5"><div class="flex items-center justify-end gap-1.5"><button class="w-8 h-8 rounded-lg grid place-items-center" style="background:var(--accent-soft);color:var(--accent-strong)"><iconify-icon icon="solar:pen-linear" width="14"></iconify-icon></button><button class="w-8 h-8 rounded-lg grid place-items-center text-white" style="background:var(--bad)"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button></div></td>
+        </tr>`).join('')}</tbody></table></div></div>`;
+  };
+
+  /* ---------- 기간별 이벤트 ---------- */
+  BUILDERS.events = function(){
+    const rows = [
+      ['오픈특가 이벤트','2026-06-10','2026-07-10',true],
+      ['아쿠아필 특가','2026-06-10','상시',true],
+      ['LDM 특가','2026-06-10','상시',true],
+      ['여름 제모 패키지','2026-06-20','2026-08-31',false],
+    ];
+    const el = makeView('events');
+    el.innerHTML = pageHead('기간별 이벤트','기간 한정 이벤트를 등록하고 노출을 제어합니다.',
+      `<button class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:add-circle-linear" width="15"></iconify-icon> 이벤트 추가</button>`) +
+      `<div class="panel rounded-2xl overflow-hidden"><table class="tbl w-full text-[14px]">
+        <thead><tr style="background:var(--panel-soft);color:var(--muted)"><th class="px-6 py-3.5 font-semibold">이벤트명</th><th class="px-4 py-3.5 font-semibold">시작일</th><th class="px-4 py-3.5 font-semibold">종료일</th><th class="px-4 py-3.5 font-semibold">노출</th><th class="px-4 py-3.5 font-semibold text-right">관리</th></tr></thead>
+        <tbody>${rows.map(r=>`<tr style="border-top:1px solid var(--border-soft)"><td class="px-6 py-4 font-medium">${r[0]}</td><td class="px-4 py-4" style="color:var(--text-soft)">${r[1]}</td><td class="px-4 py-4" style="color:var(--text-soft)">${r[2]}</td><td class="px-4 py-4">${r[3]?`<span class="chip" style="background:var(--good-bg);color:var(--good)">노출</span>`:`<span class="chip" style="background:var(--bad-bg);color:var(--bad)">종료</span>`}</td><td class="px-4 py-4"><div class="flex items-center justify-end gap-1.5"><button class="w-8 h-8 rounded-lg grid place-items-center" style="background:var(--accent-soft);color:var(--accent-strong)"><iconify-icon icon="solar:pen-linear" width="14"></iconify-icon></button><button class="w-8 h-8 rounded-lg grid place-items-center text-white" style="background:var(--bad)"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button></div></td></tr>`).join('')}</tbody>
+      </table></div>`;
+  };
+
+  /* ---------- 카테고리 관리 (store-backed; visibility → front category sidebar) ---------- */
+  function saveCategories(){
+    const on = [];
+    document.querySelectorAll('#view-categories [data-crow]').forEach(tr=>{
+      if(tr.querySelector('[data-cf="on"]').checked) on.push(tr.dataset.cat);
+    });
+    if(!on.includes('전체보기')) on.unshift('전체보기');
+    KK.set('categories', on);
+    toast(STORAGE_OK? '카테고리가 저장됐습니다. 홈페이지 사이드바에 반영됩니다.' : '미리보기 환경에선 저장이 제한됩니다.', STORAGE_OK);
+  }
+  BUILDERS.categories = function(){
+    const all = DEFAULT_CATEGORIES;
+    const visible = KK.get('categories', DEFAULT_CATEGORIES);
+    const el = makeView('categories');
+    el.innerHTML = pageHead('카테고리 관리','시술 카테고리 노출을 관리합니다. (노출 체크 → 저장 시 홈 사이드바 반영)',
+      `<button onclick="saveCategories()" class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 전체 저장 (홈 반영)</button>`) +
+      `<div class="panel rounded-2xl overflow-hidden"><table class="tbl w-full text-[14px]">
+        <thead><tr style="background:var(--panel-soft);color:var(--muted)"><th class="px-5 py-3.5 font-semibold">순서</th><th class="px-4 py-3.5 font-semibold">카테고리명</th><th class="px-4 py-3.5 font-semibold">노출</th><th class="px-4 py-3.5 font-semibold text-right">관리</th></tr></thead>
+        <tbody>${all.map((c,i)=>`<tr style="border-top:1px solid var(--border-soft)" data-crow="${i}" data-cat="${c.replace(/"/g,'&quot;')}"><td class="px-5 py-3.5"><iconify-icon icon="solar:menu-dots-bold" width="14" style="color:var(--muted)" class="mr-2"></iconify-icon>${i+1}</td><td class="px-4 py-3.5 font-medium">${c}</td><td class="px-4 py-3.5"><label class="inline-flex items-center gap-1.5 text-[12.5px]" style="color:var(--text-soft)"><input type="checkbox" data-cf="on" ${(c==='전체보기'||visible.includes(c))?'checked':''} ${c==='전체보기'?'disabled':''} class="accent-[var(--accent)]"> 노출</label></td><td class="px-4 py-3.5"><div class="flex items-center justify-end gap-1.5"><button class="w-8 h-8 rounded-lg grid place-items-center" style="background:var(--accent-soft);color:var(--accent-strong)"><iconify-icon icon="solar:pen-linear" width="14"></iconify-icon></button><button class="w-8 h-8 rounded-lg grid place-items-center text-white" style="background:var(--bad)"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button></div></td></tr>`).join('')}</tbody>
+      </table></div>`;
+  };
+
+  /* ---------- 시술 전후 관리 ---------- */
+  BUILDERS.beforeafter = function(){
+    const el = makeView('beforeafter');
+    el.innerHTML = pageHead('시술전후 관리','시술 전후 사진을 다국어·카테고리별로 관리합니다.', `<div class="flex items-center gap-1.5">${langRow()}</div>
+      <button class="w-9 h-9 rounded-lg grid place-items-center btn-gold"><iconify-icon icon="solar:add-circle-linear" width="18"></iconify-icon></button>`) +
+      `<div class="panel rounded-2xl p-5">
+        <div class="flex items-center justify-between rounded-xl px-4 py-3.5 mb-4" style="background:var(--panel-soft);border:1px solid var(--border)">
+          <div><p class="font-semibold text-[14px]">전후 사진 블러 처리</p><p class="text-[12.5px]" style="color:var(--muted)">ON 시 이 지점의 시술 전후 사진이 블러 처리되어 노출됩니다.</p></div>
+          <span class="flex items-center gap-2"><span class="text-[12.5px] font-semibold" style="color:var(--muted)">OFF</span><span class="w-9 h-5 rounded-full relative" style="background:#cbc4ba"><span class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white"></span></span></span>
+        </div>
+        <div class="flex items-center gap-2 mb-6">
+          <select class="px-3 h-9 rounded-lg text-[13px]" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"><option>전체 카테고리</option></select>
+          <button class="px-3 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">카테고리 관리</button>
+        </div>
+        <div class="text-center py-16" style="color:var(--muted)">해당 조건에 맞는 항목이 없습니다.</div>
+      </div>`;
+  };
+
+  /* ---------- 시술 후 주의사항 관리 (store-backed → front /care page) ---------- */
+  function saveCare(){
+    const arr=[];
+    document.querySelectorAll('#view-care [data-care]').forEach(tr=>{
+      arr.push({ title:tr.dataset.care, on:tr.querySelector('[data-cf="on"]').checked, body:tr.querySelector('[data-cf="body"]').value.trim() });
+    });
+    KK.set('care', arr);
+    toast(STORAGE_OK? '저장됐습니다. 홈페이지 「시술 후 주의사항」에 반영됩니다.' : '미리보기 환경에선 저장이 제한됩니다.', STORAGE_OK);
+  }
+  BUILDERS.care = function(){
+    const rows = KK.get('care', DEFAULT_CARE);
+    const dates = ['2025. 11. 4.','2025. 11. 4.','2025. 11. 12.','2025. 6. 4.','2025. 6. 4.','2025. 6. 4.','2025. 6. 4.','2025. 6. 4.','2025. 12. 13.'];
+    const el = makeView('care');
+    el.innerHTML = pageHead('시술 후 주의사항 관리','시술별 주의사항 문서를 관리합니다. (내용·공개 수정 → 저장 시 홈 반영)', `<div class="flex items-center gap-1.5">${langRow()}</div>
+      <button onclick="saveCare()" class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 전체 저장 (홈 반영)</button>`) +
+      `<div class="panel rounded-2xl overflow-hidden"><table class="tbl w-full text-[14px]">
+        <thead><tr style="background:var(--panel-soft);color:var(--muted)"><th class="px-6 py-3.5 font-semibold">제목 (KO)</th><th class="px-4 py-3.5 font-semibold text-center w-20">순서</th><th class="px-4 py-3.5 font-semibold w-28">작성일</th><th class="px-4 py-3.5 font-semibold text-center w-20">공개</th></tr></thead>
+        <tbody>${rows.map((r,i)=>`<tr style="border-top:1px solid var(--border-soft)" data-care="${(r.title||'').replace(/"/g,'&quot;')}">
+          <td class="px-6 py-3.5">
+            <p class="font-medium break-keep mb-1.5">${r.title}</p>
+            <textarea data-cf="body" rows="2" class="w-full px-3 py-2 rounded-lg text-[12.5px] break-keep" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">${r.body||''}</textarea>
+          </td>
+          <td class="px-4 py-3.5 text-center align-top"><span class="inline-flex items-center gap-1"><span class="w-6 h-6 rounded-full grid place-items-center text-[12px] font-semibold" style="background:var(--accent-soft);color:var(--accent-strong)">${i+1}</span></span></td>
+          <td class="px-4 py-3.5 align-top" style="color:var(--text-soft)">${dates[i]||'-'}</td>
+          <td class="px-4 py-3.5 text-center align-top"><input type="checkbox" data-cf="on" ${r.on!==false?'checked':''} class="accent-[var(--accent)]"></td>
+        </tr>`).join('')}</tbody>
+      </table></div>
+      <p class="text-[12px] mt-3" style="color:var(--muted)">※ 내용을 수정하고 저장하면 홈페이지 「시술 후 주의사항」 페이지에 그대로 노출됩니다.</p>`;
+  };
+
+  /* ---------- 고객 예약 목록 ---------- */
+  BUILDERS.reservations = function(){
+    const rows = [
+      ['배서영','01059476689','2026-06-30','15:30','초진','동의','미확정','[첫 시술 EVENT] 여자 인중 or 겨드랑이 제모 1회 외 8건'],
+      ['최수정','01090704672','2026-06-26','20:00','초진','동의','미확정','[EVENT] 끗다 리프팅 180kj(18만줄) 6만굴 *3회'],
+      ['연경훈','01030171463','2026-06-25','20:00','초진','동의','미확정','[첫 시술 EVENT] 제네시스 토닝 (2000샷) 외 1건'],
+      ['유주형','01047461820','2026-06-29','19:00','초진','동의','미확정','[첫 시술 EVENT] 남자 인중 or 앞턱 제모 1회 외 1건'],
+      ['오병만','01038854988','2026-06-26','14:30','초진','동의','미확정','상담하기'],
+      ['김정임','01072765356','2026-06-26','17:00','초진','거부','미확정','[EVENT] 여자 종아리 제모(무릎 포함) 5회 외 1건'],
+      ['손현지','01040872154','2026-06-23','16:30','초진','동의','확정','[첫 시술 EVENT] LDM 초음파 관리 12분 이상 외 1건'],
+      ['유지홍','01052849196','2026-06-26','17:00','초진','동의','확정','[EVENT] 눈가 전용 EYE-엔드란힐러 1cc'],
+      ['이기성','01073819525','2026-06-23','14:30','초진','동의','확정','상담하기'],
+      ['민정원','01089030212','2026-06-23','11:00','초진','동의','확정','[첫 시술 EVENT] 정품팁 볼뉴머 300샷'],
+    ];
+    const el = makeView('reservations');
+    el.innerHTML = pageHead('고객 예약 목록','접수된 예약을 조회하고 상태를 관리합니다.',
+      `<button class="px-3 h-9 rounded-lg text-[13px] font-semibold text-white" style="background:#5849d4">예약 가능시간 수정</button>
+       <button class="px-3 h-9 rounded-lg text-[13px] font-semibold text-white" style="background:var(--bad)">마감처리</button>`) +
+      `<div class="flex flex-wrap items-center gap-2 mb-5">
+        <input placeholder="이름 검색" class="px-3 h-9 rounded-lg text-[13px] w-52" style="background:var(--panel);border:1px solid var(--border);color:var(--text)">
+        <input type="date" class="px-2.5 h-9 rounded-lg text-[13px]" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)">
+        <select class="px-3 h-9 rounded-lg text-[13px]" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"><option>전체</option></select>
+        <button class="px-3 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">검색 초기화</button>
+      </div>
+      <div class="panel rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="tbl w-full text-[13px] whitespace-nowrap">
+        <thead><tr style="background:var(--panel-soft);color:var(--muted)">${['이름','연락처','예약일','예약시간','초진','SMS','시술/이벤트','예약상태','취소'].map(h=>`<th class="px-3 py-3 font-semibold">${h}</th>`).join('')}</tr></thead>
+        <tbody>${rows.map(r=>`<tr style="border-top:1px solid var(--border-soft)">
+          <td class="px-3 py-3 font-medium">${r[0]}</td><td class="px-3 py-3" style="color:var(--text-soft)">${r[1]}</td>
+          <td class="px-3 py-3" style="color:var(--text-soft)">${r[2]}</td><td class="px-3 py-3" style="color:var(--text-soft)">${r[3]}</td>
+          <td class="px-3 py-3">${r[4]}</td><td class="px-3 py-3" style="color:var(--text-soft)">${r[5]}</td>
+          <td class="px-3 py-3 whitespace-normal break-keep min-w-[260px]" style="color:var(--accent-strong)">${r[7]}</td>
+          <td class="px-3 py-3">${r[6]==='확정'?`<span class="chip text-white" style="background:#16a34a">확정</span>`:`<span class="chip text-white" style="background:#dc2626">미확정</span>`}</td>
+          <td class="px-3 py-3"><button class="px-2.5 h-7 rounded-lg text-[12px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">취소</button></td>
+        </tr>`).join('')}</tbody>
+      </table></div></div>`;
+  };
+
+  /* ---------- 고객 만족도 조사 ---------- */
+  const SURVEY_ROWS = [
+    ['2026-06-25 20:04','김강률',5,5,0,0,0,'원장선생님이 정말 친절하셨어요'],
+    ['2026-06-23 19:14','황미진',5,5,5,5,5,'시설도 깨끗하고 직원분들이 세심하게 케어해주셨어요'],
+  ];
+  function exportReviews(){
+    const reviews = SURVEY_ROWS.filter(r=>r[7]).map(r=>({ n:(r[1]||'')[0]+'**', t:r[7] }));
+    const merged = [...reviews, ...DEFAULT_REVIEWS].slice(0,8);
+    KK.set('reviews', merged);
+    toast(STORAGE_OK? '리뷰가 홈페이지 상단 리뷰 띠에 반영됐습니다.' : '미리보기 환경에선 저장이 제한됩니다.', STORAGE_OK);
+  }
+  BUILDERS.satisfaction = function(){
+    const rows = SURVEY_ROWS;
+    const star = v => `<span class="chip inline-flex items-center gap-0.5" style="background:${v>0?'var(--good-bg)':'#fbe9e7'};color:${v>0?'var(--good)':'#c0362c'}"><iconify-icon icon="solar:star-${v>0?'bold':'linear'}" width="11"></iconify-icon> ${v}</span>`;
+    const el = makeView('satisfaction');
+    el.innerHTML = pageHead('설문 응답 목록','고객 만족도 조사 응답을 확인합니다.',
+      `<button class="px-3 h-9 rounded-lg text-[13px] font-semibold text-white" style="background:var(--side)">고객 만족도 조사 (2)</button>
+       <button class="px-3 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--panel);border:1px solid var(--border);color:var(--muted)">카카오 상담 만족도 (0)</button>
+       <button onclick="exportReviews()" class="px-3 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 리뷰로 홈 노출</button>`) +
+      `<div class="panel rounded-2xl overflow-hidden">
+        <p class="px-5 pt-4 text-[12.5px]" style="color:var(--muted)">전체 2건 · 페이지 1 / 1 · <b style="color:var(--accent-strong)">"리뷰로 홈 노출"</b>을 누르면 잘한 점이 홈 상단 리뷰 띠에 표시됩니다</p>
+        <table class="tbl w-full text-[13.5px] mt-2">
+          <thead><tr style="background:var(--panel-soft);color:var(--muted)">${['작성일','고객명','원장','상담실장','코디','간호사','스태프','잘한 점','개선점','기억나는 직원'].map(h=>`<th class="px-4 py-3 font-semibold">${h}</th>`).join('')}</tr></thead>
+          <tbody>${rows.map(r=>`<tr style="border-top:1px solid var(--border-soft)"><td class="px-4 py-3.5" style="color:var(--text-soft)">${r[0]}</td><td class="px-4 py-3.5 font-medium">${r[1]}</td><td class="px-4 py-3.5">${star(r[2])}</td><td class="px-4 py-3.5">${star(r[3])}</td><td class="px-4 py-3.5">${star(r[4])}</td><td class="px-4 py-3.5">${star(r[5])}</td><td class="px-4 py-3.5">${star(r[6])}</td><td class="px-4 py-3.5" style="color:var(--text-soft)">${r[7]||''}</td><td class="px-4 py-3.5"></td><td class="px-4 py-3.5"></td></tr>`).join('')}</tbody>
+        </table>
+      </div>`;
+  };
+
+  /* ---------- 비대면 주문 관리 ---------- */
+  BUILDERS.remote = function(){
+    const stats = [['결제 매출','32,890원','결제완료 상태 기준'],['결제 건수','1건','현재 기간 내 결제완료'],['평균 결제액','32,890원','건당 평균 결제 금액'],['초진 결제 건수','0건','초진 환자 결제 건수']];
+    const el = makeView('remote');
+    el.innerHTML = pageHead('비대면 주문 관리','비대면 진료(앱결제) 주문과 매출을 관리합니다.',
+      `<input type="date" value="2026-06-20" class="px-2.5 h-9 rounded-lg text-[13px]" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)">
+       <input type="date" value="2026-06-26" class="px-2.5 h-9 rounded-lg text-[13px]" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)">
+       <button class="px-3 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">최근 7일</button>`) +
+      `<div class="panel rounded-2xl p-5 sm:p-6 mb-5">
+        <h2 class="font-bold text-[16px] mb-4">비대면 매출 통계</h2>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 mb-6">${stats.map(s=>`
+          <div class="rounded-xl p-4" style="border:1px solid var(--border);background:var(--panel)"><p class="text-[13px]" style="color:var(--muted)">${s[0]}</p><p class="text-2xl font-extrabold mt-1.5">${s[1]}</p><p class="text-[11.5px] mt-1" style="color:var(--muted)">${s[2]}</p></div>`).join('')}</div>
+        <div class="grid lg:grid-cols-2 gap-4">
+          <div class="rounded-xl p-5" style="background:var(--panel-soft);border:1px solid var(--border)">
+            <p class="font-bold text-[14px] mb-1">일별 결제 매출</p><p class="text-[12px] mb-4" style="color:var(--muted)">선택한 기간 안에서 결제완료된 주문만 집계합니다.</p>
+            <div class="flex items-end justify-center gap-2 h-40"><div class="rounded-t" style="width:48px;height:130px;background:linear-gradient(180deg,#c79f63,#b8935a)"></div></div>
+            <p class="text-center text-[11.5px] mt-2" style="color:var(--muted)">6/24</p>
+          </div>
+          <div class="rounded-xl p-5" style="background:var(--panel-soft);border:1px solid var(--border)">
+            <p class="font-bold text-[14px] mb-1">매출 상위 상품</p><p class="text-[12px] mb-4" style="color:var(--muted)">주문 상세 항목 금액 기준 상위 5개 상품입니다.</p>
+            <div class="rounded-lg p-4" style="background:var(--panel);border:1px solid var(--border)"><div class="flex items-center justify-between"><div><p class="text-[11px] font-bold" style="color:var(--accent-strong)">TOP 1</p><p class="text-[13.5px] font-medium mt-0.5">[EVENT] 비대면 감비환 10일치</p></div><div class="text-right"><p class="font-extrabold">32,890원</p><p class="text-[11.5px]" style="color:var(--muted)">1개 판매</p></div></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="flex flex-wrap gap-2 mb-4">${[['결제대기',0,1],['상담대기(결제완료)',1,0],['상담완료(배송준비)',0,0],['배송처리완료',0,0],['취소/재청구하기',0,0],['청구서파기',0,0]].map(t=>`<button class="px-4 h-9 rounded-lg text-[13px] font-semibold ${t[2]?'text-white':''}" style="${t[2]?'background:var(--side)':'background:var(--panel);border:1px solid var(--border);color:var(--text-soft)'}">${t[0]} ${t[1]}</button>`).join('')}</div>
+      <div class="panel rounded-2xl p-14 text-center" style="color:var(--muted)">표시할 주문이 없습니다.</div>`;
+  };
+
+  /* ===================== ROUTING ===================== */
+  function ensurePlaceholder(id){
+    if(document.getElementById('view-'+id)) return;
+    const [title, sub] = PAGES[id] || [id,''];
+    const el = document.createElement('section');
+    el.id = 'view-'+id; el.className='view';
+    el.innerHTML = `
+      <div class="mb-5">
+        <h1 class="text-2xl font-bold tracking-tight">${title}</h1>
+        <p class="text-[13.5px] mt-1.5" style="color:var(--muted)">${sub}</p>
+      </div>
+      <div class="panel rounded-2xl p-16 text-center">
+        <div class="w-14 h-14 mx-auto rounded-2xl grid place-items-center mb-4" style="background:var(--accent-soft)">
+          <iconify-icon icon="solar:hammer-linear" width="26" style="color:var(--accent)"></iconify-icon>
+        </div>
+        <p class="font-semibold">이 화면은 다음 단계에서 구성합니다.</p>
+        <p class="text-[13.5px] mt-1.5" style="color:var(--muted)">스크린샷을 보며 <b>${title}</b> 화면을 이어서 채워 넣을 예정입니다.</p>
+      </div>`;
+    document.getElementById('placeholders').appendChild(el);
+  }
+  function go(id){
+    if(!document.getElementById('view-'+id)){
+      if(typeof BUILDERS!=='undefined' && BUILDERS[id]) BUILDERS[id]();
+      else ensurePlaceholder(id);
+    }
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('view-'+id).classList.add('active');
+    document.querySelectorAll('.navlink').forEach(a=>a.classList.toggle('active', a.dataset.view===id));
+    history.replaceState(null,'','#'+id);
+    document.body.classList.remove('nav-open');
+    window.scrollTo({top:0,behavior:'auto'});
+  }
+
+  /* ===================== TOGGLES ===================== */
+  function toggleSidebar(){
+    if(window.innerWidth<1024){ document.body.classList.toggle('nav-open'); document.getElementById('backdrop').classList.toggle('hidden'); }
+    else document.body.classList.toggle('collapsed');
+  }
+  function toggleTheme(){
+    document.documentElement.classList.toggle('dark');
+    const dark = document.documentElement.classList.contains('dark');
+    document.getElementById('themeIcon').setAttribute('icon', dark?'solar:moon-linear':'solar:sun-linear');
+  }
+
+  /* ===================== DASHBOARD DATA ===================== */
+  const won = n => n.toLocaleString('ko-KR');
+  const stats = [
+    {label:'총 예약', value:32, icon:'solar:calendar-linear', color:'var(--text-soft)'},
+    {label:'확정', value:16, icon:'solar:check-circle-linear', color:'var(--good)'},
+    {label:'미확정', value:16, icon:'solar:close-circle-linear', color:'var(--bad)'},
+    {label:'초진', value:32, icon:'solar:clock-circle-linear', color:'var(--teal)'},
+  ];
+  document.getElementById('statCards').innerHTML = stats.map(s=>`
+    <div class="rounded-xl p-4 sm:p-5" style="border:1px solid var(--border); background:var(--panel)">
+      <div class="flex items-start justify-between">
+        <span class="text-[13px] font-medium" style="color:var(--muted)">${s.label}</span>
+        <iconify-icon icon="${s.icon}" width="20" style="color:${s.color}"></iconify-icon>
+      </div>
+      <p class="text-[30px] font-extrabold mt-2 tracking-tight">${s.value}</p>
+    </div>`).join('');
+
+  const chartData = [
+    {d:'6/22(월)', total:0, chojin:0},
+    {d:'6/23(화)', total:11, chojin:11},
+    {d:'6/24(수)', total:7, chojin:7},
+    {d:'6/25(목)', total:3, chojin:3},
+    {d:'6/26(금)', total:6, chojin:6},
+    {d:'6/27(토)', total:3, chojin:3},
+    {d:'6/28(일)', total:2, chojin:2},
+  ];
+  (function renderChart(){
+    const max=12, H=240;
+    const grid=[0,3,6,9,12];
+    const gridLines = grid.map(g=>`
+      <div class="absolute left-0 right-0 flex items-center gap-2" style="bottom:${(g/max)*H+28}px">
+        <span class="text-[11px] w-5 text-right" style="color:var(--muted)">${g}</span>
+        <span class="flex-1 border-t border-dashed" style="border-color:var(--border)"></span>
+      </div>`).join('');
+    const bars = chartData.map(c=>`
+      <div class="flex-1 flex flex-col items-center justify-end gap-1" style="height:${H}px">
+        <div class="flex items-end gap-1.5 w-full justify-center" style="height:${H}px">
+          <div class="bar rounded-t-sm w-[26px] sm:w-[40px]" style="height:${(c.total/max)*H}px; background:linear-gradient(180deg,#c79f63,#b8935a)"></div>
+          <div class="bar rounded-t-sm w-[26px] sm:w-[40px]" style="height:${(c.chojin/max)*H}px; background:linear-gradient(180deg,#4a7088,#3f6377)"></div>
+        </div>
+      </div>`).join('');
+    const labels = chartData.map(c=>`<div class="flex-1 text-center text-[11.5px] pt-2" style="color:var(--muted)">${c.d}</div>`).join('');
+    document.getElementById('chart').innerHTML =
+      `<div class="relative pl-7" style="height:${H+28}px">${gridLines}<div class="flex items-end gap-1.5 sm:gap-3 h-full relative z-10">${bars}</div></div>
+       <div class="flex gap-1.5 sm:gap-3 pl-7">${labels}</div>`;
+  })();
+
+  const timeData = [['10:00',6],['11:00',1],['12:00',3],['13:00',4],['14:00',6],['15:00',1],['16:00',4],['17:00',2],['19:00',3],['20:00',2]];
+  document.getElementById('timeRows').innerHTML = timeData.map(t=>`
+    <tr style="border-top:1px solid var(--border-soft)"><td class="px-4 py-2.5">${t[0]}</td><td class="px-4 py-2.5 font-semibold">${t[1]}</td></tr>`).join('');
+
+  const topData = [
+    ['[첫 시술 EVENT] LDM 초음파 관리 12분 이상 + 자운고 모델링팩',7],
+    ['[첫 시술 EVENT] 여자 인중 or 겨드랑이 제모 1회',4],
+    ['[첫 시술 EVENT] 피지불림 + 아쿠아필(1,2,3제) + 자운고 모델링팩',4],
+    ['[첫 시술 EVENT] 남자 인중 or 앞턱 제모 1회',4],
+    ['[첫 시술 EVENT] 피하수액 약침 1회',3],
+    ['[첫 시술 EVENT] 글루타치온 백옥관리 1회 + 자운고 모델링팩',3],
+    ['[첫 시술 EVENT] 온다 리프팅 20kj(2만줄)',2],
+    ['[첫 시술 EVENT] LDM 초음파 관리 (triple sonic) 6분 + 자운고 모델링팩',2],
+    ['[첫 시술 EVENT] 정품팁 슈링크 유니버스 300샷',2],
+    ['[첫 시술 EVENT] 염증약침 풀페이스 무제한',2],
+  ];
+  document.getElementById('topRows').innerHTML = topData.map(t=>`
+    <tr style="border-top:1px solid var(--border-soft)"><td class="px-4 py-2.5 break-keep" style="color:var(--text-soft)">${t[0]}</td><td class="px-4 py-2.5 font-semibold text-right">${t[1]}</td></tr>`).join('');
+
+  const resvData = [
+    ['화정','20260624','13:30','이혜리','01098963505','Y','','','[첫 시술 EVENT] LDM 초음파 관리 12분 이상 + 자운고 모델링팩'],
+    ['화정','20260623','16:30','손현지','01040872154','Y','Y','','[첫 시술 EVENT] LDM 초음파 관리 12분 이상 + 자운고 모델링팩 / [첫 시술 EVENT] 여자 인중 or 겨드랑이 제모 1회'],
+    ['화정','20260623','15:00','황미진','01088620754','Y','Y','','[EVENT] 여자 브라질리언 + 항문 제모 1년 무제한 / [EVENT] 여자 겨드랑이 or 인중 제모 1년 무제한'],
+    ['화정','20260623','14:30','이기성','01073819525','Y','Y','','상담하기'],
+    ['화정','20260623','13:00','임세린','01055497943','Y','Y','','상담하기 / [첫 시술 EVENT] LDM 초음파 관리 12분 이상 + 자운고 모델링팩'],
+    ['화정','20260623','12:30','유광진','01066167194','Y','Y','','[EVENT] 여드름 자국 제거 3회 / [첫 시술 EVENT] 인모드 FX 1부위'],
+    ['화정','20260623','11:00','민정원','01089030212','Y','Y','','[첫 시술 EVENT] 정품팁 볼뉴머 300샷'],
+    ['화정','20260623','10:30','유지홍','01052849196','Y','Y','','[첫 시술 EVENT] 정품팁 슈링크 유니버스 100샷 / [EVENT] 코 모공 프락셀 1회 + 모델링팩'],
+    ['화정','20260623','10:30','유지홍','01052849196','Y','Y','×2','[첫 시술 EVENT] 온다 리프팅 10kj(1만줄) / [첫 시술 EVENT] 온다 리프팅 20kj(2만줄)'],
+    ['화정','20260623','10:30','조수연','01050038814','Y','Y','','[첫 시술 EVENT] LDM 초음파 관리 12분 이상 + 자운고 모델링팩'],
+  ];
+  document.getElementById('resvRows').innerHTML = resvData.map(r=>`
+    <tr style="border-top:1px solid var(--border-soft)">
+      <td class="px-3 py-2.5">${r[0]}</td><td class="px-3 py-2.5">${r[1]}</td><td class="px-3 py-2.5">${r[2]}</td>
+      <td class="px-3 py-2.5 font-medium">${r[3]}</td><td class="px-3 py-2.5" style="color:var(--text-soft)">${r[4]}</td>
+      <td class="px-3 py-2.5 text-center">${r[5]?`<span style="color:var(--good)">${r[5]}</span>`:''}</td>
+      <td class="px-3 py-2.5 text-center">${r[6]?`<span style="color:var(--good)">${r[6]}</span>`:''}</td>
+      <td class="px-3 py-2.5 text-center font-semibold" style="color:var(--accent-strong)">${r[7]}</td>
+      <td class="px-3 py-2.5 whitespace-normal break-keep text-[12.5px]" style="color:var(--text-soft); min-width:280px">${r[8]}</td>
+    </tr>`).join('');
+
+  /* ===================== INLINE SVG ICONS (self-contained) ===================== */
+  const GLYPH = {
+    home:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>',
+    settings:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>',
+    user:'<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+    userid:'<rect x="2" y="4" width="20" height="16" rx="2"/><circle cx="8" cy="11" r="2.4"/><path d="M4.5 16.5a3.5 3.5 0 0 1 7 0"/><path d="M15 9.5h4M15 13.5h4"/>',
+    users:'<path d="M17 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9.5" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    list:'<path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/>',
+    listcheck:'<path d="M11 6h10M11 12h10M11 18h10"/><path d="M3 6l1.4 1.4L7 5"/><path d="M3 12l1.4 1.4L7 11"/><path d="M3 18l1.4 1.4L7 17"/>',
+    image:'<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/>',
+    pen:'<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/>',
+    speaker:'<path d="M3 11v2a1 1 0 0 0 1 1h2.5L11 18V6L6.5 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a4 4 0 0 1 0 7M18 5a8 8 0 0 1 0 14"/>',
+    book:'<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>',
+    bookmark:'<path d="M6 3h12a1 1 0 0 1 1 1v17l-7-5-7 5V4a1 1 0 0 1 1-1z"/>',
+    filetext:'<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8M8 9h2"/>',
+    folder:'<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+    calendar:'<rect x="3" y="4.5" width="18" height="17" rx="2"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/>',
+    calendarmark:'<rect x="3" y="4.5" width="18" height="17" rx="2"/><path d="M16 2.5v4M8 2.5v4M3 10h18"/><path d="M12 14h4v4h-4z"/>',
+    code:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9.5 9l-2.5 3 2.5 3M14.5 9l2.5 3-2.5 3"/>',
+    like:'<path d="M7 10.5V21H4.5a1 1 0 0 1-1-1v-8.5a1 1 0 0 1 1-1z"/><path d="M7 10.5l4-7a2 2 0 0 1 3 1.6V8.5h5a2 2 0 0 1 2 2.3l-1.2 7A2 2 0 0 1 20.6 19.5H7z"/>',
+    award:'<circle cx="12" cy="8" r="6"/><path d="M8.5 13.5L7 22l5-3 5 3-1.5-8.5"/>',
+    stethoscope:'<path d="M5 3v6a4 4 0 0 0 8 0V3"/><path d="M9 13.5V16a5 5 0 0 0 10 0v-2"/><circle cx="19" cy="11" r="2.2"/>',
+    building:'<rect x="4" y="2" width="16" height="20" rx="1"/><path d="M9.5 22v-4h5v4"/><path d="M8 6h.01M12 6h.01M16 6h.01M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01"/>',
+    mappin:'<path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>',
+    phone:'<path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.13.96.36 1.9.7 2.8a2 2 0 0 1-.45 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.45c.9.34 1.85.57 2.8.7A2 2 0 0 1 22 16.9z"/>',
+    hashtag:'<path d="M4 9h16M4 15h16M10 3L8 21M16 3l-2 18"/>',
+    info:'<circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/>',
+    link:'<path d="M10 13a5 5 0 0 0 7.1 0l2.9-2.9a5 5 0 0 0-7.1-7.1L11.5 4.4"/><path d="M14 11a5 5 0 0 0-7.1 0L4 13.9a5 5 0 0 0 7.1 7.1l1.4-1.4"/>',
+    tag:'<path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L2 12V2h10l8.6 8.6a2 2 0 0 1 0 2.8z"/><path d="M7 7h.01"/>',
+    globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18 14 14 0 0 1 0-18z"/>',
+    sparkles:'<path d="M12 3l1.6 4.9L18 9l-4.4 1.1L12 15l-1.6-4.9L6 9l4.4-1.1z"/><path d="M19 13.5l.7 2.1 2.3.4-2 1.2.2 2.3-1.5-1.4-2 .9 1-2.1-1.4-1.7 2.2-.2z"/>',
+    checkcircle:'<circle cx="12" cy="12" r="9"/><path d="M8 12l2.8 2.8L16 9"/>',
+    closecircle:'<circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/>',
+    clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5l3.2 2"/>',
+    download:'<path d="M12 3v12"/><path d="M7 11l5 5 5-5"/><path d="M5 21h14"/>',
+    upload:'<path d="M12 21V9"/><path d="M7 8l5-5 5 5"/><path d="M5 21h14"/>',
+    logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>',
+    trash:'<path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 6"/><path d="M10 11v6M14 11v6"/>',
+    pluscircle:'<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
+    chevdown:'<path d="M6 9.5l6 6 6-6"/>',
+    chevup:'<path d="M6 14.5l6-6 6 6"/>',
+    arrowdown:'<path d="M12 5v14"/><path d="M6 13l6 6 6-6"/>',
+    arrowup:'<path d="M12 19V5"/><path d="M6 11l6-6 6 6"/>',
+    cornerdr:'<path d="M5 4v8a2 2 0 0 0 2 2h11"/><path d="M14 10l4 4-4 4"/>',
+    sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    moon:'<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/>',
+    eyeoff:'<path d="M9.9 4.4A9.6 9.6 0 0 1 12 4.2c5 0 9 4.9 9 7.8a13 13 0 0 1-2.2 2.9M6.5 6.6A13 13 0 0 0 3 12c0 2.9 4 7.8 9 7.8a9.4 9.4 0 0 0 3.6-.7"/><path d="M3 3l18 18"/>',
+    sidebar:'<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/>',
+    starline:'<path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.1 6.5L12 17.6 6.2 20.5l1.1-6.5L2.5 9.4l6.6-.9z"/>',
+    starbold:'<path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.1 6.5L12 17.6 6.2 20.5l1.1-6.5L2.5 9.4l6.6-.9z" fill="currentColor" stroke="none"/>',
+    tool:'<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-2.4z"/>',
+    bold:'<path d="M6.5 4h6a4 4 0 0 1 0 8h-6z"/><path d="M6.5 12h7a4 4 0 0 1 0 8h-7z"/>',
+    italic:'<path d="M19 4h-7M12 20H5M15 4L9 20"/>',
+    underline:'<path d="M6 4v6a6 6 0 0 0 12 0V4"/><path d="M4 21h16"/>',
+    strike:'<path d="M4 12h16"/><path d="M8.5 8a4 3 0 0 1 7-1M9 16a4 3 0 0 0 7 1"/>',
+    quote:'<path d="M8 7H5a1.5 1.5 0 0 0-1.5 1.5V11A1.5 1.5 0 0 0 5 12.5h2v1.5a2.5 2.5 0 0 1-2.5 2.5"/><path d="M18 7h-3a1.5 1.5 0 0 0-1.5 1.5V11a1.5 1.5 0 0 0 1.5 1.5h2v1.5a2.5 2.5 0 0 1-2.5 2.5"/>',
+    type:'<path d="M4 7V4h16v3M9 20h6M12 4v16"/>',
+    palette:'<path d="M12 21a9 9 0 1 1 9-9c0 2.2-1.8 3-3.5 3H16a2 2 0 0 0-2 2 2.5 2.5 0 0 1-2 3z"/><circle cx="7.5" cy="11" r="1"/><circle cx="11" cy="7.5" r="1"/><circle cx="15.5" cy="9" r="1"/>',
+    alignleft:'<path d="M4 6h16M4 12h11M4 18h14"/>',
+    eraser:'<path d="M4 14.5l6-6 7 7-4.5 4.5H8.5z"/><path d="M21 21H9"/>',
+    video:'<rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3z"/>',
+    chat:'<path d="M21 11.5a8 8 0 0 1-11.6 7.1L3.5 20.5l1.9-5.9A8 8 0 1 1 21 11.5z"/><path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01"/>',
+    grip:'<circle cx="9" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.3" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.3" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.3" fill="currentColor" stroke="none"/>',
+    dot:'<circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/>',
+  };
+  const ICON_ALIAS = {
+    'solar:home-2-linear':'home','solar:settings-linear':'settings','solar:user-linear':'user','solar:user-id-linear':'userid',
+    'solar:users-group-rounded-linear':'users','solar:list-linear':'list','solar:list-bold-linear':'list','solar:list-check-linear':'listcheck',
+    'solar:gallery-linear':'image','solar:gallery-wide-linear':'image','solar:pen-linear':'pen','solar:soundwave-linear':'speaker',
+    'solar:book-2-linear':'book','solar:notebook-linear':'book','solar:book-bookmark-linear':'bookmark','solar:bill-list-linear':'filetext',
+    'solar:document-text-linear':'filetext','solar:folder-linear':'folder','solar:calendar-linear':'calendar','solar:calendar-mark-linear':'calendarmark',
+    'solar:code-square-linear':'code','solar:like-linear':'like','solar:hand-stars-linear':'award','solar:stethoscope-linear':'stethoscope',
+    'solar:buildings-2-linear':'building','solar:map-point-linear':'mappin','solar:phone-linear':'phone','solar:hashtag-linear':'hashtag',
+    'solar:info-circle-linear':'info','solar:link-linear':'link','solar:link-circle-linear':'link','solar:tag-linear':'tag',
+    'solar:translation-linear':'globe','solar:magic-stick-3-linear':'sparkles','solar:check-circle-linear':'checkcircle','solar:close-circle-linear':'closecircle',
+    'solar:clock-circle-linear':'clock','solar:download-minimalistic-linear':'download','solar:upload-minimalistic-linear':'upload','solar:logout-2-linear':'logout',
+    'solar:trash-bin-trash-linear':'trash','solar:add-circle-linear':'pluscircle','solar:alt-arrow-down-linear':'chevdown','solar:alt-arrow-up-linear':'chevup',
+    'solar:arrow-down-linear':'arrowdown','solar:arrow-up-linear':'arrowup','solar:arrow-right-down-linear':'cornerdr','solar:sun-linear':'sun','solar:moon-linear':'moon',
+    'solar:eye-closed-linear':'eyeoff','solar:siderbar-linear':'sidebar','solar:star-linear':'starline','solar:star-bold':'starbold','solar:hammer-linear':'tool',
+    'solar:text-bold-linear':'bold','solar:text-italic-linear':'italic','solar:text-underline-linear':'underline','solar:text-cross-linear':'strike',
+    'solar:quote-up-linear':'quote','solar:text-field-linear':'type','solar:palette-linear':'palette','solar:align-left-linear':'alignleft',
+    'solar:eraser-linear':'eraser','solar:videocamera-linear':'video','solar:chat-round-dots-linear':'chat','solar:menu-dots-bold':'grip',
+  };
+  function svgFor(name, size){
+    const g = GLYPH[ICON_ALIAS[name]] || GLYPH.dot;
+    return `<svg viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" style="display:block">${g}</svg>`;
+  }
+  function renderIcons(root){
+    (root||document).querySelectorAll('iconify-icon:not([data-ico])').forEach(el=>{
+      const size = el.getAttribute('width') || 18;
+      el.innerHTML = svgFor(el.getAttribute('icon'), size);
+      el.setAttribute('data-ico','1');
+      el.style.display='inline-flex'; el.style.lineHeight='0'; el.style.verticalAlign='-0.15em';
+    });
+  }
+
+  /* ===================== INIT ===================== */
+  renderNav();
+  renderIcons(document);
+  new MutationObserver(()=>renderIcons(document)).observe(document.body,{childList:true,subtree:true});
+  const start = (location.hash||'#dashboard').slice(1);
+  go(start);
+  </script>
+</body>
+</html>
