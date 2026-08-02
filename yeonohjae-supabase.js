@@ -1,10 +1,9 @@
 /* =========================================================================
-   연오재 · Supabase 백엔드 연동 (localStorage 미러 방식)
-   - index.html 과 admin.html 의 <head> 끝(</head> 바로 위)에 아래 2줄 추가:
+   연오재 · Supabase 백엔드 연동 (localStorage 미러 + 이미지 업로드)
+   - index.html / admin.html <head> 에 아래 2줄이 있어야 함:
        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
        <script src="yeonohjae-supabase.js"></script>
    - 이 파일은 레포 최상위(index.html 과 같은 위치)에 둡니다.
-   동작: 관리자 저장 → Supabase 업로드 / 방문자 접속 → Supabase에서 받아와 반영.
    ========================================================================= */
 (function(){
   var SUPABASE_URL = 'https://funutqwltjmcfgxihcrr.supabase.co';
@@ -18,7 +17,7 @@
   var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   window.__sb = sb;
 
-  /* 1) Supabase → localStorage 동기화 후, 바뀐 값이 있으면 1회 새로고침 */
+  /* ===== 1) Supabase → localStorage 동기화 후, 바뀐 값 있으면 1회 새로고침 ===== */
   sb.from('site_kv').select('key,value').then(function(res){
     if (res.error){ console.warn('[연오재] 불러오기 오류:', res.error.message); return; }
     var changed = false;
@@ -39,14 +38,14 @@
     }
   });
 
-  /* 2) 저장(KK.set) 시 Supabase 에도 함께 저장되도록 확장 */
+  /* ===== 2) 저장(KK.set) 시 Supabase 에도 저장 ===== */
   function wrapKK(){
     var K = window.KK;
     if (!K){ try { if (typeof KK !== 'undefined') K = KK; } catch(e){} }
     if (!K || K.__sbWrapped) return !!(K && K.__sbWrapped);
     var origSet = K.set.bind(K);
     K.set = function(key, val){
-      var ok = origSet(key, val); /* 기존 localStorage 저장 유지 */
+      var ok = origSet(key, val);
       try {
         sb.from('site_kv')
           .upsert({ key: key, value: val, updated_at: new Date().toISOString() })
@@ -61,4 +60,23 @@
     document.addEventListener('DOMContentLoaded', wrapKK);
     setTimeout(wrapKK, 800);
   }
+
+  /* ===== 3) 이미지 업로드 헬퍼 =====
+     사용법(관리자 화면에서): const url = await uploadImage(파일);  // 공개 URL 반환
+     - media 버킷에 저장하고, 홈페이지에서 바로 쓸 수 있는 공개 주소를 돌려줍니다. */
+  window.uploadImage = async function(file){
+    if (!file) throw new Error('업로드할 파일이 없습니다.');
+    var dot = (file.name || '').lastIndexOf('.');
+    var ext = dot >= 0 ? file.name.slice(dot + 1).toLowerCase() : 'jpg';
+    var rand = Math.random().toString(36).slice(2, 8);
+    var path = 'uploads/' + Date.now() + '_' + rand + '.' + ext;
+    var up = await sb.storage.from('media').upload(path, file, {
+      cacheControl: '3600',
+      upsert: false,
+      contentType: file.type || undefined
+    });
+    if (up.error) throw up.error;
+    var pub = sb.storage.from('media').getPublicUrl(path);
+    return pub.data.publicUrl;
+  };
 })();
