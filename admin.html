@@ -63,6 +63,22 @@
 </head>
 <body>
 
+  <script>
+  /* ===== 관리자 접근 1차 보호 (비밀번호) =====
+     ※ 아래 PW 값을 원하는 비밀번호로 바꿔서 커밋하세요.
+     ※ 완전한 보안은 Supabase RLS 잠금(별도 작업)이 필요합니다. */
+  (function(){
+    var PW = 'yeonohjae2378';
+    try{
+      if(sessionStorage.getItem('yj_admin_ok')==='1') return;
+      var v = prompt('관리자 비밀번호를 입력하세요');
+      if(v===PW){ sessionStorage.setItem('yj_admin_ok','1'); return; }
+      alert('비밀번호가 올바르지 않습니다.');
+      location.replace('index.html');
+    }catch(e){}
+  })();
+  </script>
+
   <!-- ===================== SIDEBAR ===================== -->
   <aside id="sidebar" class="no-sb fixed top-0 left-0 z-40 h-screen w-[260px] overflow-y-auto transition-transform duration-300"
          style="background:var(--side); border-right:1px solid var(--side-border)">
@@ -231,7 +247,7 @@
     biz:'연오재한의원', addr1:'경기 고양시 덕양구 화중로 60, 화정빌딩 2층 205·206호', addr2:'(화정역 2번 출구 404m)',
     hWeek:'09:00 ~ 18:00', hWeekend:'09:00 ~ 17:00', hHoliday:'휴무',
     extra:'주차 가능 · 무선 인터넷 · 남/녀 화장실 구분',
-    tel:'0507-1485-2378', ceo:'(대표원장)', reg:'(등록번호)',
+    tel:'0507-1485-2378', ceo:'김경민', reg:'779-09-03367',
     naver:'https://booking.naver.com/booking/13/bizes/889', kakao:'',
     insta:'', whatsapp:'', wechat:'', line:'', seo:'화정역, 고양 한의원',
   };
@@ -290,7 +306,7 @@
     {title:'VIP 회원권 및 환불/변경 규정', on:true, body:'할인된 금액으로 결제 후 취소 시 10%의 위약금이 차감됩니다. 환불 금액은 정상가 1회 기준으로 환산하여 남은 금액을 산정합니다.'},
   ];
   const DEFAULT_DOCTORS = [
-    {name:'민경욱', role:'대표원장 · 한의사', desc:'피부·미용 시술 전문. 더스물하나 네트워크 · 연오재 대표원장.', seed:'doc-min'},
+    {name:'김경민', role:'대표원장 · 한의사', desc:'피부·미용 시술 전문. 연오재한의원 대표원장.', img:''},
   ];
   const DEFAULT_NONINSURED = [
     {name:'보톡스 (국산)', unit:'1부위', price:'5,900원'},
@@ -678,34 +694,173 @@
     </div>`;
   }
 
-  /* ---------- 병원 소개 문구 관리 ---------- */
+  /* ---------- 병원 소개 문구 관리 (글+사진 → front 병원 소개) ---------- */
+  let _introImg = '';
+  function renderIntroImgPreview(){
+    const box = document.getElementById('inImgPreview');
+    if(!box) return;
+    box.innerHTML = _introImg
+      ? `<img src="${_introImg}" style="width:100%;height:100%;object-fit:cover;display:block" alt="">`
+      : `<div class="text-center px-2"><iconify-icon icon="solar:gallery-linear" width="24" style="color:var(--muted)"></iconify-icon><p class="text-[11px] mt-1" style="color:var(--muted)">사진 없음 (기본 사진 사용)</p></div>`;
+  }
+  function clearIntroImg(){ _introImg=''; renderIntroImgPreview(); }
+  async function handleIntroImage(input){
+    const file = input.files && input.files[0];
+    if(!file) return;
+    if(typeof window.uploadImage !== 'function'){ toast('이미지 업로드 기능을 사용할 수 없습니다. (Supabase 연결 확인)', false); input.value=''; return; }
+    const btn = document.getElementById('inImgBtn');
+    const prev = btn.innerHTML; btn.innerHTML='업로드 중…'; btn.disabled=true;
+    try{
+      const url = await window.uploadImage(file);
+      _introImg = url; renderIntroImgPreview();
+      toast('사진이 업로드됐습니다. 「전체 저장」을 눌러야 홈에 반영됩니다.');
+    }catch(e){
+      console.error(e); toast('이미지 업로드 실패: '+((e&&e.message)||e), false);
+    }finally{
+      btn.innerHTML=prev; btn.disabled=false; input.value='';
+    }
+  }
+  function inFocus(){
+    const ed = document.getElementById('inBody');
+    const s = window.getSelection();
+    if(s.rangeCount && ed.contains(s.anchorNode)) return;
+    ed.focus();
+    const r = document.createRange();
+    r.selectNodeContents(ed); r.collapse(false);
+    s.removeAllRanges(); s.addRange(r);
+  }
+  function inCmd(c){
+    inFocus();
+    if(c==='bold') document.execCommand('bold');
+    else if(c==='h3') document.execCommand('formatBlock', false, '<h3>');
+    else if(c==='p') document.execCommand('formatBlock', false, '<p>');
+    else if(c==='hr') document.execCommand('insertHorizontalRule');
+  }
+  async function handleIntroBodyImage(input){
+    const file = input.files && input.files[0];
+    if(!file) return;
+    if(typeof window.uploadImage !== 'function'){ toast('이미지 업로드 기능을 사용할 수 없습니다. (Supabase 연결 확인)', false); input.value=''; return; }
+    toast('본문 사진 업로드 중…');
+    try{
+      const url = await window.uploadImage(file);
+      inFocus();
+      document.execCommand('insertHTML', false, '<img src="'+url+'" alt=""><p><br></p>');
+      toast('본문에 사진을 넣었습니다.');
+    }catch(e){
+      console.error(e); toast('이미지 업로드 실패: '+((e&&e.message)||e), false);
+    }finally{
+      input.value='';
+    }
+  }
+  function saveIntro(){
+    let body = document.getElementById('inBody').innerHTML.trim();
+    if(body==='<br>' || body==='<p><br></p>') body='';
+    KK.set('intro', { body: body, img: _introImg||'' });
+    toast(STORAGE_OK? '저장됐습니다. 홈페이지 「병원 소개」에 반영됩니다.' : '미리보기 환경에선 저장이 제한됩니다.', STORAGE_OK);
+  }
   BUILDERS.intro = function(){
+    kkModalCss();
+    const cur = Object.assign({body:'', img:''}, KK.get('intro', {}));
+    _introImg = cur.img||'';
     const el = makeView('intro');
-    el.innerHTML = pageHead('병원 소개 문구 관리','각 지점의 소개·오시는 길·주차 안내를 관리합니다.', `<div class="flex items-center gap-1.5">${langRow()}</div>`) +
-      `<div class="panel rounded-2xl p-5">
-        ${rteToolbar()}
-        <div class="rounded-b-lg px-4 py-4 min-h-[460px] text-[13.5px]" style="background:var(--panel);border:1px solid var(--border);border-top:0;color:var(--muted)">내용을 입력하세요...</div>
+    el.innerHTML = pageHead('병원 소개 문구 관리','병원 소개 글과 사진을 관리합니다. (저장 시 홈페이지 「병원 소개」 반영)',
+      `<button onclick="saveIntro()" class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 전체 저장 (홈 반영)</button>`) +
+      `<div class="panel rounded-2xl p-6">
+        <div class="grid lg:grid-cols-[240px_1fr] gap-7">
+          <div>
+            <label class="pml">병원 소개 사진</label>
+            <div id="inImgPreview" class="w-full h-48 rounded-xl overflow-hidden grid place-items-center" style="background:var(--panel-soft);border:1px solid var(--border)"></div>
+            <button id="inImgBtn" onclick="document.getElementById('inImgFile').click()" class="mt-2 w-full py-2 rounded-lg text-[12.5px] font-semibold btn-gold">사진 업로드</button>
+            <button onclick="clearIntroImg()" class="mt-1 w-full py-1.5 rounded-lg text-[11.5px]" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">사진 제거</button>
+            <input id="inImgFile" type="file" accept="image/*" class="hidden" onchange="handleIntroImage(this)">
+            <p class="text-[11.5px] mt-2 break-keep" style="color:var(--muted)">홈 「병원 소개」의 왼쪽 큰 사진이 이 사진으로 바뀝니다. 없으면 기본 사진이 표시됩니다.</p>
+          </div>
+          <div>
+            <label class="pml">소개 문구 (글 + 사진)</label>
+            <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
+              <button class="ntTb" onclick="inCmd('bold')"><b>굵게</b></button>
+              <button class="ntTb" onclick="inCmd('h3')">소제목</button>
+              <button class="ntTb" onclick="inCmd('p')">본문 글</button>
+              <button class="ntTb" onclick="inCmd('hr')">구분선</button>
+              <button class="ntTb" style="background:var(--accent-soft);color:var(--accent-strong);border-color:var(--accent)" onclick="document.getElementById('inBodyImgFile').click()">🖼 본문 사진 넣기</button>
+              <input id="inBodyImgFile" type="file" accept="image/*" class="hidden" onchange="handleIntroBodyImage(this)">
+            </div>
+            <div id="inBody" contenteditable="true"></div>
+            <p class="text-[11.5px] mt-1.5" style="color:var(--muted)">비워두고 저장하면 홈페이지에는 기본 문구가 표시됩니다.</p>
+          </div>
+        </div>
       </div>`;
+    document.getElementById('inBody').innerHTML = cur.body||'';
+    renderIntroImgPreview();
   };
 
-  /* ---------- 의료진 소개 관리 ---------- */
-  function saveDoctors(){
-    const arr=[];
-    document.querySelectorAll('#view-doctors [data-doc]').forEach(c=>{
-      arr.push({ seed:c.dataset.doc, name:c.querySelector('[data-df="name"]').value.trim(), role:c.querySelector('[data-df="role"]').value.trim(), desc:c.querySelector('[data-df="desc"]').value.trim() });
+  /* ---------- 의료진 소개 관리 (사진 업로드 + 추가/삭제 → front 의료진 소개) ---------- */
+  function doctorsSyncInline(base){
+    document.querySelectorAll('#view-doctors [data-doc-i]').forEach(c=>{
+      const i = parseInt(c.dataset.docI);
+      if(!base[i]) return;
+      base[i].name = c.querySelector('[data-df="name"]').value.trim();
+      base[i].role = c.querySelector('[data-df="role"]').value.trim();
+      base[i].desc = c.querySelector('[data-df="desc"]').value.trim();
     });
-    KK.set('doctors', arr);
+    return base;
+  }
+  function saveDoctors(){
+    const base = doctorsSyncInline(KK.get('doctors', DEFAULT_DOCTORS));
+    KK.set('doctors', base);
     toast(STORAGE_OK? '저장됐습니다. 홈페이지 「의료진 소개」에 반영됩니다.' : '미리보기 환경에선 저장이 제한됩니다.', STORAGE_OK);
+  }
+  function rerenderDoctors(){
+    const old = document.getElementById('view-doctors');
+    if(old) old.remove();
+    BUILDERS.doctors();
+    go('doctors');
+  }
+  function addDoctor(){
+    const base = doctorsSyncInline(KK.get('doctors', DEFAULT_DOCTORS));
+    base.push({name:'', role:'원장 · 한의사', desc:'', img:''});
+    KK.set('doctors', base);
+    rerenderDoctors();
+    toast('의료진 칸을 추가했습니다. 이름·소개를 입력하고 저장하세요.');
+  }
+  function deleteDoctor(i){
+    const base = doctorsSyncInline(KK.get('doctors', DEFAULT_DOCTORS));
+    const d = base[i]; if(!d) return;
+    if(!confirm('「'+(d.name||'이 의료진')+'」을(를) 삭제할까요?\n삭제하면 홈페이지에서도 사라집니다.')) return;
+    base.splice(i,1);
+    KK.set('doctors', base);
+    rerenderDoctors();
+    toast('의료진을 삭제하고 저장했습니다.');
+  }
+  async function handleDoctorPhoto(input, i){
+    const file = input.files && input.files[0];
+    if(!file) return;
+    if(typeof window.uploadImage !== 'function'){ toast('이미지 업로드 기능을 사용할 수 없습니다. (Supabase 연결 확인)', false); input.value=''; return; }
+    toast('사진 업로드 중…');
+    try{
+      const url = await window.uploadImage(file);
+      const base = doctorsSyncInline(KK.get('doctors', DEFAULT_DOCTORS));
+      if(base[i]) base[i].img = url;
+      KK.set('doctors', base);
+      rerenderDoctors();
+      toast('사진을 업로드하고 저장했습니다.');
+    }catch(e){
+      console.error(e); toast('이미지 업로드 실패: '+((e&&e.message)||e), false);
+    }finally{
+      input.value='';
+    }
   }
   BUILDERS.doctors = function(){
     const docs = KK.get('doctors', DEFAULT_DOCTORS);
     const el = makeView('doctors');
-    el.innerHTML = pageHead('의료진 소개 수정','지점별 의료진 프로필을 등록·수정합니다. (수정 → 저장 시 홈 반영)',
+    el.innerHTML = pageHead('의료진 소개 수정','의료진 프로필과 사진을 등록·수정합니다. (수정 → 저장 시 홈 반영)',
       `<button onclick="saveDoctors()" class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 전체 저장 (홈 반영)</button>`) +
-      `<div class="grid md:grid-cols-2 gap-4">${docs.map(d=>`
-        <div class="panel rounded-2xl p-5" data-doc="${d.seed}">
+      `<div class="grid md:grid-cols-2 gap-4">${docs.map((d,i)=>`
+        <div class="panel rounded-2xl p-5" data-doc-i="${i}">
           <div class="flex items-start gap-4">
-            <div class="w-20 h-24 rounded-xl shrink-0 grid place-items-center" style="background:linear-gradient(135deg,#e9e1d6,#d8cabb)"><iconify-icon icon="solar:user-linear" width="28" style="color:var(--accent-strong)"></iconify-icon></div>
+            <div class="w-20 h-24 rounded-xl shrink-0 overflow-hidden grid place-items-center" style="background:linear-gradient(135deg,#e9e1d6,#d8cabb)">
+              ${d.img?`<img src="${d.img}" style="width:100%;height:100%;object-fit:cover;display:block" alt="">`:`<iconify-icon icon="solar:user-linear" width="28" style="color:var(--accent-strong)"></iconify-icon>`}
+            </div>
             <div class="flex-1 space-y-2">
               <input data-df="name" value="${(d.name||'').replace(/"/g,'&quot;')}" placeholder="이름" class="w-full px-3 py-2 rounded-lg text-[14px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text)">
               <input data-df="role" value="${(d.role||'').replace(/"/g,'&quot;')}" placeholder="직책" class="w-full px-3 py-2 rounded-lg text-[13px]" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">
@@ -713,32 +868,187 @@
           </div>
           <textarea data-df="desc" rows="3" placeholder="소개" class="w-full px-3 py-2 rounded-lg text-[13px] mt-3 break-keep" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">${d.desc||''}</textarea>
           <div class="flex items-center justify-end gap-1.5 mt-3">
-            <button class="px-3 h-8 rounded-lg text-[12.5px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">사진 변경</button>
-            <button class="w-8 h-8 rounded-lg grid place-items-center text-white" style="background:var(--bad)"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button>
+            <button onclick="document.getElementById('docPhoto${i}').click()" class="px-3 h-8 rounded-lg text-[12.5px] font-semibold" style="background:var(--accent-soft);color:var(--accent-strong)">사진 변경</button>
+            <input id="docPhoto${i}" type="file" accept="image/*" class="hidden" onchange="handleDoctorPhoto(this, ${i})">
+            <button onclick="deleteDoctor(${i})" class="w-8 h-8 rounded-lg grid place-items-center text-white" style="background:var(--bad)"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button>
           </div>
         </div>`).join('')}
-        <button class="panel rounded-2xl p-14 text-center grid place-items-center" style="border-style:dashed;color:var(--muted)"><span><iconify-icon icon="solar:add-circle-linear" width="24" style="color:var(--accent)"></iconify-icon><br>의료진 추가</span></button>
+        <button onclick="addDoctor()" class="panel rounded-2xl p-14 text-center grid place-items-center" style="border-style:dashed;color:var(--muted)"><span><iconify-icon icon="solar:add-circle-linear" width="24" style="color:var(--accent)"></iconify-icon><br>의료진 추가</span></button>
       </div>`;
   };
 
-  /* ---------- 블로그 ---------- */
-  BUILDERS.blog = function(){
-    const el = makeView('blog');
-    el.innerHTML = pageHead('블로그 관리','블로그 글을 등록하고 노출을 관리합니다.',
-      `<button class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:add-circle-linear" width="15"></iconify-icon> 새 글 추가</button>`) +
-      `<div class="panel rounded-2xl overflow-hidden">
-        <table class="tbl w-full text-[13.5px]">
-          <thead><tr style="background:var(--panel-soft);color:var(--muted)">
-            ${['순서','썸네일','제목','URL','미리보기','활성','액션'].map(h=>`<th class="px-4 py-3.5 font-semibold text-center">${h}</th>`).join('')}
-          </tr></thead>
-          <tbody><tr><td colspan="7" class="text-center py-16" style="color:var(--muted)">등록된 글이 없습니다.</td></tr></tbody>
-        </table>
-        <div class="flex items-center justify-center gap-1.5 py-5">
-          <button class="px-3 h-8 rounded-lg text-[12.5px]" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--muted)">이전</button>
-          <button class="px-3 h-8 rounded-lg text-[12.5px] font-bold" style="color:var(--text)">페이지 1</button>
-          <button class="px-3 h-8 rounded-lg text-[12.5px]" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--muted)">다음</button>
+  /* ---------- 블로그 (외부 블로그 글 링크 관리 → front 시술노트 사이드) ---------- */
+  function blogSyncInline(base){
+    document.querySelectorAll('#view-blog [data-brow]').forEach(tr=>{
+      const i = parseInt(tr.dataset.brow);
+      if(!base[i]) return;
+      const on = tr.querySelector('[data-bf="on"]');
+      if(on) base[i].on = on.checked;
+    });
+    return base;
+  }
+  function saveBlog(){
+    const base = blogSyncInline(KK.get('blog', []));
+    KK.set('blog', base);
+    toast(STORAGE_OK? '블로그 글이 저장됐습니다. 홈페이지 「시술 노트」 옆에 노출됩니다.' : '미리보기 환경에선 저장이 제한됩니다.', STORAGE_OK);
+  }
+  function rerenderBlog(){
+    const old = document.getElementById('view-blog');
+    if(old) old.remove();
+    BUILDERS.blog();
+    go('blog');
+  }
+  function moveBlogPost(i, d){
+    const base = blogSyncInline(KK.get('blog', []));
+    const j = i + d;
+    if(j < 0 || j >= base.length) return;
+    const tmp = base[i]; base[i] = base[j]; base[j] = tmp;
+    KK.set('blog', base);
+    rerenderBlog();
+  }
+  function deleteBlogPost(i){
+    const base = blogSyncInline(KK.get('blog', []));
+    const b = base[i]; if(!b) return;
+    if(!confirm('「'+(b.t||'이 글')+'」 블로그 글을 삭제할까요?')) return;
+    base.splice(i,1);
+    KK.set('blog', base);
+    rerenderBlog();
+    toast('블로그 글을 삭제하고 저장했습니다.');
+  }
+
+  /* ----- 블로그 글 추가/수정 모달 ----- */
+  let _blogEditIdx = null, _blogImg = '';
+  function ensureBlogModal(){
+    if(document.getElementById('blogModal')) return;
+    kkModalCss();
+    const wrap = document.createElement('div');
+    wrap.id = 'blogModal';
+    wrap.className = 'hidden fixed inset-0 z-[80] items-center justify-center bg-black/50 px-4';
+    wrap.innerHTML =
+      `<div class="panel rounded-2xl w-full max-w-xl max-h-[92vh] overflow-y-auto no-sb" style="background:var(--panel)">
+        <div class="flex items-center justify-between px-6 py-4" style="border-bottom:1px solid var(--border)">
+          <h3 id="bgTitle" class="text-[17px] font-bold">블로그 글 추가</h3>
+          <button onclick="closeBlogModal()" class="w-8 h-8 rounded-lg grid place-items-center" style="color:var(--muted)"><iconify-icon icon="solar:close-circle-linear" width="20"></iconify-icon></button>
+        </div>
+        <div class="p-6 space-y-4">
+          <div class="flex gap-4 items-start">
+            <div class="shrink-0">
+              <div id="bgImgPreview" class="w-28 h-28 rounded-xl overflow-hidden grid place-items-center" style="background:var(--panel-soft);border:1px solid var(--border)"></div>
+              <button id="bgImgBtn" onclick="document.getElementById('bgImgFile').click()" class="mt-2 w-28 py-2 rounded-lg text-[12.5px] font-semibold btn-gold">썸네일 업로드</button>
+              <button onclick="clearBlogImg()" class="mt-1 w-28 py-1.5 rounded-lg text-[11.5px]" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">썸네일 제거</button>
+              <input id="bgImgFile" type="file" accept="image/*" class="hidden" onchange="handleBlogImage(this)">
+            </div>
+            <div class="flex-1 space-y-3">
+              <div><label class="pml">제목 *</label><input id="bgT" class="pmi" placeholder="예) 화정 온다 리프팅 후기"></div>
+              <div><label class="pml">블로그 글 주소(URL) *</label><input id="bgUrl" class="pmi" placeholder="예) https://blog.naver.com/..."></div>
+              <label class="flex items-center gap-2 text-[13.5px]" style="color:var(--text-soft)"><input id="bgOn" type="checkbox" class="accent-[var(--accent)]" checked> 홈페이지에 노출</label>
+            </div>
+          </div>
+          <p class="text-[11.5px]" style="color:var(--muted)">네이버 블로그 등 외부 글 주소를 등록하면 홈페이지 「시술 노트」 페이지 옆 「블로그 최신 글」에 노출되고, 누르면 해당 글이 새 창으로 열립니다.</p>
+        </div>
+        <div class="flex items-center justify-end gap-2 px-6 py-4" style="border-top:1px solid var(--border)">
+          <button onclick="closeBlogModal()" class="px-4 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">취소</button>
+          <button onclick="submitBlogModal()" class="px-5 h-9 rounded-lg text-[13px] font-semibold btn-gold">저장 (홈 반영)</button>
         </div>
       </div>`;
+    document.body.appendChild(wrap);
+  }
+  function renderBlogImgPreview(){
+    const box = document.getElementById('bgImgPreview');
+    if(!box) return;
+    box.innerHTML = _blogImg
+      ? `<img src="${_blogImg}" style="width:100%;height:100%;object-fit:cover;display:block" alt="">`
+      : `<div class="text-center px-2"><iconify-icon icon="solar:gallery-linear" width="24" style="color:var(--muted)"></iconify-icon><p class="text-[11px] mt-1" style="color:var(--muted)">썸네일 없음</p></div>`;
+  }
+  function clearBlogImg(){ _blogImg=''; renderBlogImgPreview(); }
+  async function handleBlogImage(input){
+    const file = input.files && input.files[0];
+    if(!file) return;
+    if(typeof window.uploadImage !== 'function'){ toast('이미지 업로드 기능을 사용할 수 없습니다. (Supabase 연결 확인)', false); input.value=''; return; }
+    const btn = document.getElementById('bgImgBtn');
+    const prev = btn.innerHTML; btn.innerHTML='업로드 중…'; btn.disabled=true;
+    try{
+      const url = await window.uploadImage(file);
+      _blogImg = url; renderBlogImgPreview();
+      toast('썸네일이 업로드됐습니다.');
+    }catch(e){
+      console.error(e); toast('이미지 업로드 실패: '+((e&&e.message)||e), false);
+    }finally{
+      btn.innerHTML=prev; btn.disabled=false; input.value='';
+    }
+  }
+  function openBlogModal(idx){
+    ensureBlogModal();
+    const base = KK.get('blog', []);
+    _blogEditIdx = (idx===undefined || idx===null) ? null : idx;
+    const blank = {t:'', url:'', img:'', on:true};
+    const b = _blogEditIdx===null ? blank : Object.assign({}, blank, base[_blogEditIdx]);
+    _blogImg = b.img || '';
+    document.getElementById('bgTitle').textContent = _blogEditIdx===null ? '블로그 글 추가' : '블로그 글 수정';
+    document.getElementById('bgT').value = b.t||'';
+    document.getElementById('bgUrl').value = b.url||'';
+    document.getElementById('bgOn').checked = b.on!==false;
+    renderBlogImgPreview();
+    const m = document.getElementById('blogModal');
+    m.classList.remove('hidden'); m.classList.add('flex');
+  }
+  function closeBlogModal(){
+    const m = document.getElementById('blogModal');
+    if(m){ m.classList.add('hidden'); m.classList.remove('flex'); }
+  }
+  function submitBlogModal(){
+    const t = document.getElementById('bgT').value.trim();
+    let url = document.getElementById('bgUrl').value.trim();
+    if(!t){ toast('제목을 입력해주세요.', false); return; }
+    if(!url){ toast('블로그 글 주소(URL)를 입력해주세요.', false); return; }
+    if(!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    const d = new Date();
+    const today = d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');
+    const base = blogSyncInline(KK.get('blog', []));
+    const rec = {
+      t: t, url: url, img: _blogImg||'',
+      on: document.getElementById('bgOn').checked,
+      date: (_blogEditIdx!==null && base[_blogEditIdx] && base[_blogEditIdx].date) || today,
+    };
+    if(_blogEditIdx===null) base.unshift(rec);
+    else base[_blogEditIdx] = Object.assign({}, base[_blogEditIdx], rec);
+    KK.set('blog', base);
+    closeBlogModal();
+    rerenderBlog();
+    toast(_blogEditIdx===null ? '블로그 글을 등록하고 저장했습니다.' : '블로그 글을 수정하고 저장했습니다.');
+  }
+
+  BUILDERS.blog = function(){
+    ensureBlogModal();
+    const posts = KK.get('blog', []);
+    const el = makeView('blog');
+    const thumb = (b)=> b.img
+      ? `<img src="${b.img}" class="w-12 h-12 rounded-lg object-cover" style="border:1px solid var(--border)" alt="">`
+      : `<div class="w-12 h-12 rounded-lg grid place-items-center" style="background:var(--panel-soft);border:1px solid var(--border)"><iconify-icon icon="solar:notebook-linear" width="16" style="color:var(--muted)"></iconify-icon></div>`;
+    el.innerHTML = pageHead('블로그 관리','네이버 블로그 등 외부 글을 등록하고 노출을 관리합니다. (저장 시 홈 반영)',
+      `<button onclick="openBlogModal(null)" class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:add-circle-linear" width="15"></iconify-icon> 새 글 추가</button>
+       <button onclick="saveBlog()" class="px-4 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 노출 저장</button>`) +
+      `<div class="panel rounded-2xl overflow-hidden"><div class="overflow-x-auto">
+        <table class="tbl w-full text-[13.5px] whitespace-nowrap">
+          <thead><tr style="background:var(--panel-soft);color:var(--muted)">
+            <th class="px-4 py-3.5 font-semibold">순서</th><th class="px-4 py-3.5 font-semibold">썸네일</th><th class="px-4 py-3.5 font-semibold">제목</th><th class="px-4 py-3.5 font-semibold">URL</th><th class="px-4 py-3.5 font-semibold">등록일</th><th class="px-4 py-3.5 font-semibold">노출</th><th class="px-4 py-3.5 font-semibold text-right">관리</th>
+          </tr></thead>
+          <tbody>${posts.length ? posts.map((b,i)=>`<tr style="border-top:1px solid var(--border-soft)" data-brow="${i}">
+            <td class="px-4 py-3"><div class="flex items-center gap-1"><span class="w-6 h-6 rounded-full grid place-items-center text-[12px] font-semibold" style="background:var(--accent-soft);color:var(--accent-strong)">${i+1}</span>
+              <button onclick="moveBlogPost(${i},-1)" class="w-7 h-7 rounded-lg grid place-items-center" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="solar:arrow-up-linear" width="13"></iconify-icon></button>
+              <button onclick="moveBlogPost(${i},1)" class="w-7 h-7 rounded-lg grid place-items-center" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="solar:arrow-down-linear" width="13"></iconify-icon></button></div></td>
+            <td class="px-4 py-3">${thumb(b)}</td>
+            <td class="px-4 py-3.5 font-semibold">${b.t||''}</td>
+            <td class="px-4 py-3.5"><a href="${(b.url||'#').replace(/"/g,'&quot;')}" target="_blank" rel="noopener" class="underline" style="color:var(--blue)">${(b.url||'').length>38 ? (b.url||'').slice(0,38)+'…' : (b.url||'')}</a></td>
+            <td class="px-4 py-3.5" style="color:var(--text-soft)">${b.date||'-'}</td>
+            <td class="px-4 py-3.5"><label class="inline-flex items-center gap-1.5 text-[12.5px]" style="color:var(--text-soft)"><input type="checkbox" data-bf="on" ${b.on!==false?'checked':''} class="accent-[var(--accent)]"> 노출</label></td>
+            <td class="px-4 py-3.5"><div class="flex items-center justify-end gap-1.5">
+              <button onclick="openBlogModal(${i})" class="w-8 h-8 rounded-lg grid place-items-center" style="background:var(--accent-soft);color:var(--accent-strong)"><iconify-icon icon="solar:pen-linear" width="14"></iconify-icon></button>
+              <button onclick="deleteBlogPost(${i})" class="w-8 h-8 rounded-lg grid place-items-center text-white" style="background:var(--bad)"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button>
+            </div></td>
+          </tr>`).join('') : `<tr><td colspan="7" class="text-center py-16" style="color:var(--muted)">등록된 글이 없습니다. 「새 글 추가」로 블로그 글 주소를 등록하세요.</td></tr>`}</tbody>
+        </table>
+      </div></div>`;
   };
 
   /* ---------- 추천인 관리 ---------- */
@@ -754,46 +1064,241 @@
       <div class="panel rounded-2xl p-14 text-center"><p style="color:var(--text-soft)">등록된 추천인 코드가 없습니다.</p></div>`;
   };
 
-  /* ---------- 시술노트 (store-backed; publishes to front /notes page) ---------- */
-  function saveNotes(){
-    const arr = [];
-    document.querySelectorAll('#view-notes [data-note]').forEach(c=>{
-      arr.push({ t:c.dataset.note, sub:c.querySelector('[data-nf="sub"]').value.trim(), on:c.querySelector('[data-nf="on"]').checked });
-    });
-    KK.set('notes', arr);
-    toast(STORAGE_OK? '시술노트가 저장됐습니다. 홈페이지 「시술 노트」에 노출됩니다.' : '미리보기 환경에선 저장이 제한됩니다.', STORAGE_OK);
+  /* ---------- 시술노트 (글+사진 에디터 → front /notes page) ---------- */
+  function kkModalCss(){
+    if(document.getElementById('kkModalCss')) return;
+    const st = document.createElement('style');
+    st.id = 'kkModalCss';
+    st.textContent = '.pml{display:block;font-size:12.5px;font-weight:600;margin-bottom:5px;color:var(--text-soft)} .pmi{width:100%;padding:9px 12px;border-radius:9px;font-size:13.5px;background:var(--panel-soft);border:1px solid var(--border);color:var(--text);outline:none} .pmi:focus{border-color:var(--accent)}'
+      + ' .ntTb{padding:0 10px;height:30px;border-radius:8px;font-size:12px;font-weight:600;background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)} .ntTb:hover{color:var(--accent-strong);border-color:var(--accent)}'
+      + ' #ntBody,#inBody{min-height:220px;max-height:340px;overflow-y:auto;padding:12px 14px;border-radius:10px;font-size:13.5px;line-height:1.7;background:var(--panel-soft);border:1px solid var(--border);color:var(--text)}'
+      + ' #ntBody:focus,#inBody:focus{outline:none;border-color:var(--accent)}'
+      + ' #ntBody h3,#inBody h3{font-weight:800;font-size:15px;margin:14px 0 6px} #ntBody p,#inBody p{margin:6px 0} #ntBody img,#inBody img{max-width:100%;border-radius:10px;margin:8px 0} #ntBody hr,#inBody hr{border:0;border-top:1px solid var(--border);margin:14px 0}';
+    document.head.appendChild(st);
   }
+  function notesSyncInline(base){
+    document.querySelectorAll('#view-notes [data-nrow]').forEach(c=>{
+      const i = parseInt(c.dataset.nrow);
+      if(!base[i]) return;
+      const on = c.querySelector('[data-nf="on"]');
+      if(on) base[i].on = on.checked;
+    });
+    return base;
+  }
+  function saveNotes(){
+    const base = notesSyncInline(KK.get('notes', DEFAULT_NOTES));
+    KK.set('notes', base);
+    toast(STORAGE_OK? '시술노트가 저장됐습니다. 홈페이지 「시술 노트」에 반영됩니다.' : '미리보기 환경에선 저장이 제한됩니다.', STORAGE_OK);
+  }
+  function rerenderNotes(){
+    const old = document.getElementById('view-notes');
+    if(old) old.remove();
+    BUILDERS.notes();
+    go('notes');
+  }
+  function moveNote(i, d){
+    const base = notesSyncInline(KK.get('notes', DEFAULT_NOTES));
+    const j = i + d;
+    if(j < 0 || j >= base.length) return;
+    const tmp = base[i]; base[i] = base[j]; base[j] = tmp;
+    KK.set('notes', base);
+    rerenderNotes();
+  }
+  function deleteNote(i){
+    const base = notesSyncInline(KK.get('notes', DEFAULT_NOTES));
+    const n = base[i]; if(!n) return;
+    if(!confirm('「'+(n.t||'이 글')+'」 글을 삭제할까요?\n삭제하면 홈페이지에서도 사라집니다.')) return;
+    base.splice(i,1);
+    KK.set('notes', base);
+    rerenderNotes();
+    toast('글을 삭제하고 저장했습니다.');
+  }
+
+  /* ----- 글 작성/수정 모달 ----- */
+  let _noteEditIdx = null, _noteImg = '';
+  function ensureNoteModal(){
+    if(document.getElementById('noteModal')) return;
+    kkModalCss();
+    const wrap = document.createElement('div');
+    wrap.id = 'noteModal';
+    wrap.className = 'hidden fixed inset-0 z-[80] items-center justify-center bg-black/50 px-4';
+    wrap.innerHTML =
+      `<div class="panel rounded-2xl w-full max-w-3xl max-h-[94vh] overflow-y-auto no-sb" style="background:var(--panel)">
+        <div class="flex items-center justify-between px-6 py-4" style="border-bottom:1px solid var(--border)">
+          <h3 id="ntTitle" class="text-[17px] font-bold">시술노트 글 쓰기</h3>
+          <button onclick="closeNoteModal()" class="w-8 h-8 rounded-lg grid place-items-center" style="color:var(--muted)"><iconify-icon icon="solar:close-circle-linear" width="20"></iconify-icon></button>
+        </div>
+        <div class="p-6 space-y-4">
+          <div class="flex gap-4 items-start">
+            <div class="shrink-0">
+              <div id="ntImgPreview" class="w-28 h-28 rounded-xl overflow-hidden grid place-items-center" style="background:var(--panel-soft);border:1px solid var(--border)"></div>
+              <button id="ntImgBtn" onclick="document.getElementById('ntImgFile').click()" class="mt-2 w-28 py-2 rounded-lg text-[12.5px] font-semibold btn-gold">대표사진 업로드</button>
+              <button onclick="clearNoteImg()" class="mt-1 w-28 py-1.5 rounded-lg text-[11.5px]" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">사진 제거</button>
+              <input id="ntImgFile" type="file" accept="image/*" class="hidden" onchange="handleNoteImage(this)">
+            </div>
+            <div class="flex-1 space-y-3">
+              <div><label class="pml">제목 *</label><input id="ntT" class="pmi" placeholder="예) 온다레이저"></div>
+              <div><label class="pml">요약 (목록에 보이는 한 줄)</label><input id="ntSub" class="pmi" placeholder="예) 화정 온다 레이저: 지방과 처짐을 동시에 케어하세요"></div>
+              <label class="flex items-center gap-2 text-[13.5px]" style="color:var(--text-soft)"><input id="ntOn" type="checkbox" class="accent-[var(--accent)]" checked> 홈페이지에 공개</label>
+            </div>
+          </div>
+          <div>
+            <label class="pml">본문 (글 + 사진)</label>
+            <div class="flex flex-wrap items-center gap-1.5 mb-1.5">
+              <button class="ntTb" onclick="ntCmd('bold')"><b>굵게</b></button>
+              <button class="ntTb" onclick="ntCmd('h3')">소제목</button>
+              <button class="ntTb" onclick="ntCmd('p')">본문 글</button>
+              <button class="ntTb" onclick="ntCmd('hr')">구분선</button>
+              <button class="ntTb" style="background:var(--accent-soft);color:var(--accent-strong);border-color:var(--accent)" onclick="document.getElementById('ntBodyImgFile').click()">🖼 본문 사진 넣기</button>
+              <input id="ntBodyImgFile" type="file" accept="image/*" class="hidden" onchange="handleNoteBodyImage(this)">
+            </div>
+            <div id="ntBody" contenteditable="true"></div>
+            <p class="text-[11.5px] mt-1.5" style="color:var(--muted)">글을 쓰다가 「본문 사진 넣기」를 누르면 커서 위치에 사진이 들어갑니다. 저장하면 홈페이지 「시술 노트」에서 글 전체를 볼 수 있습니다.</p>
+          </div>
+        </div>
+        <div class="flex items-center justify-end gap-2 px-6 py-4" style="border-top:1px solid var(--border)">
+          <button onclick="closeNoteModal()" class="px-4 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">취소</button>
+          <button onclick="submitNoteModal()" class="px-5 h-9 rounded-lg text-[13px] font-semibold btn-gold">저장 (홈 반영)</button>
+        </div>
+      </div>`;
+    document.body.appendChild(wrap);
+  }
+  function renderNoteImgPreview(){
+    const box = document.getElementById('ntImgPreview');
+    if(!box) return;
+    box.innerHTML = _noteImg
+      ? `<img src="${_noteImg}" style="width:100%;height:100%;object-fit:cover;display:block" alt="">`
+      : `<div class="text-center px-2"><iconify-icon icon="solar:gallery-linear" width="24" style="color:var(--muted)"></iconify-icon><p class="text-[11px] mt-1" style="color:var(--muted)">대표사진 없음</p></div>`;
+  }
+  function clearNoteImg(){ _noteImg=''; renderNoteImgPreview(); }
+  async function handleNoteImage(input){
+    const file = input.files && input.files[0];
+    if(!file) return;
+    if(typeof window.uploadImage !== 'function'){ toast('이미지 업로드 기능을 사용할 수 없습니다. (Supabase 연결 확인)', false); input.value=''; return; }
+    const btn = document.getElementById('ntImgBtn');
+    const prev = btn.innerHTML; btn.innerHTML='업로드 중…'; btn.disabled=true;
+    try{
+      const url = await window.uploadImage(file);
+      _noteImg = url; renderNoteImgPreview();
+      toast('대표사진이 업로드됐습니다.');
+    }catch(e){
+      console.error(e); toast('이미지 업로드 실패: '+((e&&e.message)||e), false);
+    }finally{
+      btn.innerHTML=prev; btn.disabled=false; input.value='';
+    }
+  }
+  function ntFocus(){
+    const ed = document.getElementById('ntBody');
+    const s = window.getSelection();
+    if(s.rangeCount && ed.contains(s.anchorNode)) return;
+    ed.focus();
+    const r = document.createRange();
+    r.selectNodeContents(ed); r.collapse(false);
+    s.removeAllRanges(); s.addRange(r);
+  }
+  function ntCmd(c){
+    ntFocus();
+    if(c==='bold') document.execCommand('bold');
+    else if(c==='h3') document.execCommand('formatBlock', false, '<h3>');
+    else if(c==='p') document.execCommand('formatBlock', false, '<p>');
+    else if(c==='hr') document.execCommand('insertHorizontalRule');
+  }
+  async function handleNoteBodyImage(input){
+    const file = input.files && input.files[0];
+    if(!file) return;
+    if(typeof window.uploadImage !== 'function'){ toast('이미지 업로드 기능을 사용할 수 없습니다. (Supabase 연결 확인)', false); input.value=''; return; }
+    toast('본문 사진 업로드 중…');
+    try{
+      const url = await window.uploadImage(file);
+      ntFocus();
+      document.execCommand('insertHTML', false, '<img src="'+url+'" alt=""><p><br></p>');
+      toast('본문에 사진을 넣었습니다.');
+    }catch(e){
+      console.error(e); toast('이미지 업로드 실패: '+((e&&e.message)||e), false);
+    }finally{
+      input.value='';
+    }
+  }
+  function openNoteModal(idx){
+    ensureNoteModal();
+    const base = KK.get('notes', DEFAULT_NOTES);
+    _noteEditIdx = (idx===undefined || idx===null) ? null : idx;
+    const blank = {t:'', sub:'', img:'', body:'', on:true};
+    const n = _noteEditIdx===null ? blank : Object.assign({}, blank, base[_noteEditIdx]);
+    _noteImg = n.img || '';
+    document.getElementById('ntTitle').textContent = _noteEditIdx===null ? '시술노트 글 쓰기' : '시술노트 글 수정';
+    document.getElementById('ntT').value = n.t||'';
+    document.getElementById('ntSub').value = n.sub||'';
+    document.getElementById('ntOn').checked = n.on!==false;
+    document.getElementById('ntBody').innerHTML = n.body||'';
+    renderNoteImgPreview();
+    const m = document.getElementById('noteModal');
+    m.classList.remove('hidden'); m.classList.add('flex');
+  }
+  function closeNoteModal(){
+    const m = document.getElementById('noteModal');
+    if(m){ m.classList.add('hidden'); m.classList.remove('flex'); }
+  }
+  function submitNoteModal(){
+    const t = document.getElementById('ntT').value.trim();
+    if(!t){ toast('제목을 입력해주세요.', false); return; }
+    let body = document.getElementById('ntBody').innerHTML.trim();
+    if(body==='<br>' || body==='<p><br></p>') body='';
+    const base = notesSyncInline(KK.get('notes', DEFAULT_NOTES));
+    const d = new Date();
+    const today = d.getFullYear()+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');
+    const rec = {
+      t: t,
+      sub: document.getElementById('ntSub').value.trim(),
+      img: _noteImg||'',
+      body: body,
+      on: document.getElementById('ntOn').checked,
+      date: (_noteEditIdx!==null && base[_noteEditIdx] && base[_noteEditIdx].date) || today,
+    };
+    if(_noteEditIdx===null) base.unshift(rec);
+    else base[_noteEditIdx] = Object.assign({}, base[_noteEditIdx], rec);
+    KK.set('notes', base);
+    closeNoteModal();
+    rerenderNotes();
+    toast(_noteEditIdx===null ? '글을 등록하고 저장했습니다.' : '글을 수정하고 저장했습니다.');
+  }
+
   BUILDERS.notes = function(){
+    ensureNoteModal();
     const notes = KK.get('notes', DEFAULT_NOTES);
-    const langDots = ['KO','EN','JA','ZH','TH'].map(l=>`<span class="inline-flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded" style="background:var(--accent-soft);color:var(--accent-strong)">${l} <span class="w-1.5 h-1.5 rounded-full" style="background:var(--good)"></span></span>`).join('');
     const el = makeView('notes');
-    el.innerHTML = pageHead('시술노트 관리','시술노트(아티클)를 다국어·지점별로 관리합니다.',
-      `<button class="px-3 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)">✦ 일괄 다국어/스피닝 적용</button>
-       <button onclick="saveNotes()" class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 전체 저장 (홈 반영)</button>`) +
-      `<div class="flex items-center gap-3 mb-4">
-        <input placeholder="검색어를 입력하세요" class="px-3 h-10 rounded-lg text-[13.5px] w-80" style="background:var(--panel);border:1px solid var(--border);color:var(--text)">
-        <span class="ml-auto px-3 h-9 rounded-full text-[12.5px] font-semibold grid place-items-center" style="background:var(--side);color:#fff">한국어</span>
-      </div>
-      <p class="text-[12.5px] mb-4" style="color:var(--muted)">전체 159개 · 1 / 14 페이지 · <b style="color:var(--accent-strong)">공개 여부를 끄면 홈페이지에서 숨겨집니다</b></p>
-      <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">${notes.map(n=>`
-        <div class="panel rounded-2xl overflow-hidden" data-note="${(n.t||'').replace(/"/g,'&quot;')}">
-          <div class="relative h-36 grid place-items-center px-4 text-center" style="background:linear-gradient(135deg,#f3ede6,#e8ded2)">
-            <h3 class="text-2xl font-extrabold tracking-tight" style="color:#2c2620">${n.t}</h3>
-            <span class="absolute top-0 right-0 px-2 py-3 text-[9px] font-bold tracking-widest text-white" style="background:#d98a9a;writing-mode:vertical-rl">THE 21</span>
+    const media = n => n.img
+      ? `<img src="${n.img}" style="width:100%;height:144px;object-fit:cover;display:block" alt="">`
+      : `<div class="h-36 grid place-items-center px-4 text-center" style="background:linear-gradient(135deg,#f3ede6,#e8ded2)"><h3 class="text-2xl font-extrabold tracking-tight" style="color:#2c2620">${n.t||''}</h3></div>`;
+    const hasBody = n => !!(n.body && String(n.body).trim());
+    el.innerHTML = pageHead('시술노트 관리','글 + 사진 아티클을 등록·수정·삭제합니다. (저장 시 홈페이지 「시술 노트」 반영)',
+      `<button onclick="openNoteModal(null)" class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:add-circle-linear" width="15"></iconify-icon> 글 추가</button>
+       <button onclick="saveNotes()" class="px-4 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 공개 여부 저장</button>`) +
+      `<p class="text-[12.5px] mb-4" style="color:var(--muted)">전체 ${notes.length}개 · <b style="color:var(--accent-strong)">공개를 끄면 홈페이지에서 숨겨집니다</b> · 펜 아이콘으로 글과 사진을 수정할 수 있습니다.</p>
+      <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">${notes.length ? notes.map((n,i)=>`
+        <div class="panel rounded-2xl overflow-hidden" data-nrow="${i}">
+          <div class="relative">${media(n)}
+            <span class="absolute top-0 right-0 px-2 py-3 text-[9px] font-bold tracking-widest text-white" style="background:#d98a9a;writing-mode:vertical-rl">NOTE</span>
           </div>
           <div class="p-4">
-            <span class="chip" style="background:#e7edff;color:#2549b8">다른 지점 글 · 연오재(화정 본점)</span>
-            <input data-nf="sub" value="${(n.sub||'').replace(/"/g,'&quot;')}" class="w-full px-3 py-2 rounded-lg text-[13px] mt-2.5" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text)">
-            <div class="flex flex-wrap gap-1 mt-3">${langDots}</div>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="chip" style="background:${hasBody(n)?'var(--good-bg)':'var(--bad-bg)'};color:${hasBody(n)?'var(--good)':'var(--bad)'}">${hasBody(n)?'본문 있음':'본문 없음'}</span>
+              ${n.img?`<span class="chip" style="background:var(--accent-soft);color:var(--accent-strong)">대표사진</span>`:''}
+              ${n.date?`<span class="chip" style="background:var(--panel-soft);color:var(--muted)">${n.date}</span>`:''}
+            </div>
+            <p class="font-bold text-[15px] mt-2.5">${n.t||''}</p>
+            <p class="text-[12.5px] mt-1 break-keep" style="color:var(--text-soft)">${n.sub||''}</p>
             <div class="flex items-center justify-between mt-3">
               <label class="flex items-center gap-1.5 text-[12.5px]" style="color:var(--text-soft)"><input type="checkbox" data-nf="on" ${n.on!==false?'checked':''} class="accent-[var(--accent)]"> 공개</label>
               <div class="flex items-center gap-1.5">
-                ${['solar:arrow-up-linear','solar:arrow-down-linear','solar:pen-linear'].map(i=>`<button class="w-8 h-8 rounded-lg grid place-items-center" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="${i}" width="14"></iconify-icon></button>`).join('')}
-                <button class="w-8 h-8 rounded-lg grid place-items-center text-white" style="background:var(--bad)"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button>
+                <button onclick="moveNote(${i},-1)" class="w-8 h-8 rounded-lg grid place-items-center" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="solar:arrow-up-linear" width="14"></iconify-icon></button>
+                <button onclick="moveNote(${i},1)" class="w-8 h-8 rounded-lg grid place-items-center" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="solar:arrow-down-linear" width="14"></iconify-icon></button>
+                <button onclick="openNoteModal(${i})" class="w-8 h-8 rounded-lg grid place-items-center" style="background:var(--accent-soft);color:var(--accent-strong)"><iconify-icon icon="solar:pen-linear" width="14"></iconify-icon></button>
+                <button onclick="deleteNote(${i})" class="w-8 h-8 rounded-lg grid place-items-center text-white" style="background:var(--bad)"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button>
               </div>
             </div>
           </div>
-        </div>`).join('')}</div>`;
+        </div>`).join('') : `<div class="panel rounded-2xl p-14 text-center col-span-full" style="color:var(--muted)">등록된 글이 없습니다. 「글 추가」로 첫 글을 등록하세요.</div>`}</div>`;
   };
 
   /* ---------- 고민별 접근 ---------- */
@@ -867,33 +1372,199 @@
       </div>`;
   };
 
-  /* ---------- 시술 상품 관리 (store-backed; price + visibility editable → front category page) ---------- */
-  function saveProducts(){
-    const base = KK.get('products', DEFAULT_PRODUCTS);
+  /* ---------- 시술 상품 관리 (추가·수정·삭제·이미지 업로드 → front category page) ---------- */
+  const PRODUCT_TYPES = [
+    {v:'promo', l:'장비 프로모 배너'},
+    {v:'photo', l:'모델·제품 사진'},
+    {v:'ba',    l:'전후사진'},
+  ];
+  /* 카테고리 관리 목록 + 기본 카테고리 + 현재 상품이 쓰는 카테고리 합집합 ('전체보기' 제외) */
+  function productCats(){
+    const fromCats  = KK.get('categories', DEFAULT_CATEGORIES) || [];
+    const fromProds = (KK.get('products', DEFAULT_PRODUCTS) || []).map(p=>p.cat);
+    const out = [];
+    [...fromCats, ...DEFAULT_CATEGORIES, ...fromProds].forEach(c=>{
+      if(c && c!=='전체보기' && !out.includes(c)) out.push(c);
+    });
+    return out;
+  }
+  /* 인라인(가격·노출) 편집값을 배열에 먼저 반영해 유실 방지 */
+  function productsSyncInline(base){
     document.querySelectorAll('#view-products [data-prow]').forEach(tr=>{
       const i = parseInt(tr.dataset.prow);
-      base[i].price = parseInt((tr.querySelector('[data-pf="price"]').value||'0').replace(/[^0-9]/g,''))||0;
-      base[i].on = tr.querySelector('[data-pf="on"]').checked;
+      if(!base[i]) return;
+      const pf = tr.querySelector('[data-pf="price"]');
+      const on = tr.querySelector('[data-pf="on"]');
+      if(pf) base[i].price = parseInt((pf.value||'0').replace(/[^0-9]/g,''))||0;
+      if(on) base[i].on = on.checked;
     });
+    return base;
+  }
+  function saveProducts(){
+    const base = productsSyncInline(KK.get('products', DEFAULT_PRODUCTS));
     KK.set('products', base);
     toast(STORAGE_OK? '상품이 저장됐습니다. 홈페이지 「시술메뉴/이벤트」에 반영됩니다.' : '미리보기 환경에선 저장이 제한됩니다.', STORAGE_OK);
   }
+  function rerenderProducts(){
+    const old = document.getElementById('view-products');
+    if(old) old.remove();
+    BUILDERS.products();
+    go('products');
+  }
+  function deleteProduct(i){
+    const base = productsSyncInline(KK.get('products', DEFAULT_PRODUCTS));
+    const p = base[i]; if(!p) return;
+    if(!confirm('「'+(p.big||p.title||'이 상품')+'」 상품을 삭제할까요?\n삭제하면 홈페이지에서도 사라집니다.')) return;
+    base.splice(i,1);
+    KK.set('products', base);
+    rerenderProducts();
+    toast('상품을 삭제하고 저장했습니다.');
+  }
+
+  /* ----- 추가/수정 모달 ----- */
+  let _prodEditIdx = null, _prodImg = '';
+  function ensureProductModal(){
+    if(document.getElementById('productModal')) return;
+    const st = document.createElement('style');
+    st.textContent = '.pml{display:block;font-size:12.5px;font-weight:600;margin-bottom:5px;color:var(--text-soft)} .pmi{width:100%;padding:9px 12px;border-radius:9px;font-size:13.5px;background:var(--panel-soft);border:1px solid var(--border);color:var(--text);outline:none} .pmi:focus{border-color:var(--accent)}';
+    document.head.appendChild(st);
+    const wrap = document.createElement('div');
+    wrap.id = 'productModal';
+    wrap.className = 'hidden fixed inset-0 z-[80] items-center justify-center bg-black/50 px-4';
+    wrap.innerHTML =
+      `<div class="panel rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto no-sb" style="background:var(--panel)">
+        <div class="flex items-center justify-between px-6 py-4" style="border-bottom:1px solid var(--border)">
+          <h3 id="pmTitle" class="text-[17px] font-bold">시술 상품 추가</h3>
+          <button onclick="closeProductModal()" class="w-8 h-8 rounded-lg grid place-items-center" style="color:var(--muted)"><iconify-icon icon="solar:close-circle-linear" width="20"></iconify-icon></button>
+        </div>
+        <div class="p-6 space-y-4">
+          <div class="flex gap-4 items-start">
+            <div class="shrink-0">
+              <div id="pmImgPreview" class="w-28 h-28 rounded-xl overflow-hidden grid place-items-center" style="background:var(--panel-soft);border:1px solid var(--border)"></div>
+              <button id="pmImgBtn" onclick="document.getElementById('pmImgFile').click()" class="mt-2 w-28 py-2 rounded-lg text-[12.5px] font-semibold btn-gold">이미지 업로드</button>
+              <button onclick="clearProdImg()" class="mt-1 w-28 py-1.5 rounded-lg text-[11.5px]" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">이미지 제거</button>
+              <input id="pmImgFile" type="file" accept="image/*" class="hidden" onchange="handleProductImage(this)">
+            </div>
+            <div class="flex-1 space-y-3">
+              <div><label class="pml">카테고리 *</label><select id="pmCat" class="pmi"></select></div>
+              <div><label class="pml">배너 형식</label><select id="pmType" class="pmi"></select></div>
+              <div><label class="pml">상품명 (짧은 이름) *</label><input id="pmBig" class="pmi" placeholder="예) 온다 리프팅"></div>
+            </div>
+          </div>
+          <div><label class="pml">짧은 카피 (배너 상단 문구)</label><input id="pmScript" class="pmi" placeholder="예) 마이크로웨이브로 비대칭까지 바로잡는"></div>
+          <div><label class="pml">상품 타이틀 (목록·상세 제목) *</label><input id="pmTitleInput" class="pmi" placeholder="예) [탄력은 더하고, 통증은 줄이고] 온다 리프팅"></div>
+          <div><label class="pml">대표 이벤트</label><input id="pmEvent" class="pmi" placeholder="예) [첫 시술 EVENT] 온다 리프팅 10kj(1만줄)"></div>
+          <div class="grid grid-cols-2 gap-4">
+            <div><label class="pml">이벤트가 (원 · 0=상담 후 안내)</label><input id="pmPrice" type="number" min="0" class="pmi" placeholder="45000"></div>
+            <div class="flex items-end pb-1.5"><label class="flex items-center gap-2 text-[13.5px]" style="color:var(--text-soft)"><input id="pmOn" type="checkbox" class="accent-[var(--accent)]"> 홈페이지에 노출</label></div>
+          </div>
+          <p class="text-[11.5px]" style="color:var(--muted)">* 표시는 필수 항목입니다. 이미지를 올리면 홈페이지 카드에 사진으로 노출되고, 없으면 형식에 맞는 기본 배너가 표시됩니다.</p>
+        </div>
+        <div class="flex items-center justify-end gap-2 px-6 py-4" style="border-top:1px solid var(--border)">
+          <button onclick="closeProductModal()" class="px-4 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">취소</button>
+          <button onclick="submitProductModal()" class="px-5 h-9 rounded-lg text-[13px] font-semibold btn-gold">저장</button>
+        </div>
+      </div>`;
+    document.body.appendChild(wrap);
+  }
+  function renderProdImgPreview(){
+    const box = document.getElementById('pmImgPreview');
+    if(!box) return;
+    box.innerHTML = _prodImg
+      ? `<img src="${_prodImg}" style="width:100%;height:100%;object-fit:cover;display:block" alt="">`
+      : `<div class="text-center px-2"><iconify-icon icon="solar:gallery-linear" width="24" style="color:var(--muted)"></iconify-icon><p class="text-[11px] mt-1" style="color:var(--muted)">이미지 없음</p></div>`;
+  }
+  function clearProdImg(){ _prodImg=''; renderProdImgPreview(); }
+  async function handleProductImage(input){
+    const file = input.files && input.files[0];
+    if(!file) return;
+    if(typeof window.uploadImage !== 'function'){ toast('이미지 업로드 기능을 사용할 수 없습니다. (Supabase 연결 확인)', false); input.value=''; return; }
+    const btn = document.getElementById('pmImgBtn');
+    const prev = btn.innerHTML; btn.innerHTML='업로드 중…'; btn.disabled=true;
+    try{
+      const url = await window.uploadImage(file);
+      _prodImg = url; renderProdImgPreview();
+      toast('이미지가 업로드됐습니다.');
+    }catch(e){
+      console.error(e); toast('이미지 업로드 실패: '+((e&&e.message)||e), false);
+    }finally{
+      btn.innerHTML=prev; btn.disabled=false; input.value='';
+    }
+  }
+  function openProductModal(idx){
+    ensureProductModal();
+    const base = KK.get('products', DEFAULT_PRODUCTS);
+    _prodEditIdx = (idx===undefined || idx===null) ? null : idx;
+    const blank = {cat:'', type:'promo', script:'', big:'', title:'', event:'', price:0, on:true, img:''};
+    const p = _prodEditIdx===null ? blank : Object.assign({}, blank, base[_prodEditIdx]);
+    _prodImg = p.img || '';
+    document.getElementById('pmTitle').textContent = _prodEditIdx===null ? '시술 상품 추가' : '시술 상품 수정';
+    document.getElementById('pmCat').innerHTML = '<option value="">카테고리 선택</option>' +
+      productCats().map(c=>`<option value="${c.replace(/"/g,'&quot;')}" ${c===p.cat?'selected':''}>${c}</option>`).join('');
+    document.getElementById('pmType').innerHTML =
+      PRODUCT_TYPES.map(t=>`<option value="${t.v}" ${t.v===(p.type||'promo')?'selected':''}>${t.l}</option>`).join('');
+    document.getElementById('pmBig').value = p.big||'';
+    document.getElementById('pmScript').value = p.script||'';
+    document.getElementById('pmTitleInput').value = p.title||'';
+    document.getElementById('pmEvent').value = p.event||'';
+    document.getElementById('pmPrice').value = p.price||0;
+    document.getElementById('pmOn').checked = p.on!==false;
+    renderProdImgPreview();
+    const m = document.getElementById('productModal');
+    m.classList.remove('hidden'); m.classList.add('flex');
+  }
+  function closeProductModal(){
+    const m = document.getElementById('productModal');
+    if(m){ m.classList.add('hidden'); m.classList.remove('flex'); }
+  }
+  function submitProductModal(){
+    const cat   = document.getElementById('pmCat').value.trim();
+    const big   = document.getElementById('pmBig').value.trim();
+    const title = document.getElementById('pmTitleInput').value.trim();
+    if(!cat){   toast('카테고리를 선택해주세요.', false); return; }
+    if(!big){   toast('상품명을 입력해주세요.', false); return; }
+    if(!title){ toast('상품 타이틀을 입력해주세요.', false); return; }
+    const rec = {
+      cat: cat,
+      type: document.getElementById('pmType').value,
+      script: document.getElementById('pmScript').value.trim(),
+      big: big,
+      title: title,
+      event: document.getElementById('pmEvent').value.trim(),
+      price: parseInt((document.getElementById('pmPrice').value||'0').replace(/[^0-9]/g,''))||0,
+      on: document.getElementById('pmOn').checked,
+      img: _prodImg||'',
+    };
+    const base = productsSyncInline(KK.get('products', DEFAULT_PRODUCTS));
+    if(_prodEditIdx===null) base.push(rec);
+    else base[_prodEditIdx] = Object.assign({}, base[_prodEditIdx], rec);
+    KK.set('products', base);
+    closeProductModal();
+    rerenderProducts();
+    toast(_prodEditIdx===null ? '상품을 추가하고 저장했습니다.' : '상품을 수정하고 저장했습니다.');
+  }
+
   BUILDERS.products = function(){
+    ensureProductModal();
     const products = KK.get('products', DEFAULT_PRODUCTS);
     const el = makeView('products');
-    el.innerHTML = pageHead('시술 상품 관리','시술 상품과 가격·노출을 관리합니다. (가격·노출 수정 → 저장 시 홈 반영)',
-      `<input placeholder="상품명 검색" class="px-3 h-9 rounded-lg text-[13px] w-56" style="background:var(--panel);border:1px solid var(--border);color:var(--text)">
-       <button onclick="saveProducts()" class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 전체 저장 (홈 반영)</button>`) +
+    const thumb = (p)=> p.img
+      ? `<img src="${p.img}" class="w-12 h-12 rounded-lg object-cover" style="border:1px solid var(--border)" alt="">`
+      : `<div class="w-12 h-12 rounded-lg grid place-items-center" style="background:var(--panel-soft);border:1px solid var(--border)"><iconify-icon icon="solar:gallery-linear" width="16" style="color:var(--muted)"></iconify-icon></div>`;
+    el.innerHTML = pageHead('시술 상품 관리','시술 상품을 추가·수정·삭제하고 이미지를 업로드합니다. (저장 시 홈 반영)',
+      `<button onclick="openProductModal(null)" class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:add-circle-linear" width="15"></iconify-icon> 상품 추가</button>
+       <button onclick="saveProducts()" class="px-4 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 가격·노출 저장</button>`) +
       `<div class="panel rounded-2xl overflow-hidden"><div class="overflow-x-auto"><table class="tbl w-full text-[13.5px] whitespace-nowrap">
-        <thead><tr style="background:var(--panel-soft);color:var(--muted)"><th class="px-4 py-3.5 font-semibold">카테고리</th><th class="px-4 py-3.5 font-semibold">상품명</th><th class="px-4 py-3.5 font-semibold">대표 이벤트</th><th class="px-4 py-3.5 font-semibold">이벤트가(원)</th><th class="px-4 py-3.5 font-semibold">노출</th><th class="px-4 py-3.5 font-semibold text-right">관리</th></tr></thead>
-        <tbody>${products.map((p,i)=>`<tr style="border-top:1px solid var(--border-soft)" data-prow="${i}">
-          <td class="px-4 py-3.5" style="color:var(--text-soft)">${p.cat}</td>
-          <td class="px-4 py-3.5 font-semibold">${p.big}</td>
-          <td class="px-4 py-3.5" style="color:var(--text-soft)">${p.event}</td>
-          <td class="px-4 py-3.5"><input data-pf="price" value="${p.price}" class="w-28 px-2 py-1.5 rounded text-[13px] text-right" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--accent-strong);font-weight:600"></td>
+        <thead><tr style="background:var(--panel-soft);color:var(--muted)"><th class="px-4 py-3.5 font-semibold">이미지</th><th class="px-4 py-3.5 font-semibold">카테고리</th><th class="px-4 py-3.5 font-semibold">상품명</th><th class="px-4 py-3.5 font-semibold">대표 이벤트</th><th class="px-4 py-3.5 font-semibold">이벤트가(원)</th><th class="px-4 py-3.5 font-semibold">노출</th><th class="px-4 py-3.5 font-semibold text-right">관리</th></tr></thead>
+        <tbody>${products.length ? products.map((p,i)=>`<tr style="border-top:1px solid var(--border-soft)" data-prow="${i}">
+          <td class="px-4 py-3">${thumb(p)}</td>
+          <td class="px-4 py-3.5" style="color:var(--text-soft)">${p.cat||''}</td>
+          <td class="px-4 py-3.5 font-semibold">${p.big||''}</td>
+          <td class="px-4 py-3.5" style="color:var(--text-soft)">${p.event||''}</td>
+          <td class="px-4 py-3.5"><input data-pf="price" value="${p.price||0}" class="w-28 px-2 py-1.5 rounded text-[13px] text-right" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--accent-strong);font-weight:600"></td>
           <td class="px-4 py-3.5"><label class="inline-flex items-center gap-1.5 text-[12.5px]" style="color:var(--text-soft)"><input type="checkbox" data-pf="on" ${p.on!==false?'checked':''} class="accent-[var(--accent)]"> 노출</label></td>
-          <td class="px-4 py-3.5"><div class="flex items-center justify-end gap-1.5"><button class="w-8 h-8 rounded-lg grid place-items-center" style="background:var(--accent-soft);color:var(--accent-strong)"><iconify-icon icon="solar:pen-linear" width="14"></iconify-icon></button><button class="w-8 h-8 rounded-lg grid place-items-center text-white" style="background:var(--bad)"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button></div></td>
-        </tr>`).join('')}</tbody></table></div></div>`;
+          <td class="px-4 py-3.5"><div class="flex items-center justify-end gap-1.5"><button onclick="openProductModal(${i})" class="w-8 h-8 rounded-lg grid place-items-center" style="background:var(--accent-soft);color:var(--accent-strong)"><iconify-icon icon="solar:pen-linear" width="14"></iconify-icon></button><button onclick="deleteProduct(${i})" class="w-8 h-8 rounded-lg grid place-items-center text-white" style="background:var(--bad)"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button></div></td>
+        </tr>`).join('') : `<tr><td colspan="7" class="text-center py-14" style="color:var(--muted)">등록된 상품이 없습니다. 「상품 추가」로 첫 상품을 등록하세요.</td></tr>`}</tbody></table></div></div>`;
   };
 
   /* ---------- 기간별 이벤트 ---------- */
@@ -935,21 +1606,198 @@
       </table></div>`;
   };
 
-  /* ---------- 시술 전후 관리 ---------- */
+  /* ---------- 시술 전후 관리 (BEFORE/AFTER 사진 업로드 CRUD → front /ba) ---------- */
+  const BA_CATS = ['다이어트','리프팅/탄력/윤곽','미백/기미/색소','여드름/모공/흉터','제모/문신제거','코/윤곽/실리프팅','콜라겐 볼륨침 CoVA','기타'];
+  function baSyncInline(base){
+    document.querySelectorAll('#view-beforeafter [data-barow]').forEach(c=>{
+      const i = parseInt(c.dataset.barow);
+      if(!base[i]) return;
+      const on = c.querySelector('[data-baf="on"]');
+      if(on) base[i].on = on.checked;
+    });
+    return base;
+  }
+  function saveBA(){
+    const base = baSyncInline(KK.get('ba', []));
+    KK.set('ba', base);
+    toast(STORAGE_OK? '전후사진이 저장됐습니다. 홈페이지 「시술전후」에 반영됩니다.' : '미리보기 환경에선 저장이 제한됩니다.', STORAGE_OK);
+  }
+  function toggleBABlur(chk){
+    KK.set('baBlur', !!chk.checked);
+    toast(chk.checked? '전후사진이 블러 처리되어 노출됩니다.' : '블러 처리를 해제했습니다.');
+  }
+  function rerenderBA(){
+    const old = document.getElementById('view-beforeafter');
+    if(old) old.remove();
+    BUILDERS.beforeafter();
+    go('beforeafter');
+  }
+  function moveBA(i, d){
+    const base = baSyncInline(KK.get('ba', []));
+    const j = i + d;
+    if(j < 0 || j >= base.length) return;
+    const tmp = base[i]; base[i] = base[j]; base[j] = tmp;
+    KK.set('ba', base);
+    rerenderBA();
+  }
+  function deleteBA(i){
+    const base = baSyncInline(KK.get('ba', []));
+    const b = base[i]; if(!b) return;
+    if(!confirm('「'+(b.title||'이 전후사진')+'」을(를) 삭제할까요?\n삭제하면 홈페이지에서도 사라집니다.')) return;
+    base.splice(i,1);
+    KK.set('ba', base);
+    rerenderBA();
+    toast('전후사진을 삭제하고 저장했습니다.');
+  }
+
+  /* ----- 전후사진 추가/수정 모달 ----- */
+  let _baEditIdx = null, _baImgB = '', _baImgA = '';
+  function ensureBAModal(){
+    if(document.getElementById('baModal')) return;
+    kkModalCss();
+    const wrap = document.createElement('div');
+    wrap.id = 'baModal';
+    wrap.className = 'hidden fixed inset-0 z-[80] items-center justify-center bg-black/50 px-4';
+    wrap.innerHTML =
+      `<div class="panel rounded-2xl w-full max-w-2xl max-h-[94vh] overflow-y-auto no-sb" style="background:var(--panel)">
+        <div class="flex items-center justify-between px-6 py-4" style="border-bottom:1px solid var(--border)">
+          <h3 id="bamTitle" class="text-[17px] font-bold">전후사진 추가</h3>
+          <button onclick="closeBAModal()" class="w-8 h-8 rounded-lg grid place-items-center" style="color:var(--muted)"><iconify-icon icon="solar:close-circle-linear" width="20"></iconify-icon></button>
+        </div>
+        <div class="p-6 space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="pml">BEFORE 사진 *</label>
+              <div id="bamBPrev" class="w-full h-40 rounded-xl overflow-hidden grid place-items-center" style="background:var(--panel-soft);border:1px solid var(--border)"></div>
+              <button id="bamBBtn" onclick="document.getElementById('bamBFile').click()" class="mt-2 w-full py-2 rounded-lg text-[12.5px] font-semibold btn-gold">BEFORE 업로드</button>
+              <input id="bamBFile" type="file" accept="image/*" class="hidden" onchange="handleBAImage(this,'B')">
+            </div>
+            <div>
+              <label class="pml">AFTER 사진 *</label>
+              <div id="bamAPrev" class="w-full h-40 rounded-xl overflow-hidden grid place-items-center" style="background:var(--panel-soft);border:1px solid var(--border)"></div>
+              <button id="bamABtn" onclick="document.getElementById('bamAFile').click()" class="mt-2 w-full py-2 rounded-lg text-[12.5px] font-semibold btn-gold">AFTER 업로드</button>
+              <input id="bamAFile" type="file" accept="image/*" class="hidden" onchange="handleBAImage(this,'A')">
+            </div>
+          </div>
+          <div><label class="pml">분류(카테고리) *</label><select id="bamCat" class="pmi"></select></div>
+          <div><label class="pml">제목 *</label><input id="bamT" class="pmi" placeholder="예) 홍조개선 전후"></div>
+          <div><label class="pml">설명 (한 줄)</label><input id="bamSub" class="pmi" placeholder="예) 볼 및 나비존 붉은 기 진정"></div>
+          <label class="flex items-center gap-2 text-[13.5px]" style="color:var(--text-soft)"><input id="bamOn" type="checkbox" class="accent-[var(--accent)]" checked> 홈페이지에 노출</label>
+          <p class="text-[11.5px] break-keep" style="color:var(--muted)">※ 전후사진은 의료광고 규정의 영향을 받을 수 있습니다. 환자 동의를 받은 사진만 올려주시고, 필요 시 목록 상단의 「블러 처리」를 켜세요.</p>
+        </div>
+        <div class="flex items-center justify-end gap-2 px-6 py-4" style="border-top:1px solid var(--border)">
+          <button onclick="closeBAModal()" class="px-4 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">취소</button>
+          <button onclick="submitBAModal()" class="px-5 h-9 rounded-lg text-[13px] font-semibold btn-gold">저장 (홈 반영)</button>
+        </div>
+      </div>`;
+    document.body.appendChild(wrap);
+  }
+  function renderBAPrev(){
+    const pb = document.getElementById('bamBPrev'), pa = document.getElementById('bamAPrev');
+    const ph = t=>`<div class="text-center px-2"><iconify-icon icon="solar:gallery-linear" width="24" style="color:var(--muted)"></iconify-icon><p class="text-[11px] mt-1" style="color:var(--muted)">${t}</p></div>`;
+    if(pb) pb.innerHTML = _baImgB ? `<img src="${_baImgB}" style="width:100%;height:100%;object-fit:cover;display:block" alt="">` : ph('시술 전 사진');
+    if(pa) pa.innerHTML = _baImgA ? `<img src="${_baImgA}" style="width:100%;height:100%;object-fit:cover;display:block" alt="">` : ph('시술 후 사진');
+  }
+  async function handleBAImage(input, which){
+    const file = input.files && input.files[0];
+    if(!file) return;
+    if(typeof window.uploadImage !== 'function'){ toast('이미지 업로드 기능을 사용할 수 없습니다. (Supabase 연결 확인)', false); input.value=''; return; }
+    const btn = document.getElementById(which==='B'?'bamBBtn':'bamABtn');
+    const prev = btn.innerHTML; btn.innerHTML='업로드 중…'; btn.disabled=true;
+    try{
+      const url = await window.uploadImage(file);
+      if(which==='B') _baImgB = url; else _baImgA = url;
+      renderBAPrev();
+      toast((which==='B'?'BEFORE':'AFTER')+' 사진이 업로드됐습니다.');
+    }catch(e){
+      console.error(e); toast('이미지 업로드 실패: '+((e&&e.message)||e), false);
+    }finally{
+      btn.innerHTML=prev; btn.disabled=false; input.value='';
+    }
+  }
+  function openBAModal(idx){
+    ensureBAModal();
+    const base = KK.get('ba', []);
+    _baEditIdx = (idx===undefined || idx===null) ? null : idx;
+    const blank = {cat:'', title:'', sub:'', imgB:'', imgA:'', on:true};
+    const b = _baEditIdx===null ? blank : Object.assign({}, blank, base[_baEditIdx]);
+    _baImgB = b.imgB||''; _baImgA = b.imgA||'';
+    document.getElementById('bamTitle').textContent = _baEditIdx===null ? '전후사진 추가' : '전후사진 수정';
+    document.getElementById('bamCat').innerHTML = '<option value="">분류 선택</option>' +
+      BA_CATS.map(c=>`<option value="${c}" ${c===b.cat?'selected':''}>${c}</option>`).join('');
+    document.getElementById('bamT').value = b.title||'';
+    document.getElementById('bamSub').value = b.sub||'';
+    document.getElementById('bamOn').checked = b.on!==false;
+    renderBAPrev();
+    const m = document.getElementById('baModal');
+    m.classList.remove('hidden'); m.classList.add('flex');
+  }
+  function closeBAModal(){
+    const m = document.getElementById('baModal');
+    if(m){ m.classList.add('hidden'); m.classList.remove('flex'); }
+  }
+  function submitBAModal(){
+    const cat = document.getElementById('bamCat').value;
+    const title = document.getElementById('bamT').value.trim();
+    if(!cat){ toast('분류를 선택해주세요.', false); return; }
+    if(!title){ toast('제목을 입력해주세요.', false); return; }
+    if(!_baImgB || !_baImgA){ toast('BEFORE / AFTER 사진을 모두 올려주세요.', false); return; }
+    const d = new Date();
+    const today = String(d.getFullYear()).slice(2)+'.'+String(d.getMonth()+1).padStart(2,'0')+'.'+String(d.getDate()).padStart(2,'0');
+    const base = baSyncInline(KK.get('ba', []));
+    const rec = {
+      cat: cat, title: title,
+      sub: document.getElementById('bamSub').value.trim(),
+      loc: '화정', imgB: _baImgB, imgA: _baImgA,
+      on: document.getElementById('bamOn').checked,
+      date: (_baEditIdx!==null && base[_baEditIdx] && base[_baEditIdx].date) || today,
+    };
+    if(_baEditIdx===null) base.unshift(rec);
+    else base[_baEditIdx] = Object.assign({}, base[_baEditIdx], rec);
+    KK.set('ba', base);
+    closeBAModal();
+    rerenderBA();
+    toast(_baEditIdx===null ? '전후사진을 등록하고 저장했습니다.' : '전후사진을 수정하고 저장했습니다.');
+  }
+
   BUILDERS.beforeafter = function(){
+    ensureBAModal();
+    const items = KK.get('ba', []);
+    const blurOn = !!KK.get('baBlur', false);
     const el = makeView('beforeafter');
-    el.innerHTML = pageHead('시술전후 관리','시술 전후 사진을 다국어·카테고리별로 관리합니다.', `<div class="flex items-center gap-1.5">${langRow()}</div>
-      <button class="w-9 h-9 rounded-lg grid place-items-center btn-gold"><iconify-icon icon="solar:add-circle-linear" width="18"></iconify-icon></button>`) +
+    el.innerHTML = pageHead('시술전후 관리','전후사진을 등록·수정·삭제합니다. (저장 시 홈 「시술전후」 반영)',
+      `<button onclick="openBAModal(null)" class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:add-circle-linear" width="15"></iconify-icon> 전후사진 추가</button>
+       <button onclick="saveBA()" class="px-4 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 노출 저장</button>`) +
       `<div class="panel rounded-2xl p-5">
-        <div class="flex items-center justify-between rounded-xl px-4 py-3.5 mb-4" style="background:var(--panel-soft);border:1px solid var(--border)">
-          <div><p class="font-semibold text-[14px]">전후 사진 블러 처리</p><p class="text-[12.5px]" style="color:var(--muted)">ON 시 이 지점의 시술 전후 사진이 블러 처리되어 노출됩니다.</p></div>
-          <span class="flex items-center gap-2"><span class="text-[12.5px] font-semibold" style="color:var(--muted)">OFF</span><span class="w-9 h-5 rounded-full relative" style="background:#cbc4ba"><span class="absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-white"></span></span></span>
+        <div class="flex items-center justify-between rounded-xl px-4 py-3.5 mb-5" style="background:var(--panel-soft);border:1px solid var(--border)">
+          <div><p class="font-semibold text-[14px]">전후 사진 블러 처리</p><p class="text-[12.5px]" style="color:var(--muted)">켜면 홈페이지의 모든 전후사진이 흐리게 노출됩니다. (의료광고 대응)</p></div>
+          <label class="flex items-center gap-2 text-[13px]" style="color:var(--text-soft)"><input id="baBlurChk" type="checkbox" ${blurOn?'checked':''} onchange="toggleBABlur(this)" class="accent-[var(--accent)]"> 블러 켜기</label>
         </div>
-        <div class="flex items-center gap-2 mb-6">
-          <select class="px-3 h-9 rounded-lg text-[13px]" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"><option>전체 카테고리</option></select>
-          <button class="px-3 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">카테고리 관리</button>
-        </div>
-        <div class="text-center py-16" style="color:var(--muted)">해당 조건에 맞는 항목이 없습니다.</div>
+        ${items.length ? `<div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">${items.map((b,i)=>`
+          <div class="rounded-2xl overflow-hidden" style="border:1px solid var(--border)" data-barow="${i}">
+            <div style="height:132px;display:grid;grid-template-columns:1fr 1fr">
+              <div style="position:relative;overflow:hidden"><img src="${b.imgB}" style="width:100%;height:100%;object-fit:cover;display:block" alt=""><span style="position:absolute;top:6px;left:6px;font-size:9px;font-weight:700;color:#fff;background:rgba(0,0,0,.5);padding:2px 6px;border-radius:4px">BEFORE</span></div>
+              <div style="position:relative;overflow:hidden"><img src="${b.imgA}" style="width:100%;height:100%;object-fit:cover;display:block" alt=""><span style="position:absolute;top:6px;right:6px;font-size:9px;font-weight:700;color:#fff;background:rgba(0,0,0,.5);padding:2px 6px;border-radius:4px">AFTER</span></div>
+            </div>
+            <div class="p-4">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="chip" style="background:var(--accent-soft);color:var(--accent-strong)">${b.cat||''}</span>
+                ${b.date?`<span class="chip" style="background:var(--panel-soft);color:var(--muted)">${b.date}</span>`:''}
+              </div>
+              <p class="font-bold text-[15px] mt-2">${b.title||''}</p>
+              <p class="text-[12.5px] mt-0.5 break-keep" style="color:var(--text-soft)">${b.sub||''}</p>
+              <div class="flex items-center justify-between mt-3">
+                <label class="flex items-center gap-1.5 text-[12.5px]" style="color:var(--text-soft)"><input type="checkbox" data-baf="on" ${b.on!==false?'checked':''} class="accent-[var(--accent)]"> 노출</label>
+                <div class="flex items-center gap-1.5">
+                  <button onclick="moveBA(${i},-1)" class="w-8 h-8 rounded-lg grid place-items-center" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="solar:arrow-up-linear" width="14"></iconify-icon></button>
+                  <button onclick="moveBA(${i},1)" class="w-8 h-8 rounded-lg grid place-items-center" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="solar:arrow-down-linear" width="14"></iconify-icon></button>
+                  <button onclick="openBAModal(${i})" class="w-8 h-8 rounded-lg grid place-items-center" style="background:var(--accent-soft);color:var(--accent-strong)"><iconify-icon icon="solar:pen-linear" width="14"></iconify-icon></button>
+                  <button onclick="deleteBA(${i})" class="w-8 h-8 rounded-lg grid place-items-center text-white" style="background:var(--bad)"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button>
+                </div>
+              </div>
+            </div>
+          </div>`).join('')}</div>`
+        : `<div class="text-center py-16" style="color:var(--muted)">등록된 전후사진이 없습니다. 「전후사진 추가」로 BEFORE/AFTER 사진을 올려보세요.<br><span class="text-[12px]">등록 전에는 홈페이지에 기존 샘플 전후사진이 표시됩니다.</span></div>`}
       </div>`;
   };
 

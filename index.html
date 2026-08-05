@@ -61,6 +61,11 @@
     .cat-active{ color:#3d4e41; font-weight:700; }
     .uv{ filter:saturate(1.1) hue-rotate(165deg) brightness(.82) contrast(1.05); }
     .navlink.active{ color:#3d4e41; border-bottom:1px solid #3d4e41; padding-bottom:2px; }
+    .note-body img{ max-width:100%; border-radius:14px; margin:16px 0; display:block; }
+    .note-body h3{ font-weight:700; font-size:1.2em; margin:26px 0 8px; color:#2f343a; }
+    .note-body p{ margin:10px 0; }
+    .note-body hr{ border:0; border-top:1px solid rgba(47,52,58,.12); margin:26px 0; }
+    .note-body b, .note-body strong{ font-weight:700; color:#2f343a; }
   </style>
 </head>
 <body class="bg-bglight">
@@ -228,7 +233,7 @@
   <!-- ===== ABOUT ===== -->
   <section id="about" class="grid lg:grid-cols-2 min-h-[78vh]">
     <div class="relative min-h-[380px] bg-beige">
-      <img src="img/kv-portrait-bob.jpg" class="absolute inset-0 w-full h-full object-cover" alt="" loading="lazy">
+      <img id="aboutImg" src="img/kv-portrait-bob.jpg" class="absolute inset-0 w-full h-full object-cover" alt="" loading="lazy">
     </div>
     <div class="bg-bglight flex items-center justify-center px-8 py-24 reveal">
       <div class="text-center max-w-md">
@@ -237,8 +242,10 @@
           <span class="krhead text-[9px] tracking-[0.28em] text-pink/70 leading-tight text-left border-l border-pink/30 pl-3">PREMIUM MEDICAL<span class="block mt-0.5">SKIN NETWORK</span></span>
         </div>
         <div class="flex items-center gap-3 justify-center mb-10"><span class="h-px w-16 bg-ink/20"></span><span class="krhead text-muted text-sm break-keep" style="font-weight:300">한 끗 차이의 아름다움</span></div>
+        <div id="aboutBody">
         <p class="krhead text-ink/70 leading-loose break-keep text-lg" style="font-weight:300">과하지 않은 자연스러운<br>한 끗 차이의 아름다움,</p>
         <p class="krhead text-ink/85 leading-loose break-keep mt-5 text-lg" style="font-weight:500">우리 클리닉에서<br>내외면의 아름다움을 찾아보세요.</p>
+        </div>
       </div>
     </div>
   </section>
@@ -642,8 +649,16 @@
             <p class="krhead text-sm text-ink/55 break-keep mb-5" style="font-weight:300">Feedly 같은 리더에 위 링크를 복사해 넣으면 최신 글을 받아볼 수 있습니다.</p>
             <button class="krhead w-full py-3.5 rounded-xl bg-ink text-white text-sm flex items-center justify-center gap-2 hover:bg-pinkstrong transition" style="font-weight:500"><iconify-icon icon="solar:rss-linear"></iconify-icon> 시술노트 RSS</button>
           </div>
+          <div id="blogWidget" class="mt-6"></div>
         </aside>
       </div>
+    </section>
+  </main>
+
+  <!-- ===== 시술 노트 상세 (글 + 사진) ===== -->
+  <main id="view-notedetail" class="hidden">
+    <section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-28">
+      <div id="noteDetailBody"></div>
     </section>
   </main>
 
@@ -717,7 +732,7 @@
         <a href="#doctors" onclick="showView('doctors');return false" class="hover:text-white">의료진 소개</a><span>|</span>
         <a href="#network" onclick="showView('network');return false" class="hover:text-white">지점 안내</a>
       </div>
-      <p id="ftBiz" class="krhead text-sm text-white/45 break-keep" style="font-weight:300">상호 : 연오재한의원 | 대표 : (대표원장) | 사업자등록번호 : (등록번호)</p>
+      <p id="ftBiz" class="krhead text-sm text-white/45 break-keep" style="font-weight:300">상호 : 연오재한의원 | 대표 : 김경민 | 사업자등록번호 : 779-09-03367</p>
       <p id="ftAddr" class="krhead text-sm text-white/45 break-keep mt-1.5" style="font-weight:300">주소 : 경기 고양시 덕양구 화중로 60, 화정빌딩 2층 205·206호</p>
       <p class="krhead text-xs text-white/30 mt-6" style="font-weight:300">© 2026 XXI PREMIUM MEDICAL SKIN NETWORK. All Rights Reserved</p>
     </div>
@@ -754,7 +769,7 @@
     /* ===== 뷰 전환 (메뉴 클릭 → 페이지 이동 없이 화면만 전환) ===== */
     function setHash(n){ try{ if(history.replaceState) history.replaceState(null,'','#'+n); }catch(e){ try{ location.hash=n; }catch(_){} } }
     window.showView=function(name, scrollSel){
-      ['home','category','ba','reserve','detail','badetail','manage','notes','care','doctors','noninsured','network'].forEach(function(v){
+      ['home','category','ba','reserve','detail','badetail','manage','notes','notedetail','care','doctors','noninsured','network'].forEach(function(v){
         document.getElementById('view-'+v).classList.toggle('hidden', v!==name);
       });
       document.querySelectorAll('#view-'+name+' .reveal').forEach(function(el){ el.classList.add('in'); });
@@ -849,7 +864,11 @@
       b.classList.add('font-medium','border-pinkneon'); b.classList.remove('text-white/40','border-transparent');
     }));
 
-    const ba=[
+    var __storedBA=(window.KK? KK.get('ba', []): []).filter(function(x){return x.on!==false;});
+    var __baBlur = window.KK ? !!KK.get('baBlur', false) : false;
+    const ba = __storedBA.length
+      ? __storedBA.slice(0,6).map(function(s,i){ return {t:s.title||'', sub:s.sub||'', s:'ba'+(i+1), bImg:s.imgB||'', aImg:s.imgA||''}; })
+      : [
       {t:'홍조개선 전후', sub:'볼 및 나비존 붉은 기 진정', s:'ba1'},
       {t:'모공 개선 전후', sub:'코 모공 축소 개선', s:'ba2'},
       {t:'안면홍조 재생', sub:'얼굴 붉은기 피부 재생', s:'ba3'},
@@ -860,8 +879,8 @@
       <div class="snap-start shrink-0 w-[70%] sm:w-[300px] rounded-xl overflow-hidden bg-white shadow-sm border border-ink/5">
         <div class="relative">
           <div class="grid grid-rows-2">
-            <div class="relative h-32"><img src="https://picsum.photos/seed/${c.s}b/400/200" class="w-full h-full object-cover" alt="" loading="lazy"><span class="absolute top-2 right-2 text-[10px] font-bold bg-pink text-white px-2 py-0.5 rounded">BEFORE</span></div>
-            <div class="relative h-32"><img src="https://picsum.photos/seed/${c.s}a/400/200" class="w-full h-full object-cover" alt="" loading="lazy"><span class="absolute bottom-2 right-2 text-[10px] font-bold bg-ink text-white px-2 py-0.5 rounded">AFTER</span></div>
+            <div class="relative h-32 overflow-hidden"><img src="${c.bImg||('https://picsum.photos/seed/'+c.s+'b/400/200')}" class="w-full h-full object-cover" style="${__baBlur&&c.bImg?'filter:blur(12px);transform:scale(1.08)':''}" alt="" loading="lazy"><span class="absolute top-2 right-2 text-[10px] font-bold bg-pink text-white px-2 py-0.5 rounded">BEFORE</span></div>
+            <div class="relative h-32 overflow-hidden"><img src="${c.aImg||('https://picsum.photos/seed/'+c.s+'a/400/200')}" class="w-full h-full object-cover" style="${__baBlur&&c.aImg?'filter:blur(12px);transform:scale(1.08)':''}" alt="" loading="lazy"><span class="absolute bottom-2 right-2 text-[10px] font-bold bg-ink text-white px-2 py-0.5 rounded">AFTER</span></div>
           </div>
           <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 border-2 border-dashed border-white/70 rounded-full"></div>
         </div>
@@ -993,6 +1012,19 @@
 
     /* ===== 배너(카드 상단 이미지) ===== */
     function bannerHTML(p,idx){ if(idx===undefined) idx=p._seed;
+      /* 관리자에서 업로드한 실제 이미지가 있으면 우선 사용 */
+      if(p.img){
+        return `
+        <div class="relative aspect-[4/3] rounded-2xl overflow-hidden">
+          <img src="${p.img}" class="w-full h-full object-cover" alt="" loading="lazy">
+          <div class="absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent"></div>
+          <div class="absolute left-0 right-0 bottom-0 px-3 py-3 text-center">
+            ${p.script?`<p class="promo-script text-white/85 text-[10px] leading-tight break-keep">${p.script}</p>`:''}
+            ${p.big?`<p class="promo-title text-white text-lg leading-tight break-keep">${p.big}</p>`:''}
+          </div>
+          <span class="absolute top-2.5 left-2.5 px-2 h-6 rounded-full bg-white/25 grid place-items-center"><span class="marcellus text-white text-[10px] tracking-[0.1em]">XXI</span></span>
+        </div>`;
+      }
       if(p.type==='ba'){
         return `
         <div class="relative aspect-[4/3] rounded-2xl overflow-hidden">
@@ -1127,6 +1159,18 @@
       {loc:'연오재', cat:'미백/기미/색소',        title:['색소 레이저 토닝 전후','흑자 · 잡티 병행 치료','화정'],          layout:'h', uv:true, circle:'white'},
     ];
 
+    /* 관리자 등록 전후사진이 있으면 그것만 사용 (없으면 샘플 유지) */
+    var stored=(window.KK? KK.get('ba', []): []).filter(function(x){return x.on!==false;});
+    var BLUR = window.KK ? !!KK.get('baBlur', false) : false;
+    if(stored.length){
+      items.length=0;
+      stored.forEach(function(s){
+        items.push({loc:s.loc||'연오재', cat:s.cat||'기타', title:[s.title||'', s.sub||'', s.loc||'화정'].filter(Boolean), layout:'v', imgB:s.imgB||'', imgA:s.imgA||'', dates:s.date?[s.date]:[]});
+      });
+      filters.splice(1);
+      stored.forEach(function(s){ if(s.cat && filters.indexOf(s.cat)<0) filters.push(s.cat); });
+    }
+
     items.forEach(function(c,i){ c._seed=i; });
 
     /* ===== 상태 ===== */
@@ -1162,6 +1206,19 @@
 
     /* ===== 전후 이미지 영역 ===== */
     function baImage(c,idx){ idx=c._seed;
+      /* 관리자 업로드 실제 전후사진 */
+      if(c.imgB || c.imgA){
+        var blurCss = BLUR ? 'filter:blur(14px);transform:scale(1.08);' : '';
+        var dateLb = (c.dates&&c.dates[0]) ? '<span class="absolute top-2 right-2 text-[10px] font-medium text-white drop-shadow z-10">'+c.dates[0]+'</span>' : '';
+        return '<div class="relative aspect-[4/3] overflow-hidden">'
+          +'<div class="grid grid-rows-2 h-full">'
+          +'<div class="relative overflow-hidden"><img src="'+(c.imgB||c.imgA)+'" class="w-full h-full object-cover" style="'+blurCss+'" alt=""><span class="absolute top-2 left-2 text-[10px] font-bold text-white bg-black/50 px-2 py-0.5 rounded z-10">BEFORE</span></div>'
+          +'<div class="relative overflow-hidden"><img src="'+(c.imgA||c.imgB)+'" class="w-full h-full object-cover" style="'+blurCss+'" alt=""><span class="absolute bottom-2 left-2 text-[10px] font-bold text-white bg-black/50 px-2 py-0.5 rounded z-10">AFTER</span></div>'
+          +'</div>'
+          +dateLb
+          +'<span class="absolute bottom-2 right-2 px-2.5 h-7 rounded-full bg-white/70 grid place-items-center shadow z-10"><span class="marcellus text-pinkstrong text-[11px] tracking-[0.1em]">XXI</span></span>'
+        +'</div>';
+      }
       const uv = c.uv ? 'uv' : '';
       const wm = `<span class="absolute bottom-2 right-2 px-2.5 h-7 rounded-full bg-white/70 grid place-items-center shadow"><span class="marcellus text-pinkstrong text-[11px] tracking-[0.1em]">XXI</span></span>`;
       const circleColor = c.circle==='red' ? 'border-red-500' : 'border-white/85';
@@ -1685,7 +1742,7 @@
   </div>
 
   <script>
-  /* ===== 시술 노트 렌더 (admin 시술노트 연동) ===== */
+  /* ===== 시술 노트 렌더 (admin 시술노트 연동: 썸네일 + 글 상세 + 블로그 위젯) ===== */
   (function(){
     var DEFAULT_NOTES = [
       {t:'수두흉터치료', sub:'수두 흉터와 패인 자국 개선, 피코프락셀이 흉터에 작용하는 방식', on:true},
@@ -1698,21 +1755,38 @@
       {t:'콜라겐볼륨침', sub:'필러 없이 채우는 콜라겐 볼륨침, 현명한 선택을 위한 가이드', on:true},
       {t:'엑쏘웨이브', sub:'화정 엑쏘웨이브(케이온다): 지방과 처짐, 극초단파로 동시에 케어하세요', on:true},
     ];
-    var notes = (window.KK? KK.get('notes', DEFAULT_NOTES): DEFAULT_NOTES).filter(function(n){return n.on!==false;});
+    var all = (window.KK? KK.get('notes', DEFAULT_NOTES): DEFAULT_NOTES);
+    all.forEach(function(n,i){ n._i=i; });
+    var notes = all.filter(function(n){return n.on!==false;});
     var page=1, PER=6, query='';
-    function filtered(){ if(!query) return notes; var q=query.toLowerCase(); return notes.filter(function(n){return (n.t+n.sub).toLowerCase().indexOf(q)>=0;}); }
-    function card(n){
-      return '<div class="group cursor-pointer">'
-        +'<div class="relative aspect-square rounded-2xl p-3 shadow-sm transition group-hover:-translate-y-1" style="background:linear-gradient(135deg,#f0c8d2,#e9b8c6)">'
-          +'<div class="relative h-full w-full rounded-xl grid place-items-center text-center px-5" style="background:linear-gradient(160deg,#fbf7f4,#f1ebe4)">'
-            +'<span class="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-3 rounded-b-lg border border-ink/15 bg-white/70"></span>'
-            +'<span class="krhead absolute top-3 right-3 text-[8px] tracking-widest font-bold text-pink/70" style="writing-mode:vertical-rl">XXI</span>'
-            +'<span class="absolute top-3 left-4 krhead text-[9px] text-ink/40" style="font-weight:500">XXI</span>'
-            +'<div><h3 class="krhead text-2xl sm:text-3xl font-extrabold text-ink/85 tracking-tight" style="font-weight:900">'+n.t+'</h3>'
-              +'<p class="krhead text-[11px] text-ink/50 mt-2 break-keep leading-relaxed" style="font-weight:400">'+n.sub.slice(0,28)+(n.sub.length>28?'…':'')+'</p></div>'
+    function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
+    function filtered(){ if(!query) return notes; var q=query.toLowerCase(); return notes.filter(function(n){return ((n.t||'')+(n.sub||'')).toLowerCase().indexOf(q)>=0;}); }
+    function media(n){
+      if(n.img){
+        return '<div class="relative aspect-square rounded-2xl overflow-hidden shadow-sm transition group-hover:-translate-y-1">'
+          +'<img src="'+n.img+'" class="w-full h-full object-cover" alt="" loading="lazy">'
+          +'<div class="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent"></div>'
+          +'<span class="krhead absolute top-3 right-3 text-[9px] tracking-widest text-white/85" style="font-weight:700;writing-mode:vertical-rl">XXI</span>'
+          +'<div class="absolute left-0 right-0 bottom-0 p-5 text-left">'
+            +'<h3 class="krhead text-xl sm:text-2xl text-white break-keep leading-snug" style="font-weight:900">'+esc(n.t)+'</h3>'
+            +(n.date?'<p class="krhead text-[10px] text-white/60 mt-1.5" style="font-weight:400">'+esc(n.date)+'</p>':'')
           +'</div>'
+        +'</div>';
+      }
+      return '<div class="relative aspect-square rounded-2xl p-3 shadow-sm transition group-hover:-translate-y-1" style="background:linear-gradient(135deg,#f0c8d2,#e9b8c6)">'
+        +'<div class="relative h-full w-full rounded-xl grid place-items-center text-center px-5" style="background:linear-gradient(160deg,#fbf7f4,#f1ebe4)">'
+          +'<span class="absolute top-3 left-1/2 -translate-x-1/2 w-12 h-3 rounded-b-lg border border-ink/15 bg-white/70"></span>'
+          +'<span class="krhead absolute top-3 right-3 text-[8px] tracking-widest font-bold text-pink/70" style="writing-mode:vertical-rl">XXI</span>'
+          +'<span class="absolute top-3 left-4 krhead text-[9px] text-ink/40" style="font-weight:500">XXI</span>'
+          +'<div><h3 class="krhead text-2xl sm:text-3xl font-extrabold text-ink/85 tracking-tight" style="font-weight:900">'+esc(n.t)+'</h3>'
+            +'<p class="krhead text-[11px] text-ink/50 mt-2 break-keep leading-relaxed" style="font-weight:400">'+esc((n.sub||'').slice(0,28))+((n.sub||'').length>28?'…':'')+'</p></div>'
         +'</div>'
-        +'<h4 class="krhead text-[15px] text-ink/90 mt-4 break-keep leading-snug" style="font-weight:700">'+n.sub.slice(0,34)+(n.sub.length>34?'…':'')+'</h4>'
+      +'</div>';
+    }
+    function card(n){
+      return '<div class="group cursor-pointer" onclick="__noteOpen('+n._i+')">'
+        + media(n)
+        +'<h4 class="krhead text-[15px] text-ink/90 mt-4 break-keep leading-snug" style="font-weight:700">'+esc((n.sub||n.t||'').slice(0,34))+((n.sub||'').length>34?'…':'')+'</h4>'
         +'<p class="krhead text-xs text-ink/40 mt-2 flex items-center gap-1" style="font-weight:400">Read Note <iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></p>'
         +'</div>';
     }
@@ -1722,13 +1796,60 @@
       var slice=list.slice((page-1)*PER, page*PER);
       var grid=document.getElementById('noteGrid'); if(!grid) return;
       grid.innerHTML = slice.length? slice.map(card).join('') : '<p class="krhead col-span-full text-center text-ink/40 py-16" style="font-weight:300">검색 결과가 없습니다.</p>';
-      var pg=''; 
+      var pg='';
       pg+='<button '+(page<=1?'disabled':'')+' onclick="__notePage('+(page-1)+')" class="w-9 h-9 rounded-full grid place-items-center border border-ink/15 text-ink/50 disabled:opacity-30"><iconify-icon icon="solar:alt-arrow-left-linear"></iconify-icon></button>';
       for(var i=1;i<=Math.min(pages,5);i++){ pg+='<button onclick="__notePage('+i+')" class="w-9 h-9 rounded-full grid place-items-center text-sm '+(i===page?'bg-ink text-white':'text-ink/60 hover:bg-ink/5')+'">'+i+'</button>'; }
       pg+='<button '+(page>=pages?'disabled':'')+' onclick="__notePage('+(page+1)+')" class="w-9 h-9 rounded-full grid place-items-center border border-ink/15 text-ink/50 disabled:opacity-30"><iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></button>';
       document.getElementById('notePager').innerHTML=pg;
     }
     window.__notePage=function(p){ page=p; render(); window.scrollTo({top:0,behavior:'smooth'}); };
+
+    /* ===== 글 상세 보기 ===== */
+    window.__noteOpen=function(i){
+      var n=all[i]; if(!n) return;
+      var hasBody = !!(n.body && String(n.body).replace(/<[^>]*>/g,'').trim().length) || String(n.body||'').indexOf('<img')>=0;
+      var bodyHTML = hasBody ? n.body
+        : '<p>'+esc(n.sub||'')+'</p><p class="text-ink/45">자세한 내용은 카카오톡 또는 전화로 문의해주세요 :)</p>';
+      var html=''+
+        '<div class="krhead flex items-center gap-2 text-sm text-muted mb-6" style="font-weight:400">'+
+          '<button onclick="showView(\'home\')" class="hover:text-pinkstrong">홈</button><span>/</span>'+
+          '<button onclick="showView(\'notes\')" class="hover:text-pinkstrong">시술 노트</button>'+
+        '</div>'+
+        '<h1 class="krhead text-3xl sm:text-4xl text-ink break-keep leading-snug" style="font-weight:900">'+esc(n.t)+'</h1>'+
+        (n.sub?'<p class="krhead text-[15px] text-ink/55 mt-3 break-keep" style="font-weight:300">'+esc(n.sub)+'</p>':'')+
+        (n.date?'<p class="krhead text-xs text-ink/35 mt-3" style="font-weight:400">'+esc(n.date)+' · 연오재한의원</p>':'')+
+        '<div class="flex items-center gap-3 my-8"><span class="h-px flex-1 bg-ink/10"></span><span class="w-1.5 h-1.5 rotate-45 border border-ink/30"></span><span class="h-px flex-1 bg-ink/10"></span></div>'+
+        (n.img?'<div class="rounded-2xl overflow-hidden mb-8"><img src="'+n.img+'" class="w-full object-cover" alt=""></div>':'')+
+        '<div class="note-body krhead text-[15px] text-ink/75 leading-loose break-keep" style="font-weight:300">'+bodyHTML+'</div>'+
+        '<div class="mt-14 flex flex-wrap items-center gap-3">'+
+          '<button onclick="showView(\'notes\')" class="krhead px-6 py-3 rounded-full border border-ink/15 text-sm hover:bg-ink hover:text-white transition flex items-center gap-2" style="font-weight:400"><iconify-icon icon="solar:alt-arrow-left-linear"></iconify-icon> 시술 노트 목록</button>'+
+          '<button onclick="showView(\'reserve\')" class="krhead px-6 py-3 rounded-full bg-ink text-white text-sm hover:bg-pinkstrong transition flex items-center gap-2" style="font-weight:500">온라인예약 하러 가기 <iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></button>'+
+        '</div>';
+      document.getElementById('noteDetailBody').innerHTML=html;
+      showView('notedetail');
+    };
+
+    /* ===== 블로그 최신 글 위젯 (admin 블로그 연동) ===== */
+    (function(){
+      var posts=(window.KK? KK.get('blog', []): []).filter(function(b){return b.on!==false;});
+      var bw=document.getElementById('blogWidget');
+      if(!bw) return;
+      if(!posts.length){ bw.innerHTML=''; return; }
+      bw.innerHTML='<div class="rounded-2xl border border-ink/10 p-7 bg-white shadow-sm">'
+        +'<span class="w-12 h-12 rounded-full bg-pink/10 grid place-items-center mb-4"><iconify-icon icon="solar:notebook-linear" class="text-pink text-xl"></iconify-icon></span>'
+        +'<h3 class="krhead text-lg text-ink mb-3" style="font-weight:700">블로그 최신 글</h3>'
+        +'<div class="divide-y divide-ink/5">'
+        +posts.slice(0,5).map(function(b){
+          return '<a href="'+(b.url||'#').replace(/"/g,'&quot;')+'" target="_blank" rel="noopener" class="flex items-center gap-3 py-3 group">'
+            +(b.img?'<img src="'+b.img+'" class="w-12 h-12 rounded-lg object-cover shrink-0" alt="">'
+                   :'<span class="w-12 h-12 rounded-lg bg-pinksoft/50 grid place-items-center shrink-0"><iconify-icon icon="solar:notebook-linear" class="text-pinkstrong"></iconify-icon></span>')
+            +'<span class="min-w-0"><span class="krhead block text-[13.5px] text-ink/80 leading-snug break-keep group-hover:text-pinkstrong transition" style="font-weight:500">'+esc(b.t)+'</span>'
+            +(b.date?'<span class="krhead block text-[11px] text-ink/35 mt-0.5" style="font-weight:300">'+esc(b.date)+'</span>':'')+'</span>'
+            +'</a>';
+        }).join('')
+        +'</div></div>';
+    })();
+
     var s=document.getElementById('noteSearch'); if(s) s.addEventListener('input', function(e){ query=e.target.value.trim(); page=1; render(); });
     render();
   })();
@@ -1747,6 +1868,17 @@
     var fa=document.getElementById('ftAddr'); if(fa) fa.textContent='주소 : '+(s.addr1||'')+(s.addr2? ' '+s.addr2:'');
     var nv=document.getElementById('locNaver'); if(nv && s.naver) nv.onclick=function(){ window.open(s.naver,'_blank'); };
     var kk=document.getElementById('locKakao'); if(kk && s.kakao) kk.onclick=function(){ window.open(s.kakao,'_blank'); };
+  })();
+
+  /* ===== 병원 소개 반영 (admin intro 연동) ===== */
+  (function(){
+    if(!window.KK) return;
+    var it = KK.get('intro', null); if(!it) return;
+    if(it.img){ var im=document.getElementById('aboutImg'); if(im) im.src=it.img; }
+    if(it.body){
+      var b=document.getElementById('aboutBody');
+      if(b) b.innerHTML='<div class="note-body krhead text-ink/75 leading-loose break-keep text-left text-[16px]" style="font-weight:300">'+it.body+'</div>';
+    }
   })();
 
   /* ===== 팝업 노출 (admin 팝업 관리 연동) ===== */
@@ -1779,7 +1911,7 @@
       {title:'리프팅 시술 (슈링크, 볼뉴머, 엑쏘웨이브, 시크릿)', on:true, body:'시술 후 일시적 붉은기·부기가 있을 수 있습니다. 충분한 수분 섭취와 보습을 권장합니다.'},
       {title:'VIP 회원권 및 환불/변경 규정', on:true, body:'할인된 금액으로 결제 후 취소 시 10%의 위약금이 차감됩니다. 환불 금액은 정상가 1회 기준으로 환산합니다.'},
     ];
-    var DEF_DOC=[{name:'민경욱', role:'대표원장 · 한의사', desc:'피부·미용 시술 전문. XXI 네트워크 · 연오재 대표원장.', seed:'doc-min'}];
+    var DEF_DOC=[{name:'김경민', role:'대표원장 · 한의사', desc:'피부·미용 시술 전문. 연오재한의원 대표원장.', img:''}];
     var DEF_NI=[
       {name:'레이저 토닝 (큐 마스터 플러스)', unit:'1회', price:'9,900원'},{name:'피코 토닝 (피코하이)', unit:'2,000샷', price:'9,900원'},
       {name:'슈링크 초음파 리프팅', unit:'100샷', price:'7,900원'},{name:'볼뉴머 고주파 리프팅', unit:'100샷', price:'89,000원'},
@@ -1811,7 +1943,9 @@
     var dl=document.getElementById('docList');
     if(dl) dl.innerHTML = docs.map(function(d){
       return '<div class="rounded-2xl border border-ink/10 bg-white overflow-hidden shadow-sm flex">'
-        +'<div class="w-32 shrink-0 grid place-items-center" style="background:linear-gradient(135deg,#e9e1d6,#d8cabb)"><iconify-icon icon="solar:user-rounded-bold" width="44" class="text-pinkstrong/60"></iconify-icon></div>'
+        +'<div class="w-32 shrink-0 grid place-items-center overflow-hidden" style="background:linear-gradient(135deg,#e9e1d6,#d8cabb)">'
+        +(d.img?'<img src="'+d.img+'" class="w-full h-full object-cover" alt="">':'<iconify-icon icon="solar:user-rounded-bold" width="44" class="text-pinkstrong/60"></iconify-icon>')
+        +'</div>'
         +'<div class="p-6">'
           +'<h3 class="krhead text-xl text-ink/90" style="font-weight:700">'+(d.name||'')+'</h3>'
           +'<p class="krhead text-sm text-pinkstrong mt-1" style="font-weight:500">'+(d.role||'')+'</p>'
