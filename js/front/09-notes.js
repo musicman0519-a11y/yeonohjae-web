@@ -240,7 +240,7 @@
 
     /* 관리자에서 「기본 설정」을 아직 한 번도 저장하지 않은 상태에서도
        네이버예약/카카오톡 문의 버튼이 바로 동작하도록 하는 기본값 */
-    var FALLBACK_NAVER = 'https://m.booking.naver.com/booking/13/bizes/889913?theme=place&lang=ko&area=pll';
+    var FALLBACK_NAVER = 'https://m.booking.naver.com/booking/13/bizes/889913';
     var FALLBACK_KAKAO = 'https://pf.kakao.com/_TNXHxj';
 
     var ko = KK.get('settings', null);

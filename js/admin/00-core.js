@@ -21,7 +21,7 @@
     hWeek:'09:00 ~ 18:00', hWeekend:'09:00 ~ 17:00', hHoliday:'휴무',
     extra:'주차 가능 · 무선 인터넷 · 남/녀 화장실 구분',
     tel:'0507-1485-2378', ceo:'김경민', reg:'779-09-03367',
-    naver:'https://m.booking.naver.com/booking/13/bizes/889913?theme=place&lang=ko&area=pll', kakao:'https://pf.kakao.com/_TNXHxj',
+    naver:'https://m.booking.naver.com/booking/13/bizes/889913', kakao:'https://pf.kakao.com/_TNXHxj',
     insta:'', whatsapp:'', wechat:'', line:'', nblog:'', ntv:'',
     seo:'화정역, 고양 한의원', seoTail:'연오재한의원', seoLocal:'화정 행신 원흥 삼송 덕양구 고양', navVerify:'', gVerify:'',
   };
