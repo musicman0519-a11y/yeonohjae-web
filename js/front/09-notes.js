@@ -244,6 +244,23 @@
     var FALLBACK_KAKAO = 'https://pf.kakao.com/_TNXHxj';
 
     var ko = KK.get('settings', null);
+
+    /* ── 예전에 저장된 잘못된 네이버 예약 URL 자동 교정 ──────────────────────
+       초기 버전의 기본값이 `booking.naver.com/booking/13/bizes/889` 였는데
+       이 ID(889)는 존재하지 않아 네이버가 "운영하지 않는 예약 페이지" 오류를 냅니다.
+       (올바른 ID는 889913)
+       이 값이 관리자 저장을 통해 localStorage + Supabase(site_kv)에 남아 있으면
+       브라우저 캐시를 지워도 Supabase에서 다시 내려받아 계속 되살아납니다.
+       그래서 잘못된 값을 발견하면 올바른 값으로 덮어써서 DB까지 함께 고칩니다.
+       KK.set 은 yeonohjae-supabase.js 가 감싸고 있어 Supabase에도 자동 반영됩니다. */
+    if (ko && ko.naver && /\/bizes\/889(?!\d)/.test(ko.naver)) {
+      try {
+        ko.naver = FALLBACK_NAVER;
+        KK.set('settings', ko);
+        console.log('[연오재] 잘못된 네이버 예약 URL을 자동 교정했습니다 →', FALLBACK_NAVER);
+      } catch(e){}
+    }
+
     (function(){
       var naverUrl = (ko && ko.naver) || FALLBACK_NAVER;
       var kakaoUrl = (ko && ko.kakao) || FALLBACK_KAKAO;
