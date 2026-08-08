@@ -259,8 +259,82 @@
     /* 모바일 카테고리 토글 */
     document.getElementById('catToggle').addEventListener('click',()=>document.getElementById('catNav').classList.toggle('hidden'));
 
+    /* ===== 다른 화면(홈 등)에서 특정 카테고리로 바로 이동 =====
+       홈 화면의 「스페셜 프로그램」·「STEADY SELLER」·「센터」 문구는 실제 카테고리명과
+       글자가 완전히 같지 않고(예: '제모' vs '[안꿋나는] 레이저 제모'), 카테고리명은
+       관리자에서 언제든 바뀝니다. 그래서 이름을 하드코딩하지 않고 아래처럼 유사도로 찾습니다.
+       못 찾으면 '전체보기'로 보내 최소한 시술 목록은 보이게 합니다. */
+    function normCat(s){
+      return String(s||'')
+        .replace(/\[[^\]]*\]/g,'')   /* [안꿋나는] 같은 머리말 제거 */
+        .replace(/[\s·!,]/g,'')      /* 공백·구두점 제거 */
+        .toLowerCase();
+    }
+    function matchCategory(hint){
+      if(!hint) return '전체보기';
+      var i, h = normCat(hint);
+      if(!h) return '전체보기';
+      /* 1) 원문 그대로 일치 */
+      for(i=0;i<categories.length;i++) if(categories[i]===hint) return categories[i];
+      /* 2) 머리말·공백 제거 후 일치 */
+      for(i=0;i<categories.length;i++) if(normCat(categories[i])===h) return categories[i];
+      /* 3) 한쪽이 다른 쪽을 포함 */
+      for(i=0;i<categories.length;i++){
+        var c=normCat(categories[i]);
+        if(c && c!=='전체보기' && (c.indexOf(h)>=0 || h.indexOf(c)>=0)) return categories[i];
+      }
+      /* 4) 토큰(슬래시 구분) 겹침 점수가 가장 높은 것 */
+      var best=null, bestScore=0;
+      var hToks=h.split('/').filter(Boolean);
+      for(i=0;i<categories.length;i++){
+        var cc=normCat(categories[i]); if(!cc || cc==='전체보기') continue;
+        var score=0;
+        hToks.forEach(function(t){ if(t.length>=2 && cc.indexOf(t)>=0) score+=t.length; });
+        cc.split('/').filter(Boolean).forEach(function(t){ if(t.length>=2 && h.indexOf(t)>=0) score+=t.length; });
+        if(score>bestScore){ bestScore=score; best=categories[i]; }
+      }
+      return best || '전체보기';
+    }
+    window.__goCategory = function(hint){
+      curCat  = matchCategory(hint);
+      curPage = 1;
+      curQuery= '';
+      var sb=document.getElementById('catSearch'); if(sb) sb.value='';
+      var lbl=document.getElementById('catToggleLabel'); if(lbl) lbl.textContent=curCat;
+      renderCats(); render();
+      if(window.showView) showView('category');
+    };
+    window.__matchCategory = matchCategory;   /* 디버깅·테스트용 */
+
+    /* ===== 홈 「STEADY SELLER」용 — 카테고리에 해당하는 실제 상품 목록 =====
+       관리자에 등록된 진짜 상품을 카드로 보여주기 위한 것입니다.
+       반환값: [{id, name, cat, title, event, price, orig, img, seed}] */
+    window.__productsFor = function(hint, limit){
+      var target = matchCategory(hint);
+      var list = (target==='전체보기')
+        ? products.slice()
+        : products.filter(function(p){ return p.cat===target; });
+      if(!list.length) list = products.slice();          /* 그 카테고리에 상품이 없으면 전체에서 */
+      return list.slice(0, limit||4).map(function(p){
+        var orig = 0;
+        if(p._vis && p._vis.length){
+          var full = parseInt(p._vis[0].price)||0;       /* 정가 */
+          if(full > (p.price||0)) orig = full;           /* 할인 중일 때만 정가 표시 */
+        }
+        return {
+          id: p.id||'', name: p.big||'', cat: p.cat||'', title: p.title||p.big||'',
+          event: p.event||'', price: p.price||0, orig: orig,
+          img: p.img||'', seed: p._seed
+        };
+      });
+    };
+    window.__won = won;
+
     window.__catBanner = bannerHTML;
     renderCats(); renderSorts(); render();
+
+    /* 홈 화면 등 먼저 로드된 스크립트가 상품 데이터를 쓸 수 있게 알림 */
+    try{ document.dispatchEvent(new CustomEvent('yj:catready')); }catch(e){}
   
 })();
   

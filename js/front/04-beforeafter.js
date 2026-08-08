@@ -242,7 +242,16 @@
       showView('badetail');
     };
 
+    /* ===== 홈 화면의 「BEFORE & AFTER」 카드에서 바로 열기 =====
+       홈 목록과 이 화면의 items 는 같은 원본(KK 'ba')을 같은 순서로 쓰므로 index 로 맞춥니다.
+       해당 항목을 못 찾으면 전후사진 목록 화면이라도 열어 줍니다. */
+    window.__goBA = function(i){
+      var c = items.find(function(x){ return x._seed===Number(i); });
+      if(c && window.openBADetail){ openBADetail(c); try{ window.scrollTo({top:0,behavior:'smooth'}); }catch(e){} return; }
+      if(window.showView) showView('ba');
+    };
+
     renderFilters(); render();
-  
+
 })();
   

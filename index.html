@@ -142,7 +142,7 @@
             <h3 id="progTitle" class="krhead text-2xl sm:text-3xl text-pinkstrong mb-7" style="font-weight:500">제모</h3>
             <ul id="progList" class="krhead space-y-2.5 text-ink/65 text-lg" style="font-weight:300"></ul>
             <div id="progDev" class="mt-7 pt-6 border-t border-ink/10"></div>
-            <button class="krhead mt-8 px-8 py-2.5 rounded-full border border-pink text-pinkstrong text-sm hover:bg-pink hover:text-white transition" style="font-weight:400" onclick="showView('category')">자세히 보기</button>
+            <button class="krhead mt-8 px-8 py-2.5 rounded-full border border-pink text-pinkstrong text-sm hover:bg-pink hover:text-white transition" style="font-weight:400" onclick="progGo()">자세히 보기</button>
           </div>
         </div>
       </div>
@@ -160,13 +160,13 @@
       <h2 class="serif text-6xl sm:text-8xl font-normal tracking-[0.08em] reveal">STEADY SELLER</h2>
       <p class="krhead text-white/45 mt-5 mb-12 break-keep reveal" style="font-weight:300">합리적인 가격과 진정성 있는 치료로 확실한 변화를 보여드리겠습니다. (샘플)</p>
       <div class="krhead flex flex-wrap gap-x-9 gap-y-2 text-sm mb-12 reveal" id="ssTabs" style="font-weight:400">
-        <button class="tab font-medium border-b border-pinkneon pb-1.5" data-i="0"><span class="text-pinkneon">[정밀분석]</span> 미백/기미/홍조/잡티</button>
-        <button class="tab text-white/40 hover:text-white pb-1.5 border-b border-transparent" data-i="1"><span class="text-pinkneon/70">[탄력up!]</span> 리프팅/탄력/비대칭</button>
-        <button class="tab text-white/40 hover:text-white pb-1.5 border-b border-transparent" data-i="2"><span class="text-pinkneon/70">[또렷슬림]</span> 윤곽/지방제거</button>
+        <button class="tab font-medium border-b border-pinkneon pb-1.5" data-i="0" data-cat="미백/색소/기미"><span class="text-pinkneon">[정밀분석]</span> 미백/기미/홍조/잡티</button>
+        <button class="tab text-white/40 hover:text-white pb-1.5 border-b border-transparent" data-i="1" data-cat="탄력 리프팅"><span class="text-pinkneon/70">[탄력up!]</span> 리프팅/탄력/비대칭</button>
+        <button class="tab text-white/40 hover:text-white pb-1.5 border-b border-transparent" data-i="2" data-cat="윤곽 리프팅"><span class="text-pinkneon/70">[또렷슬림]</span> 윤곽/지방제거</button>
       </div>
       <div id="ssTrack" class="flex gap-5 overflow-x-auto snap-x no-scrollbar pb-2"></div>
       <div class="text-center mt-12 reveal">
-        <button class="serif inline-flex items-center gap-2 text-lg tracking-[0.2em] hover:text-pink transition" onclick="showView('category')">VIEW MORE <iconify-icon icon="solar:arrow-right-linear" class="text-base"></iconify-icon></button>
+        <button class="serif inline-flex items-center gap-2 text-lg tracking-[0.2em] hover:text-pink transition" onclick="ssGo()">VIEW MORE <iconify-icon icon="solar:arrow-right-linear" class="text-base"></iconify-icon></button>
       </div>
     </div>
   </section>
@@ -180,7 +180,7 @@
         <div class="relative h-full flex flex-col justify-center pl-8 md:pl-16 text-white">
           <h3 class="krhead text-2xl sm:text-3xl" style="font-weight:500">안티에이징센터</h3>
           <p class="krhead text-white/75 mt-2 break-keep" style="font-weight:300">연령대별 안티에이징 솔루션</p>
-          <button class="krhead mt-6 w-max px-5 py-2 rounded-full border border-white/50 text-sm hover:bg-white hover:text-ink transition" style="font-weight:400">자세히 보기</button>
+          <button onclick="__goCategory('탄력 리프팅')" class="krhead mt-6 w-max px-5 py-2 rounded-full border border-white/50 text-sm hover:bg-white hover:text-ink transition" style="font-weight:400">자세히 보기</button>
         </div>
       </div>
       <div class="relative h-[320px] md:h-[500px] overflow-hidden md:clip-r group">
@@ -189,7 +189,7 @@
         <div class="relative h-full flex flex-col justify-center items-end pr-8 md:pr-16 text-white text-right">
           <h3 class="krhead text-2xl sm:text-3xl" style="font-weight:500">흉터재생센터</h3>
           <p class="krhead text-white/75 mt-2 break-keep" style="font-weight:300">연령대별 흉터 복원 솔루션</p>
-          <button class="krhead mt-6 w-max px-5 py-2 rounded-full border border-white/50 text-sm hover:bg-white hover:text-ink transition" style="font-weight:400">자세히 보기</button>
+          <button onclick="__goCategory('여드름/모공/흉터')" class="krhead mt-6 w-max px-5 py-2 rounded-full border border-white/50 text-sm hover:bg-white hover:text-ink transition" style="font-weight:400">자세히 보기</button>
         </div>
       </div>
       <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 hidden md:grid place-items-center w-72 h-72 rounded-full bg-bglight shadow-2xl text-center">
