@@ -238,20 +238,59 @@
     try{ var sv=localStorage.getItem('yj_lang'); if(sv) lang=sv; }catch(e){}
     if(['ko','en','ja','zh','th'].indexOf(lang)<0) lang='ko';
 
+    /* 관리자에서 「기본 설정」을 아직 한 번도 저장하지 않은 상태에서도
+       네이버예약/카카오톡 문의 버튼이 바로 동작하도록 하는 기본값 */
+    var FALLBACK_NAVER = 'https://m.booking.naver.com/booking/13/bizes/889913?theme=place&lang=ko&area=pll';
+    var FALLBACK_KAKAO = 'https://pf.kakao.com/_TNXHxj';
+
     var ko = KK.get('settings', null);
+    (function(){
+      var naverUrl = (ko && ko.naver) || FALLBACK_NAVER;
+      var kakaoUrl = (ko && ko.kakao) || FALLBACK_KAKAO;
+      var nv=document.getElementById('locNaver'); if(nv) nv.onclick=function(){ window.open(naverUrl,'_blank'); };
+      var kk=document.getElementById('locKakao'); if(kk) kk.onclick=function(){ window.open(kakaoUrl,'_blank'); };
+      var fn=document.getElementById('fabNaver'); if(fn) fn.onclick=function(){ window.open(naverUrl,'_blank'); };
+      var fk=document.getElementById('fabKakao'); if(fk) fk.onclick=function(){ window.open(kakaoUrl,'_blank'); };
+
+      /* 오시는 길 - 네이버 플레이스 카드 (주소/전화 복사) */
+      var npCopy=document.getElementById('npCopy');
+      if(npCopy){
+        npCopy.addEventListener('click', function(){
+          var addr=document.getElementById('npAddr'); addr=addr?addr.textContent:'';
+          var tel=document.getElementById('npTel'); tel=tel?tel.textContent.trim():'';
+          var text=[addr,tel].filter(Boolean).join(' · ');
+          var done=function(){
+            var orig=npCopy.innerHTML;
+            npCopy.innerHTML='<iconify-icon icon="solar:check-circle-bold" width="14"></iconify-icon>복사됨';
+            setTimeout(function(){ npCopy.innerHTML=orig; }, 1500);
+          };
+          if(navigator.clipboard && navigator.clipboard.writeText){
+            navigator.clipboard.writeText(text).then(done, function(){
+              try{ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done(); }catch(e){}
+            });
+          } else {
+            try{ var ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); done(); }catch(e){}
+          }
+        });
+      }
+    })();
+
     if(ko){
       var ml = KK.get('settings_ml', {}) || {};
       var s = lang==='ko' ? ko : Object.assign({}, ko, ml[lang]||{});
       function set(id, val){ var el=document.getElementById(id); if(el && val) el.textContent=val; }
       set('locAddr', (s.addr1||'') + (s.addr2? ' '+s.addr2 : ''));
       set('locTel', ko.tel);
+      /* 네이버 플레이스 카드도 같은 값(주소·대표전화)을 쓰도록 통일 */
+      set('npAddr', s.addr1);
+      set('npTelTxt', ko.tel);
+      var npT=document.getElementById('npTel');
+      if(npT && ko.tel) npT.setAttribute('href', 'tel:'+String(ko.tel).replace(/[^0-9+]/g,''));
       set('locWeek', (s.hWeek||'').replace(/\s*\(.*?\)\s*/g,''));
       set('locWeekend', (s.hWeekend||'').replace(/\s*\(.*?\)\s*/g,''));
       set('locHoliday', (s.hHoliday||'').replace(/\s*\(.*?\)\s*/g,''));
       var biz=document.getElementById('ftBiz'); if(biz) biz.textContent='상호 : '+(s.biz||'')+' | 대표 : '+(ko.ceo||'')+' | 사업자등록번호 : '+(ko.reg||'');
       var fa=document.getElementById('ftAddr'); if(fa) fa.textContent='주소 : '+(s.addr1||'')+(s.addr2? ' '+s.addr2:'');
-      var nv=document.getElementById('locNaver'); if(nv && ko.naver) nv.onclick=function(){ window.open(ko.naver,'_blank'); };
-      var kk=document.getElementById('locKakao'); if(kk && ko.kakao) kk.onclick=function(){ window.open(ko.kakao,'_blank'); };
 
       /* SEO 메타태그 주입 (한국어 기준) */
       function meta(name, content){
