@@ -63,44 +63,32 @@
 </head>
 <body>
 
-  <script>
-  /* ===== 관리자 접근 1차 보호 (비밀번호) =====
-     ※ 기본 비밀번호는 아래 DEFAULT_PW. 「보안 설정」에서 바꾸면 이 브라우저에 저장됩니다.
-     ※ 완전한 보안은 Supabase 인증/RLS 잠금(별도 작업)이 필요합니다. */
-  var ADMIN_PW_KEY = 'yj_admin_pw';
-  var DEFAULT_PW   = 'yeonohjae2378';
-  function adminPw(){
-    try{ return localStorage.getItem(ADMIN_PW_KEY) || DEFAULT_PW; }catch(e){ return DEFAULT_PW; }
-  }
-  function adminLogout(){
-    if(!confirm('로그아웃할까요?\n다시 들어오려면 관리자 비밀번호를 입력해야 합니다.')) return;
-    try{ sessionStorage.removeItem('yj_admin_ok'); }catch(e){}
-    location.replace('index.html');
-  }
-  function openSecurity(){
-    var cur = prompt('현재 관리자 비밀번호를 입력하세요');
-    if(cur===null) return;
-    if(cur !== adminPw()){ alert('현재 비밀번호가 올바르지 않습니다.'); return; }
-    var next = prompt('새 비밀번호를 입력하세요 (6자 이상)');
-    if(next===null) return;
-    if(!next || next.trim().length < 6){ alert('비밀번호는 6자 이상이어야 합니다.'); return; }
-    var again = prompt('확인을 위해 새 비밀번호를 한 번 더 입력하세요');
-    if(again !== next){ alert('두 번 입력한 비밀번호가 서로 다릅니다.'); return; }
-    try{
-      localStorage.setItem(ADMIN_PW_KEY, next.trim());
-      alert('비밀번호를 변경했습니다.\n\n※ 이 비밀번호는 이 브라우저에만 저장됩니다.\n다른 기기에서도 쓰려면 그 기기에서 다시 설정하거나, Supabase 인증 연동이 필요합니다.');
-    }catch(e){ alert('비밀번호 저장에 실패했습니다.'); }
-  }
-  (function(){
-    try{
-      if(sessionStorage.getItem('yj_admin_ok')==='1') return;
-      var v = prompt('관리자 비밀번호를 입력하세요');
-      if(v===adminPw()){ sessionStorage.setItem('yj_admin_ok','1'); return; }
-      alert('비밀번호가 올바르지 않습니다.');
-      location.replace('index.html');
-    }catch(e){}
-  })();
-  </script>
+  <!-- ===================== 로그인 화면 (Supabase Auth) =====================
+       ※ 예전엔 브라우저 prompt() + localStorage 비밀번호였음(소스에 평문 노출, RLS 미적용 시 우회 가능).
+          지금은 Supabase Auth 로그인 + RLS 로 서버 단에서 쓰기 권한을 막습니다.
+          관리자 계정은 이 화면에 가입 기능이 없고, Supabase 대시보드에서만 생성/삭제합니다. -->
+  <div id="loginScreen" class="fixed inset-0 z-[999] flex items-center justify-center px-4" style="background:var(--side)">
+    <div class="w-full max-w-[360px] rounded-2xl p-8" style="background:var(--panel)">
+      <div class="text-center mb-7">
+        <span class="inline-flex w-12 h-12 rounded-xl items-center justify-center text-white font-extrabold text-lg mb-3"
+              style="background:linear-gradient(135deg,#c79a5b,#9a7438)">K</span>
+        <p class="text-[15px] font-bold" style="color:var(--text)">더스물하나 네트워크 관리자</p>
+        <p class="text-[12px] mt-1" style="color:var(--muted)">로그인 후 이용할 수 있습니다</p>
+      </div>
+      <form id="loginForm" class="space-y-3">
+        <input id="loginEmail" type="email" required placeholder="관리자 이메일" autocomplete="username"
+               class="w-full px-3.5 h-11 rounded-lg text-[14px]" style="background:var(--panel-soft); border:1px solid var(--border); color:var(--text)">
+        <input id="loginPw" type="password" required placeholder="비밀번호" autocomplete="current-password"
+               class="w-full px-3.5 h-11 rounded-lg text-[14px]" style="background:var(--panel-soft); border:1px solid var(--border); color:var(--text)">
+        <p id="loginError" class="hidden text-[12.5px]" style="color:var(--bad)"></p>
+        <button type="submit" id="loginBtn" class="w-full h-11 rounded-lg font-semibold text-[14px] btn-gold">로그인</button>
+      </form>
+      <button type="button" onclick="adminForgotPw()" class="w-full text-center text-[12.5px] mt-4 hover:underline" style="color:var(--muted)">비밀번호를 잊으셨나요?</button>
+    </div>
+  </div>
+
+  <!-- 로그인 전에는 아래 전체가 화면에서 숨겨져 있습니다 (display:none) -->
+  <div id="appRoot" style="display:none">
 
   <!-- ===================== SIDEBAR ===================== -->
   <aside id="sidebar" class="no-sb fixed top-0 left-0 z-40 h-screen w-[260px] overflow-y-auto transition-transform duration-300"
@@ -245,6 +233,97 @@
 
   <!-- mobile nav backdrop -->
   <div id="backdrop" onclick="document.body.classList.remove('nav-open')" class="fixed inset-0 z-30 bg-black/40 hidden lg:hidden"></div>
+
+  </div><!-- /#appRoot -->
+
+  <script>
+  /* ===== 관리자 접근 보호 (Supabase Auth) =====
+     - 실제 로그인 세션이 있어야만 appRoot(사이드바+본문)가 보입니다.
+     - 화면을 숨기는 것 자체는 진짜 보안이 아니며, 진짜 방어선은 Supabase RLS입니다.
+       (site_kv 테이블/media 버킷에 "로그인한 사용자만 쓰기 가능" 정책을 걸어 두면,
+        설령 누가 개발자도구로 appRoot를 강제로 보이게 해도 실제 데이터 저장은 막힙니다.)
+     - 관리자 계정 생성/삭제는 이 화면이 아니라 Supabase 대시보드 → Authentication → Users 에서 합니다. */
+  function waitForSb(cb){
+    if (window.__sb) return cb(window.__sb);
+    var tries = 0;
+    var t = setInterval(function(){
+      tries++;
+      if (window.__sb){ clearInterval(t); cb(window.__sb); }
+      else if (tries > 100){ clearInterval(t); alert('Supabase 연결에 실패했습니다. 새로고침해 주세요.'); }
+    }, 50);
+  }
+
+  function showApp(loggedIn){
+    var l = document.getElementById('loginScreen');
+    var a = document.getElementById('appRoot');
+    if (l) l.style.display = loggedIn ? 'none' : 'flex';
+    if (a) a.style.display = loggedIn ? '' : 'none';
+  }
+
+  function adminLogout(){
+    if (!confirm('로그아웃할까요?')) return;
+    waitForSb(function(sb){ sb.auth.signOut().then(function(){ location.reload(); }); });
+  }
+
+  function adminForgotPw(){
+    var email = prompt('가입하신 관리자 이메일을 입력해 주세요.\n비밀번호 재설정 링크를 보내드립니다.');
+    if (!email) return;
+    waitForSb(function(sb){
+      sb.auth.resetPasswordForEmail(email.trim()).then(function(r){
+        if (r.error){ alert('전송 실패: ' + r.error.message); return; }
+        alert('입력하신 이메일로 재설정 링크를 보냈습니다.');
+      });
+    });
+  }
+
+  function openSecurity(){
+    var next = prompt('새 비밀번호를 입력하세요 (6자 이상)');
+    if (next === null) return;
+    if (!next || next.trim().length < 6){ alert('비밀번호는 6자 이상이어야 합니다.'); return; }
+    var again = prompt('확인을 위해 새 비밀번호를 한 번 더 입력하세요');
+    if (again !== next){ alert('두 번 입력한 비밀번호가 서로 다릅니다.'); return; }
+    waitForSb(function(sb){
+      sb.auth.updateUser({ password: next.trim() }).then(function(r){
+        if (r.error){ alert('변경 실패: ' + r.error.message); return; }
+        alert('비밀번호를 변경했습니다.');
+      });
+    });
+  }
+
+  waitForSb(function(sb){
+    sb.auth.getSession().then(function(res){
+      showApp(!!(res.data && res.data.session));
+    });
+    sb.auth.onAuthStateChange(function(_event, session){
+      showApp(!!session);
+    });
+  });
+
+  document.addEventListener('DOMContentLoaded', function(){
+    var form = document.getElementById('loginForm');
+    if (!form) return;
+    form.addEventListener('submit', function(e){
+      e.preventDefault();
+      var email = document.getElementById('loginEmail').value.trim();
+      var pw    = document.getElementById('loginPw').value;
+      var errEl = document.getElementById('loginError');
+      var btn   = document.getElementById('loginBtn');
+      errEl.classList.add('hidden');
+      btn.disabled = true; btn.textContent = '로그인 중...';
+      waitForSb(function(sb){
+        sb.auth.signInWithPassword({ email: email, password: pw }).then(function(r){
+          btn.disabled = false; btn.textContent = '로그인';
+          if (r.error){
+            errEl.textContent = '이메일 또는 비밀번호가 올바르지 않습니다.';
+            errEl.classList.remove('hidden');
+            return;
+          }
+          // 로그인 성공 시 onAuthStateChange 가 showApp(true) 를 호출합니다.
+        });
+      });
+    });
+  });
+  </script>
 
     <script src="js/admin/00-core.js"></script>
   <script src="js/admin/01-nav.js"></script>
