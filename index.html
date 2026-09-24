@@ -141,91 +141,48 @@
   </section>
 
   <!-- ===== 스페셜 프로그램 ===== -->
-  <section id="program" class="relative py-28 sm:py-44 bg-bglight overflow-hidden">
-    <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-      <span class="marcellus text-[22vw] tracking-[0.2em] text-ink/[0.035] whitespace-nowrap">XXI</span>
-    </div>
+  <section id="program" class="relative py-24 sm:py-32 bg-pink overflow-hidden">
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <h2 class="krhead text-xl sm:text-2xl text-pinkstrong mb-16 reveal" style="font-weight:500">◆ 스페셜 프로그램</h2>
-      <div class="grid lg:grid-cols-12 gap-0 items-center reveal">
-        <div class="lg:col-span-7 relative z-10">
-          <img id="progImg" src="img/kv-wide-shadow.jpg" class="w-full h-[340px] sm:h-[480px] object-cover rounded-sm shadow-xl" alt="" loading="lazy">
-        </div>
-        <div class="lg:col-span-5 lg:-ml-20 relative z-20 mt-[-40px] lg:mt-0">
-          <div class="bg-white rounded-sm shadow-2xl p-9 sm:p-14 relative">
-            <div class="absolute -top-6 -right-2 w-24 h-24 rounded-full bg-pinksoft/60 grid place-items-center"><span class="marcellus text-pink/50 text-2xl tracking-[0.12em]">XXI</span></div>
-            <h3 id="progTitle" class="krhead text-2xl sm:text-3xl text-pinkstrong mb-7" style="font-weight:500">제모</h3>
-            <ul id="progList" class="krhead space-y-2.5 text-ink/65 text-lg" style="font-weight:300"></ul>
-            <div id="progDev" class="mt-7 pt-6 border-t border-ink/10"></div>
-            <button class="krhead mt-8 px-8 py-2.5 rounded-full border border-pink text-pinkstrong text-sm hover:bg-pink hover:text-white transition" style="font-weight:400" onclick="showView('category')">자세히 보기</button>
-          </div>
-        </div>
+      <div class="flex items-end justify-between gap-4 mb-8 sm:mb-10 reveal">
+        <h2 class="krhead text-2xl sm:text-3xl text-white" style="font-weight:700">스페셜 프로그램</h2>
+        <button onclick="showView('category')" class="krhead text-[13px] text-white/80 hover:text-white transition flex items-center gap-1" style="font-weight:400">전체 시술 보러가기 <iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></button>
       </div>
-      <div class="flex items-center justify-center gap-4 mt-12">
-        <button onclick="progSlide(-1)" class="w-11 h-11 rounded-full border border-ink/15 grid place-items-center hover:bg-pink hover:text-white hover:border-pink transition"><iconify-icon icon="solar:arrow-left-linear"></iconify-icon></button>
-        <span id="progNum" class="serif text-base text-ink/45 tabular-nums tracking-widest">01 / 09</span>
-        <button onclick="progSlide(1)" class="w-11 h-11 rounded-full border border-ink/15 grid place-items-center hover:bg-pink hover:text-white hover:border-pink transition"><iconify-icon icon="solar:arrow-right-linear"></iconify-icon></button>
+      <!-- 카드 트랙 (가로 스크롤 + 스냅). 왼쪽은 본문 시작선, 오른쪽은 화면 끝까지 이어짐(margin-right).
+           gap 사이로 배경색이 비쳐 카드 경계선이 됨 -->
+      <div id="progTrack" class="flex gap-[2px] overflow-x-auto snap-x no-scrollbar reveal" style="margin-right:calc(50% - 50vw)"></div>
+      <div class="flex items-center gap-3 mt-8">
+        <button onclick="progSlide(-1)" aria-label="이전" class="w-9 h-9 rounded-full border border-white/60 text-white grid place-items-center hover:bg-white hover:text-pinkstrong transition"><iconify-icon icon="solar:alt-arrow-left-linear"></iconify-icon></button>
+        <div id="progDots" class="flex items-center gap-1.5"></div>
+        <button onclick="progSlide(1)" aria-label="다음" class="w-9 h-9 rounded-full border border-white/60 text-white grid place-items-center hover:bg-white hover:text-pinkstrong transition"><iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></button>
       </div>
     </div>
   </section>
 
   <!-- ===== STEADY SELLER ===== -->
-  <section class="relative py-28 sm:py-44 bg-dark text-white overflow-hidden">
+  <section id="steady" class="relative py-24 sm:py-32 bg-beige overflow-hidden">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-      <h2 class="serif text-6xl sm:text-8xl font-normal tracking-[0.08em] reveal">STEADY SELLER</h2>
-      <p class="krhead text-white/45 mt-5 mb-12 break-keep reveal" style="font-weight:300">합리적인 가격과 진정성 있는 치료로 확실한 변화를 보여드리겠습니다. (샘플)</p>
-      <div class="krhead flex flex-wrap gap-x-9 gap-y-2 text-sm mb-12 reveal" id="ssTabs" style="font-weight:400">
-        <button class="tab font-medium border-b border-pinkneon pb-1.5" data-i="0"><span class="text-pinkneon">[정밀분석]</span> 미백/기미/홍조/잡티</button>
-        <button class="tab text-white/40 hover:text-white pb-1.5 border-b border-transparent" data-i="1"><span class="text-pinkneon/70">[탄력up!]</span> 리프팅/탄력/비대칭</button>
-        <button class="tab text-white/40 hover:text-white pb-1.5 border-b border-transparent" data-i="2"><span class="text-pinkneon/70">[또렷슬림]</span> 윤곽/지방제거</button>
-      </div>
-      <div id="ssTrack" class="flex gap-5 overflow-x-auto snap-x no-scrollbar pb-2"></div>
-      <div class="text-center mt-12 reveal">
-        <button class="serif inline-flex items-center gap-2 text-lg tracking-[0.2em] hover:text-pink transition" onclick="showView('category')">VIEW MORE <iconify-icon icon="solar:arrow-right-linear" class="text-base"></iconify-icon></button>
-      </div>
-    </div>
-  </section>
-
-  <!-- ===== 안티에이징 / 한.끗.차.이 / 흉터재생 ===== -->
-  <section class="relative bg-dark">
-    <div class="grid md:grid-cols-2 relative">
-      <div class="relative h-[320px] md:h-[500px] overflow-hidden md:clip-l group">
-        <img src="img/kv-wide-travertine.jpg" class="absolute inset-0 w-full h-full object-cover" alt="" loading="lazy">
-        <div class="absolute inset-0 bg-black/45"></div>
-        <div class="relative h-full flex flex-col justify-center pl-8 md:pl-16 text-white">
-          <h3 class="krhead text-2xl sm:text-3xl" style="font-weight:500">안티에이징센터</h3>
-          <p class="krhead text-white/75 mt-2 break-keep" style="font-weight:300">연령대별 안티에이징 솔루션</p>
-          <button class="krhead mt-6 w-max px-5 py-2 rounded-full border border-white/50 text-sm hover:bg-white hover:text-ink transition" style="font-weight:400">자세히 보기</button>
+      <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-8 reveal">
+        <div class="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-6">
+          <h2 class="serif text-5xl sm:text-6xl text-ink tracking-[0.06em] leading-none">STEADY SELLER</h2>
+          <div class="krhead text-[14px] text-ink/70 break-keep sm:border-l sm:border-ink/20 sm:pl-6" style="font-weight:400">
+            <p>합리적인 가격과 진정성 있는 치료로 확실한 변화를 보여드리겠습니다. (샘플)</p>
+            <p class="text-[12px] text-red-500/80 mt-1">※ VAT 별도</p>
+          </div>
         </div>
+        <button onclick="showView('category')" class="krhead self-start lg:self-auto shrink-0 text-[14px] text-ink/60 underline underline-offset-4 hover:text-pinkstrong transition" style="font-weight:400">이벤트 전체보기 +</button>
       </div>
-      <div class="relative h-[320px] md:h-[500px] overflow-hidden md:clip-r group">
-        <img src="img/tex-cream-gel.jpg" class="absolute inset-0 w-full h-full object-cover" alt="" loading="lazy">
-        <div class="absolute inset-0 bg-black/45"></div>
-        <div class="relative h-full flex flex-col justify-center items-end pr-8 md:pr-16 text-white text-right">
-          <h3 class="krhead text-2xl sm:text-3xl" style="font-weight:500">흉터재생센터</h3>
-          <p class="krhead text-white/75 mt-2 break-keep" style="font-weight:300">연령대별 흉터 복원 솔루션</p>
-          <button class="krhead mt-6 w-max px-5 py-2 rounded-full border border-white/50 text-sm hover:bg-white hover:text-ink transition" style="font-weight:400">자세히 보기</button>
-        </div>
+      <div id="ssTabs" class="krhead flex flex-wrap gap-2.5 mb-10 reveal" style="font-weight:500"></div>
+      <div class="relative">
+        <div id="ssGrid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+        <!-- 넓은 화면: 카드 바깥 양옆 큰 화살표 -->
+        <button onclick="ssPage(-1)" aria-label="이전" class="hidden min-[1440px]:grid absolute -left-16 top-1/2 -translate-y-1/2 w-10 h-20 place-items-center text-ink/35 hover:text-pinkstrong transition"><iconify-icon icon="solar:alt-arrow-left-linear" width="44"></iconify-icon></button>
+        <button onclick="ssPage(1)" aria-label="다음" class="hidden min-[1440px]:grid absolute -right-16 top-1/2 -translate-y-1/2 w-10 h-20 place-items-center text-ink/35 hover:text-pinkstrong transition"><iconify-icon icon="solar:alt-arrow-right-linear" width="44"></iconify-icon></button>
       </div>
-      <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 hidden md:grid place-items-center w-72 h-72 rounded-full bg-bglight shadow-2xl text-center">
-        <div>
-          <p class="krhead text-muted text-sm mt-2.5 break-keep leading-relaxed" style="font-weight:300">오직 우리 클리닉에서만<br>만날 수 있는 디테일</p>
-        </div>
+      <div class="flex items-center justify-center gap-3 mt-10">
+        <button onclick="ssPage(-1)" aria-label="이전" class="min-[1440px]:hidden w-9 h-9 rounded-full border border-ink/20 text-ink/60 grid place-items-center hover:bg-pinkstrong hover:text-white hover:border-pinkstrong transition"><iconify-icon icon="solar:alt-arrow-left-linear"></iconify-icon></button>
+        <div id="ssDots" class="flex items-center gap-1.5"></div>
+        <button onclick="ssPage(1)" aria-label="다음" class="min-[1440px]:hidden w-9 h-9 rounded-full border border-ink/20 text-ink/60 grid place-items-center hover:bg-pinkstrong hover:text-white hover:border-pinkstrong transition"><iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></button>
       </div>
-    </div>
-  </section>
-
-  <!-- ===== BEFORE & AFTER ===== -->
-  <section id="home-ba" class="py-28 sm:py-44 bg-bglight">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-14 reveal">
-        <div>
-          <h2 class="serif text-4xl sm:text-6xl font-medium text-pink tracking-[0.06em]">◆ BEFORE &amp; AFTER</h2>
-          <p class="krhead text-ink/55 mt-4 break-keep" style="font-weight:300">검증된 결과, 클리닉 전후사진 (샘플)</p>
-        </div>
-        <button class="krhead px-6 py-3 rounded-full border border-ink/15 text-sm hover:bg-ink hover:text-white transition flex items-center gap-2 w-max" style="font-weight:400" onclick="showView('ba')">전후사진 더보기 <iconify-icon icon="solar:arrow-right-linear"></iconify-icon></button>
-      </div>
-      <div id="baTrack" class="flex gap-4 overflow-x-auto snap-x no-scrollbar pb-2"></div>
     </div>
   </section>
 
@@ -278,13 +235,14 @@
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <h2 class="serif text-4xl sm:text-6xl font-normal tracking-[0.3em] text-center text-ink mb-16 reveal">LOCATION</h2>
       <div class="grid lg:grid-cols-2 gap-6 reveal">
-        <div class="relative rounded-xl overflow-hidden border border-ink/10 min-h-[380px] bg-beige">
-          <img src="img/space-cove-wall.jpg" class="absolute inset-0 w-full h-full object-cover opacity-55" alt="" loading="lazy">
-          <div class="absolute inset-0 grid place-items-center">
-            <div class="bg-white/90 backdrop-blur px-6 py-4 rounded-lg shadow-lg text-center">
-              <p class="krhead font-medium text-pinkstrong" style="font-weight:500">우리 클리닉</p>
-              <p class="krhead text-sm text-ink/55 mt-1 break-keep" style="font-weight:300">지도(Kakao/Naver Map) 임베드 자리</p>
-            </div>
+        <!-- 지도: 구글 지도 임베드(API 키 불필요) + 네이버/구글 지도 바로가기 -->
+        <div class="rounded-xl overflow-hidden border border-ink/10 bg-white flex flex-col min-h-[380px]">
+          <iframe title="연오재한의원 위치 지도" class="w-full flex-1 min-h-[320px] border-0"
+            src="https://maps.google.com/maps?q=%EC%97%B0%EC%98%A4%EC%9E%AC%ED%95%9C%EC%9D%98%EC%9B%90%20%EA%B2%BD%EA%B8%B0%20%EA%B3%A0%EC%96%91%EC%8B%9C%20%EB%8D%95%EC%96%91%EA%B5%AC%20%ED%99%94%EC%A4%91%EB%A1%9C%2060&z=17&hl=ko&output=embed"
+            loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+          <div class="krhead grid grid-cols-2 border-t border-ink/10 text-sm" style="font-weight:500">
+            <a href="https://map.naver.com/p/search/%EC%97%B0%EC%98%A4%EC%9E%AC%ED%95%9C%EC%9D%98%EC%9B%90" target="_blank" rel="noopener" class="py-3.5 flex items-center justify-center gap-1.5 text-ink/75 hover:bg-[#03c75a]/10 hover:text-[#03a94d] transition"><span class="w-5 h-5 rounded bg-[#03c75a] text-white text-[11px] font-bold grid place-items-center">N</span> 네이버 지도에서 보기</a>
+            <a href="https://www.google.com/maps/search/?api=1&query=%EC%97%B0%EC%98%A4%EC%9E%AC%ED%95%9C%EC%9D%98%EC%9B%90%20%EA%B2%BD%EA%B8%B0%20%EA%B3%A0%EC%96%91%EC%8B%9C%20%EB%8D%95%EC%96%91%EA%B5%AC%20%ED%99%94%EC%A4%91%EB%A1%9C%2060" target="_blank" rel="noopener" class="py-3.5 flex items-center justify-center gap-1.5 text-ink/75 border-l border-ink/10 hover:bg-ink/[0.04] hover:text-ink transition"><iconify-icon icon="solar:map-point-bold" class="text-[#ea4335]"></iconify-icon> 구글 지도에서 보기</a>
           </div>
         </div>
         <div class="bg-terra text-white rounded-xl p-8 sm:p-11 flex flex-col gap-6">
@@ -304,7 +262,6 @@
               <button id="locKakao" class="flex-1 py-2.5 rounded-lg bg-white/15 hover:bg-white/25 text-sm flex items-center justify-center gap-1.5"><iconify-icon icon="solar:chat-round-dots-bold"></iconify-icon> 카카오톡 문의</button>
             </div>
           </div>
-          <button class="krhead w-max px-6 py-3 rounded-full bg-white text-ink font-medium text-sm flex items-center gap-2 hover:bg-white/90 transition" style="font-weight:500">가맹문의 바로가기 <iconify-icon icon="solar:arrow-right-linear"></iconify-icon></button>
         </div>
       </div>
     </div>
@@ -813,82 +770,130 @@
       lifting:'img/tex-gel-dome.jpg',       acne:'img/tex-cream-gel.jpg',
       booster:'img/tex-gel-glitter.jpg',    immune:'img/tex-petal-water.jpg',
     };
+    /* en: 카드 이미지 위 영문 문구 (줄바꿈은 \n) */
     const programs=[
-      {t:'제모', s:'hair', b:['남성 제모','여성 제모','매끄러운 피부'], d:['악센토']},
-      {t:'다이어트', s:'diet', b:['한의사 밀착관리 린다이어트','다이어트 환약, 체질 개선 한약','맞춤 관리'], d:['린다이어트 프로그램']},
-      {t:'윤곽 리프팅', s:'contour', b:['아름다운 얼굴 형태','주름 개선','자연스러운 볼륨감'], d:['슈링크','엑쏘웨이브(케이온다)']},
-      {t:'미백/색소/기미', s:'whitening', b:['진단 장비와 섬세한 손길','다양한 깊이의 색소를','다양한 레이저 파장으로 정밀하게'], d:['큐 마스터 플러스','피코하이','바이오쎌']},
-      {t:'탄력 리프팅', s:'lifting', b:['초음파','고주파','극초단파','RF 니들 방식'], d:['볼뉴머','시크릿']},
-      {t:'여드름/모공/흉터', s:'acne', b:['모공축소·주름감소','피부톤·탄력 개선','염증성 여드름 진정'], d:['피코프락셀','시크릿']},
-      {t:'스킨부스터', s:'booster', b:['피부 영양공급','미백, 색소 완화효과'], d:['퓨라셀 MTS']},
-      {t:'맞춤한약', s:'immune', b:['피부 면역력 강화','피로 회복','혈액순환 개선'], d:[]},
+      {t:'제모', s:'hair', en:'SMOOTH\nSKIN', b:['남성 제모','여성 제모','매끄러운 피부'], d:['악센토']},
+      {t:'다이어트', s:'diet', en:'SLIM\nBALANCE', b:['한의사 밀착관리 린다이어트','다이어트 환약, 체질 개선 한약','맞춤 관리'], d:['린다이어트 프로그램']},
+      {t:'윤곽 리프팅', s:'contour', en:'SHARP\nV-LINE', b:['아름다운 얼굴 형태','주름 개선','자연스러운 볼륨감'], d:['슈링크','엑쏘웨이브(케이온다)']},
+      {t:'미백/색소/기미', s:'whitening', en:'CLEAR\nTONE', b:['진단 장비와 섬세한 손길','다양한 깊이의 색소를','다양한 레이저 파장으로 정밀하게'], d:['큐 마스터 플러스','피코하이','바이오쎌']},
+      {t:'탄력 리프팅', s:'lifting', en:'FIRM\nLIFT', b:['초음파','고주파','극초단파','RF 니들 방식'], d:['볼뉴머','시크릿']},
+      {t:'여드름/모공/흉터', s:'acne', en:'CLEAN\nPORES', b:['모공축소·주름감소','피부톤·탄력 개선','염증성 여드름 진정'], d:['피코프락셀','시크릿']},
+      {t:'스킨부스터', s:'booster', en:'DEEP\nGLOW', b:['피부 영양공급','미백, 색소 완화효과'], d:['퓨라셀 MTS']},
+      {t:'맞춤한약', s:'immune', en:'INNER\nBALANCE', b:['피부 면역력 강화','피로 회복','혈액순환 개선'], d:[]},
     ];
-    let pi=0;
-    function renderProg(){
-      const p=programs[pi];
-      document.getElementById('progImg').src=PROG_IMG[p.s]||'img/kv-wide-travertine.jpg';
-      document.getElementById('progTitle').textContent=p.t;
-      document.getElementById('progList').innerHTML=p.b.map(x=>`<li>${x}</li>`).join('');
-      const dev=document.getElementById('progDev');
-      if(p.d&&p.d.length){
-        dev.style.display='';
-        dev.innerHTML=`<p class="krhead text-[11px] tracking-widest text-ink/35 mb-2.5" style="font-weight:400">${p.t==='다이어트'?'PROGRAM':'EQUIPMENT'}</p>`
-          +`<div class="flex flex-wrap gap-1.5">`+p.d.map(x=>
-            `<span class="krhead text-[12px] text-pinkstrong/80 bg-pinksoft/50 border border-pink/20 rounded-full px-3 py-1 break-keep" style="font-weight:400">${x}</span>`).join('')+`</div>`;
-      } else { dev.style.display='none'; dev.innerHTML=''; }
-      document.getElementById('progNum').textContent=String(pi+1).padStart(2,'0')+' / '+String(programs.length).padStart(2,'0');
-    }
-    function progSlide(d){ pi=(pi+d+programs.length)%programs.length; renderProg(); }
-    renderProg();
-
-    const ssData=[
-      { t:'여러 피부 고민, 한 번에', e:'[첫 시술 EVENT] 토닝 (2000샷)', o:'18,900', p:'9,900', s:'img/tex-cream-beam.jpg'},
-      { t:'정밀 색소 레이저', e:'[EVENT] 색소 레이저 1개 + 모델링팩', o:'19,000', p:'10,000', s:'img/tex-water-ripple.jpg'},
-      { t:'듀얼 토닝 한 끗 결과', e:'[첫 시술 EVENT] 듀얼 토닝 (3000샷)', o:'75,000', p:'36,000', s:'img/tex-gel-dome.jpg'},
-      { t:'잡티/주근깨 레이저', e:'[EVENT] 원데이 화이트닝 1회', o:'110,000', p:'58,000', s:'img/tex-gel-glitter.jpg'},
-    ];
-    document.getElementById('ssTrack').innerHTML=ssData.map(c=>`
-      <div class="snap-start shrink-0 w-[80%] sm:w-[300px] rounded-xl overflow-hidden olive-card relative group">
-        <img src="${c.s}" class="w-full h-[300px] object-cover" alt="" loading="lazy">
-        <div class="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent"></div>
-        <div class="krhead absolute bottom-0 p-5 text-white w-full" style="font-weight:300">
-          <p class="text-[11px] text-pinkneon mb-1">[정밀분석] 미백/기미/홍조/잡티</p>
-          <h4 class="font-medium text-lg leading-snug break-keep" style="font-weight:500">${c.t}</h4>
-          <p class="text-white/70 text-xs mt-1 break-keep">${c.e}</p>
-          <p class="mt-2"><span class="line-through text-white/40 text-sm mr-2">${c.o}원</span><span class="text-2xl font-bold" style="font-weight:700">${c.p}원</span></p>
+    const progTrack=document.getElementById('progTrack'), progDots=document.getElementById('progDots');
+    progTrack.innerHTML=programs.map((p,i)=>`
+      <a href="#category" onclick="showView('category');return false" class="snap-start shrink-0 w-[80vw] sm:w-[340px] lg:w-[390px] bg-white block group">
+        <div class="relative aspect-square overflow-hidden">
+          <img src="${PROG_IMG[p.s]||'img/kv-wide-travertine.jpg'}" class="absolute inset-0 w-full h-full object-cover object-right transition duration-700 group-hover:scale-105" alt="${p.t}" loading="lazy">
+          <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/30"></div>
+          <p class="absolute top-7 left-7 right-7 lg:top-9 lg:left-9 marcellus text-white text-[28px] sm:text-[32px] lg:text-[38px] leading-[1.12] tracking-[0.06em]">${p.en.replace('\n','<br>')}</p>
+          <p class="absolute bottom-7 left-7 lg:bottom-9 lg:left-9 marcellus text-white/85 text-[13px] lg:text-[14px] tracking-[0.3em]">PROGRAM ${String(i+1).padStart(2,'0')}</p>
         </div>
-      </div>`).join('');
-    document.querySelectorAll('#ssTabs .tab').forEach(b=>b.addEventListener('click',()=>{
-      document.querySelectorAll('#ssTabs .tab').forEach(x=>{x.classList.remove('font-medium','border-pinkneon'); x.classList.add('text-white/40','border-transparent');});
-      b.classList.add('font-medium','border-pinkneon'); b.classList.remove('text-white/40','border-transparent');
-    }));
-
-    var __storedBA=(window.KK? KK.get('ba', []): []).filter(function(x){return x.on!==false;});
-    var __baBlur = window.KK ? !!KK.get('baBlur', false) : false;
-    const ba = __storedBA.length
-      ? __storedBA.slice(0,6).map(function(s,i){ return {t:s.title||'', sub:s.sub||'', s:'ba'+(i+1), bImg:s.imgB||'', aImg:s.imgA||''}; })
-      : [
-      {t:'홍조개선 전후', sub:'볼 및 나비존 붉은 기 진정', s:'ba1'},
-      {t:'모공 개선 전후', sub:'코 모공 축소 개선', s:'ba2'},
-      {t:'안면홍조 재생', sub:'얼굴 붉은기 피부 재생', s:'ba3'},
-      {t:'피지·여드름 개선', sub:'모공·피지 관리', s:'ba4'},
-      {t:'리프팅 시술 개선', sub:'탄력·라인 개선', s:'ba5'},
-    ];
-    document.getElementById('baTrack').innerHTML=ba.map(c=>`
-      <div class="snap-start shrink-0 w-[70%] sm:w-[300px] rounded-xl overflow-hidden bg-white shadow-sm border border-ink/5">
-        <div class="relative">
-          <div class="grid grid-rows-2">
-            <div class="relative h-32 overflow-hidden"><img src="${c.bImg||('https://picsum.photos/seed/'+c.s+'b/400/200')}" class="w-full h-full object-cover" style="${__baBlur&&c.bImg?'filter:blur(12px);transform:scale(1.08)':''}" alt="" loading="lazy"><span class="absolute top-2 right-2 text-[10px] font-bold bg-pink text-white px-2 py-0.5 rounded">BEFORE</span></div>
-            <div class="relative h-32 overflow-hidden"><img src="${c.aImg||('https://picsum.photos/seed/'+c.s+'a/400/200')}" class="w-full h-full object-cover" style="${__baBlur&&c.aImg?'filter:blur(12px);transform:scale(1.08)':''}" alt="" loading="lazy"><span class="absolute bottom-2 right-2 text-[10px] font-bold bg-ink text-white px-2 py-0.5 rounded">AFTER</span></div>
+        <div class="p-6 lg:p-8 min-h-[190px] lg:min-h-[210px] flex flex-col">
+          <h3 class="krhead text-[18px] lg:text-[21px] text-ink group-hover:text-pinkstrong transition-colors" style="font-weight:700">${p.t}</h3>
+          <p class="krhead text-[14px] lg:text-[15px] text-ink/60 mt-2.5 leading-relaxed break-keep" style="font-weight:300">${p.b.join(' · ')}</p>
+          <div class="mt-auto pt-5 flex items-end justify-between gap-2">
+            <div class="flex flex-wrap gap-1.5">${p.d.map(x=>`<span class="krhead text-[12px] text-pinkstrong/80 bg-pinksoft/50 rounded-full px-3 py-1 break-keep" style="font-weight:400">${x}</span>`).join('')}</div>
+            <span class="krhead shrink-0 text-[13px] text-pinkstrong flex items-center gap-0.5" style="font-weight:500">자세히 <iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></span>
           </div>
-          <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 border-2 border-dashed border-white/70 rounded-full"></div>
         </div>
-        <div class="krhead p-4" style="font-weight:300">
-          <span class="text-[10px] bg-pinksoft text-pinkstrong px-2 py-0.5 rounded">Before &amp; After</span>
-          <h4 class="font-medium mt-2 break-keep" style="font-weight:500">${c.t}</h4>
-          <p class="text-ink/55 text-xs mt-1 break-keep">${c.sub}</p>
+      </a>`).join('');
+
+    /* 카드 1장 단위로 이동. 점 개수 = 끝까지 스크롤하는 데 필요한 칸 수 + 1 */
+    function progStep(){ const c=progTrack.firstElementChild; return c? c.offsetWidth+2 : 1; }
+    function progMax(){ return Math.max(0, progTrack.scrollWidth - progTrack.clientWidth); }
+    function progPages(){ return Math.ceil(progMax()/progStep() - 0.05) + 1; }
+    function progCur(){ const m=progMax(); return progTrack.scrollLeft >= m-2 ? progPages()-1 : Math.round(progTrack.scrollLeft/progStep()); }
+    function renderProgDots(){
+      const n=progPages(), cur=progCur();
+      progDots.innerHTML=Array.from({length:n},(_,i)=>
+        `<button onclick="progGo(${i})" aria-label="${i+1}번째" class="h-1.5 rounded-full transition-all ${i===cur?'w-6 bg-white':'w-1.5 bg-white/50 hover:bg-white/80'}"></button>`).join('');
+    }
+    function progGo(i){ progTrack.scrollTo({left:i*progStep(), behavior:'smooth'}); }
+    function progSlide(d){ const n=progPages(); progGo((progCur()+d+n)%n); }
+    let progRaf=0;
+    progTrack.addEventListener('scroll',()=>{ cancelAnimationFrame(progRaf); progRaf=requestAnimationFrame(renderProgDots); });
+    /* 화면 크기 변경·다른 화면에서 홈으로 돌아올 때(숨김→표시) 점 개수 다시 계산 */
+    if(window.ResizeObserver) new ResizeObserver(()=>{ if(progTrack.clientWidth) renderProgDots(); }).observe(progTrack);
+    else window.addEventListener('resize', renderProgDots);
+    renderProgDots();
+
+    /* ===== STEADY SELLER (샘플 가격) — 카드 1개 = 시술 1개, opts = 가격 옵션(앞 2개 노출, 나머지는 '더보기'로 펼침) ===== */
+    const SS_TABS=['전체보기','[정밀분석] 미백/기미/홍조/잡티','[탄력up!] 리프팅/탄력/비대칭','[또렷슬림] 윤곽/지방제거'];
+    const ssData=[
+      {cat:1, n:'레이저 토닝', img:'img/tex-cream-beam.jpg', opts:[
+        {d:'[첫 시술 EVENT] 토닝 2000샷 1회', o:18900, p:9900}, {d:'토닝 2000샷 5회 패키지', o:94500, p:45000}, {d:'토닝 2000샷 10회 패키지', o:189000, p:84000}]},
+      {cat:1, n:'색소 레이저', img:'img/tex-water-ripple.jpg', opts:[
+        {d:'[EVENT] 색소 레이저 1개 + 모델링팩', o:19000, p:10000}, {d:'색소 레이저 5개 + 모델링팩', o:95000, p:45000}]},
+      {cat:1, n:'듀얼 토닝', img:'img/tex-gel-dome.jpg', opts:[
+        {d:'[첫 시술 EVENT] 듀얼 토닝 3000샷 1회', o:75000, p:36000}, {d:'듀얼 토닝 3000샷 5회 패키지', o:375000, p:169000}, {d:'듀얼 토닝 + 재생 관리 5회', o:450000, p:219000}]},
+      {cat:1, n:'원데이 화이트닝', img:'img/tex-gel-glitter.jpg', opts:[
+        {d:'[EVENT] 원데이 화이트닝 1회', o:110000, p:58000}, {d:'원데이 화이트닝 3회 패키지', o:330000, p:159000}]},
+      {cat:2, n:'볼뉴머 리프팅', img:'img/kv-wide-water.jpg', opts:[
+        {d:'[첫 시술 EVENT] 정품팁 볼뉴머 100샷', o:150000, p:89000}, {d:'정품팁 볼뉴머 300샷', o:420000, p:249000}, {d:'정품팁 볼뉴머 600샷', o:800000, p:459000}]},
+      {cat:2, n:'시크릿 RF 리프팅', img:'img/tex-cream-gel.jpg', opts:[
+        {d:'[첫 시술 EVENT] 시크릿 RF 1부위', o:180000, p:99000}, {d:'시크릿 RF 얼굴 전체', o:450000, p:249000}]},
+      {cat:3, n:'슈링크 리프팅', img:'img/kv-wide-travertine.jpg', opts:[
+        {d:'[첫 시술 EVENT] 정품팁 슈링크 100샷', o:15000, p:7900}, {d:'정품팁 슈링크 300샷', o:45000, p:22000}, {d:'정품팁 슈링크 600샷', o:90000, p:42000}]},
+      {cat:3, n:'엑쏘웨이브 리프팅', img:'img/kv-wide-shadow.jpg', opts:[
+        {d:'[첫 시술 EVENT] 엑쏘웨이브 10kj(1만줄)', o:90000, p:45000}, {d:'엑쏘웨이브 30kj(3만줄)', o:250000, p:129000}]},
+      {cat:3, n:'윤곽 주사', img:'img/kv-body-sportswear.jpg', opts:[
+        {d:'[EVENT] 윤곽 주사 1회 (턱선)', o:60000, p:29000}, {d:'윤곽 주사 5회 패키지', o:300000, p:129000}]},
+      {cat:2, n:'피코프락셀', img:'img/tex-petal-water.jpg', opts:[
+        {d:'[첫 시술 EVENT] 피코프락셀 1부위', o:180000, p:99000}, {d:'피코프락셀 얼굴 전체 3회', o:900000, p:490000}]},
+    ];
+    const ssWon=n=>n.toLocaleString('ko-KR');
+    let ssTab=0, ssPg=0;
+    const ssGrid=document.getElementById('ssGrid'), ssTabsEl=document.getElementById('ssTabs'), ssDotsEl=document.getElementById('ssDots');
+    function ssPer(){ return matchMedia('(min-width:1024px)').matches? 8 : matchMedia('(min-width:640px)').matches? 4 : 3; }
+    function ssList(){ return ssData.filter(c=>ssTab===0||c.cat===ssTab); }
+    function ssOptRow(c,o,more){
+      return `<div class="py-4 border-b border-ink/10 ${more?'ssMore hidden':''}">
+        <div class="flex items-start justify-between gap-3">
+          <p class="krhead text-[15px] text-ink pt-3 break-keep" style="font-weight:500">${c.n}</p>
+          <div class="text-right shrink-0">
+            <p class="text-[12px] text-ink/40 line-through">${ssWon(o.o)}원</p>
+            <p class="krhead text-[21px] text-pinkstrong leading-tight" style="font-weight:700">${ssWon(o.p)}원</p>
+          </div>
         </div>
-      </div>`).join('');
+        <p class="krhead text-[12.5px] text-ink/55 mt-2 break-keep" style="font-weight:300">${o.d}</p>
+      </div>`;
+    }
+    function ssCard(c){
+      const more=c.opts.length>2;
+      return `<div class="bg-white shadow-[0_2px_14px_rgba(47,52,58,0.08)] flex flex-col">
+        <div class="aspect-[2/1] overflow-hidden"><img src="${c.img}" class="w-full h-full object-cover object-right" alt="${c.n}" loading="lazy"></div>
+        <div class="ssBody px-5 pb-5 flex-1 flex flex-col">
+          ${c.opts.map((o,i)=>ssOptRow(c,o,i>=2)).join('')}
+          <div class="mt-auto pt-5">
+            <button onclick="${more?'ssToggle(this)':"showView('category')"}" class="krhead w-full h-11 rounded-full bg-ink/[0.04] hover:bg-ink/[0.08] text-[14px] text-ink/60 flex items-center justify-center gap-1 transition" style="font-weight:400">
+              <span>${more?'더보기':'자세히 보기'}</span><iconify-icon icon="${more?'solar:alt-arrow-down-linear':'solar:alt-arrow-right-linear'}" class="text-pinkstrong transition-transform"></iconify-icon>
+            </button>
+          </div>
+        </div>
+      </div>`;
+    }
+    function ssToggle(btn){
+      const card=btn.closest('.ssBody'), open=card.dataset.open==='1';
+      card.querySelectorAll('.ssMore').forEach(r=>r.classList.toggle('hidden', open));
+      card.dataset.open=open?'0':'1';
+      btn.querySelector('span').textContent=open?'더보기':'접기';
+      btn.querySelector('iconify-icon').style.transform=open?'':'rotate(180deg)';
+    }
+    function renderSS(){
+      const list=ssList(), per=ssPer(), pages=Math.max(1,Math.ceil(list.length/per));
+      if(ssPg>=pages) ssPg=0;
+      ssTabsEl.innerHTML=SS_TABS.map((t,i)=>`<button onclick="ssSetTab(${i})" class="px-5 py-2.5 rounded-full text-[14px] border transition ${i===ssTab?'bg-white border-pinkstrong text-pinkstrong':'bg-ink/[0.04] border-transparent text-ink/70 hover:text-ink'}">${t}</button>`).join('');
+      ssGrid.innerHTML=list.slice(ssPg*per,(ssPg+1)*per).map(ssCard).join('');
+      ssDotsEl.innerHTML=pages>1? Array.from({length:pages},(_,i)=>`<button onclick="ssGo(${i})" aria-label="${i+1}페이지" class="h-1.5 rounded-full transition-all ${i===ssPg?'w-6 bg-pinkstrong':'w-1.5 bg-ink/20 hover:bg-ink/40'}"></button>`).join('') : '';
+    }
+    function ssSetTab(i){ ssTab=i; ssPg=0; renderSS(); }
+    function ssGo(i){ ssPg=i; renderSS(); }
+    function ssPage(d){ const pages=Math.max(1,Math.ceil(ssList().length/ssPer())); ssPg=(ssPg+d+pages)%pages; renderSS(); }
+    let ssLastPer=ssPer();
+    window.addEventListener('resize',()=>{ const p=ssPer(); if(p!==ssLastPer){ ssLastPer=p; ssPg=0; renderSS(); } });
+    renderSS();
 
     const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.12});
     document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
