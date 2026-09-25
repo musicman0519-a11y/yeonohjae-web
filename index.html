@@ -1308,6 +1308,7 @@
       var now=Date.now();
       p._vis=p.details.filter(function(dt){
         if(dt.on===false) return false;
+        if(!String(dt.t||'').trim() && !parseInt(dt.sale) && !parseInt(dt.price)) return false;   /* 이름·가격 없는 빈 옵션은 숨김 */
         if(dt.gid && p.groups && p.groups.length){
           var gg=p.groups.find(function(x){ return x.id===dt.gid; });
           if(gg && gg.on===false) return false;          /* 비공개 중분류 그룹의 옵션은 숨김 */
