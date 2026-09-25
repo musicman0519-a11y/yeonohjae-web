@@ -51,6 +51,51 @@
     window.cleanHtml = function(h){ h=String(h||''); return window.DOMPurify ? DOMPurify.sanitize(h) : esc(h).replace(/\n/g,'<br>'); };
     /* ===== 기본 병원 정보 (관리자 '기본 설정' 값이 있으면 그걸 우선 사용) ===== */
     window.SITE = Object.assign({ tel:'0507-1485-2378', naver:'https://booking.naver.com/booking/13/bizes/889', kakao:'', insta:'' }, KK.get('settings', {}) || {});
+    /* ===== 예약 공통 (관리자 「예약 목록」과 연결되는 Supabase reservations 테이블) =====
+       - 예약 가능 시간: 관리자 「예약 가능시간 수정」(resHours) · 「마감처리」(resClosed) 값을 사용
+       - 저장: 방문자는 추가만 가능 (다른 사람 예약은 읽을 수 없음 — SQL 파일의 보안 규칙 참고) */
+    window.RES = (function(){
+      function pad(n){ return String(n).padStart(2,'0'); }
+      function ymd(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+      function toMin(t){ var p=String(t||'').split(':'); return (+p[0])*60+(+p[1]||0); }
+      function toStr(m){ return pad(Math.floor(m/60))+':'+pad(m%60); }
+      function hours(){
+        var d=KK.get('resHours', null)||{};
+        return { open:d.open||'10:00', close:d.close||'18:00', interval:parseInt(d.interval)||30,
+                 lunchStart:d.lunchStart||'13:00', lunchEnd:d.lunchEnd||'14:00',
+                 offDows:Array.isArray(d.offDows)?d.offDows:[0], capacity:parseInt(d.capacity)||1 };
+      }
+      function closed(){ var c=KK.get('resClosed', []); return Array.isArray(c)?c:[]; }
+      /* 그 날짜에 고를 수 있는 시간 목록 (휴무 요일·마감일이면 빈 목록) */
+      function slots(date){
+        var c=hours(); if(c.offDows.indexOf(date.getDay())>=0 || closed().indexOf(ymd(date))>=0) return [];
+        var out=[], ls=toMin(c.lunchStart), le=toMin(c.lunchEnd);
+        var now=new Date(), isToday=ymd(date)===ymd(now), nowMin=now.getHours()*60+now.getMinutes()+30;   /* 오늘은 30분 뒤부터 */
+        for(var m=toMin(c.open); m<toMin(c.close); m+=c.interval){
+          if(ls<le && m>=ls && m<le) continue;           /* 점심시간 제외 */
+          if(isToday && m<nowMin) continue;              /* 이미 지난 시간 제외 */
+          out.push(toStr(m));
+        }
+        return out;
+      }
+      /* 그 날짜의 시간대별 예약 건수 {'14:00':1, ...} — 개인정보 없이 건수만 */
+      function booked(ds){
+        if(!window.__sb) return Promise.resolve({});
+        return window.__sb.rpc('reserved_slots', { d: ds }).then(function(r){
+          var o={}; (r.data||[]).forEach(function(x){ o[x.res_time]=x.cnt; }); return o;
+        }, function(){ return {}; });
+      }
+      /* 저장. 성공하면 resolve, 실패하면 reject (안내창은 부르는 쪽에서) */
+      function submit(row){
+        if(!window.__sb) return Promise.reject(new Error('offline'));
+        var data={ name:String(row.name||'').trim().slice(0,30), phone:String(row.phone||'').trim().slice(0,20),
+                   res_date:row.date||null, res_time:row.time||null, item:(row.item||'상담하기').slice(0,200),
+                   sms_agree:!!row.sms, source:row.source||'', status:'미확정' };
+        return window.__sb.from('reservations').insert(data).then(function(r){ if(r.error) throw r.error; });
+      }
+      function failMsg(){ return '죄송합니다. 지금은 온라인 접수가 원활하지 않습니다.\n전화 '+(SITE.tel||'')+' 로 연락 주시면 바로 도와드리겠습니다.'; }
+      return { ymd:ymd, hours:hours, closed:closed, slots:slots, booked:booked, submit:submit, failMsg:failMsg };
+    })();
     /* ===== 광고 전환 추적: dataLayer 이벤트 (GTM 설치 시 그대로 수집됨) ===== */
     window.dataLayer = window.dataLayer || [];
     window.track = function(event, params){ try{ window.dataLayer.push(Object.assign({event:event}, params||{})); }catch(e){} };
@@ -865,13 +910,39 @@
       var ln=document.getElementById('locNaver'); if(ln && !document.getElementById('locKakao')) ln.classList.add('col-span-2');
     })();
     /* ===== 첫 화면 빠른 예약 카드 ===== */
+    /* 첫 화면 예약 카드 — 관리자 「예약 목록」에 '미확정'으로 저장 */
     function quickBookSubmit(form){
       var tel=form.tel.value.trim();
       if(!/^0\d{1,2}-?\d{3,4}-?\d{4}$/.test(tel)){ alert('연락처를 정확히 입력해주세요. (예: 010-1234-5678)'); form.tel.focus(); return false; }
-      var opt=form.item.options[form.item.selectedIndex];
-      track('reserve_submit',{form:'hero_quickbook', item:opt?opt.text:'', date:form.date.value, time:form.time.value});
-      alert('상담 예약이 접수되었습니다.\n'+(opt?opt.text:'')+'\n'+form.date.value+' '+form.time.value+'\n(데모: 실제 접수는 서버 연동 후 동작합니다)');
-      form.reset(); document.getElementById('qbPrice').textContent='0'; document.getElementById('qbWon').hidden=false; return false;
+      var opt=form.item.options[form.item.selectedIndex], item=opt?opt.text:'상담 후 결정';
+      var ds=form.date.value, t=form.time.value, btn=form.querySelector('button[type=submit]');
+      btn.disabled=true;
+      RES.booked(ds).then(function(o){
+        if((o[t]||0)>=RES.hours().capacity) throw {full:true};
+        return RES.submit({ name:form.name.value, phone:tel, date:ds, time:t, item:item, source:'hero' });
+      }).then(function(){
+        track('reserve_submit',{form:'hero_quickbook', item:item, date:ds, time:t});
+        alert('예약 신청이 접수되었습니다.\n\n'+form.name.value.trim()+' 님 · '+ds+' '+t+'\n'+item+'\n\n병원에서 확인 후 확정 연락을 드립니다.');
+        form.reset(); document.getElementById('qbPrice').textContent='0'; document.getElementById('qbWon').hidden=false; qbTimes();
+      }).catch(function(e){
+        if(e && e.full){ alert('방금 다른 분이 이 시간을 예약했습니다. 다른 시간을 선택해주세요.'); qbTimes(); }
+        else alert(RES.failMsg());
+      }).then(function(){ btn.disabled=false; });
+      return false;
+    }
+    /* 예약 카드 시간 목록: 고른 날짜의 예약 가능 시간(관리자 설정)만, 찬 시간은 '마감' */
+    function qbTimes(){
+      var f=document.getElementById('quickBook'); if(!f) return;
+      var sel=f.time, v=f.date.value;
+      if(!v){ sel.innerHTML='<option value="">시간</option>'; return; }
+      var p=v.split('-'), date=new Date(+p[0], +p[1]-1, +p[2]), slots=RES.slots(date);
+      if(!slots.length){ sel.innerHTML='<option value="">휴진일</option>'; return; }
+      sel.innerHTML='<option value="">시간</option>'+slots.map(function(t){ return '<option>'+t+'</option>'; }).join('');
+      RES.booked(v).then(function(o){
+        if(f.date.value!==v) return;
+        var cap=RES.hours().capacity;
+        Array.prototype.forEach.call(sel.options, function(op){ if(op.value && (o[op.value]||0)>=cap){ op.disabled=true; op.textContent=op.value+' (마감)'; } });
+      });
     }
     (function(){
       var form=document.getElementById('quickBook'); if(!form) return;
@@ -879,6 +950,7 @@
       /* 날짜: 오늘 이전은 선택 불가 */
       var d=new Date(), pad=function(n){ return String(n).padStart(2,'0'); };
       document.getElementById('qbDate').min=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+      document.getElementById('qbDate').addEventListener('change', qbTimes);
       /* 오늘 진료시간 안내 (관리자 기본 설정의 평일/주말 시간 사용) */
       var dow=d.getDay(), hrs=(dow===0||dow===6)?(SITE.hWeekend||'09:00 ~ 17:00'):(SITE.hWeek||'09:00 ~ 18:00');
       var end=(String(hrs).match(/(\d{1,2}:\d{2})\s*$/)||String(hrs).match(/~\s*(\d{1,2}:\d{2})/)||[])[1];
@@ -906,15 +978,66 @@
         new IntersectionObserver(function(es){ bar.style.transform = es[0].isIntersecting ? 'translateY(130%)' : ''; },{threshold:0.1}).observe(form);
       }
     })();
+    /* ===== 상단 메뉴 (admin 「상단 메뉴」 연동) — 저장된 설정이 없으면 기본 메뉴 그대로 =====
+       항목: {id, label, view, parent, on, url} / view: category·reserve·manage·ba·about·notes·doctors·network·care·noninsured·ext(외부링크) */
+    (function(){
+      var menus=KK.get('menus', null);
+      if(!Array.isArray(menus) || !menus.length) return;
+      function ok(m){
+        if(m.on===false) return false;
+        if(m.view==='ext') return safeUrl(m.url)!=='#';
+        if(m.view==='about') return true;
+        return !!document.getElementById('view-'+m.view);   /* 홈페이지에 없는 화면은 건너뜀 */
+      }
+      function act(m){
+        if(m.view==='ext') return { href:safeUrl(m.url), click:"window.open(this.href,'_blank','noopener');return false" };
+        if(m.view==='about') return { href:'#about', click:"showView('home','#about');return false" };
+        return { href:'#'+m.view, click:"showView('"+m.view+"');return false" };
+      }
+      function key(m){ return ({category:'menu', ba:'ba', notes:'notes', reserve:'book', manage:'book'})[m.view]||''; }
+      var tops=menus.filter(function(m){ return !m.parent && ok(m); });
+      function kids(id){ return menus.filter(function(m){ return m.parent===id && ok(m); }); }
+      if(!tops.length) return;
+      function item(m){
+        var a=act(m), k=key(m);
+        var link='<a href="'+a.href+'"'+(k?' data-key="'+k+'"':'')+' onclick="'+a.click+'" class="navlink hover:text-pinkstrong transition">'+esc(m.label)+'</a>';
+        var ks=kids(m.id); if(!ks.length) return link;
+        return '<div class="relative group">'+link+'<div class="absolute left-1/2 -translate-x-1/2 top-full pt-3 hidden group-hover:block group-has-[:focus-visible]:block z-50"><div class="bg-white rounded-xl shadow-xl border border-ink/10 py-2 min-w-[160px]">'+
+          ks.map(function(c){ var ca=act(c); return '<a href="'+ca.href+'" onclick="'+ca.click+'" class="krhead block w-full text-center px-5 py-2.5 text-sm text-ink/75 hover:text-pinkstrong hover:bg-bglight transition" style="font-weight:400">'+esc(c.label)+'</a>'; }).join('')+
+          '</div></div></div>';
+      }
+      var html=tops.map(item).join('');
+      var n1=document.querySelector('#hdr nav'); if(n1) n1.innerHTML=html;
+      var n2=document.querySelector('#hdrBar nav'); if(n2) n2.innerHTML=html;
+      var mn=document.getElementById('mnav');
+      if(mn) mn.innerHTML=tops.map(function(m){
+        var close=";document.getElementById('mnav').classList.add('hidden');";
+        var a=act(m), out='<a href="'+a.href+'" onclick="'+a.click.replace(';return false', close+'return false')+'">'+esc(m.label)+'</a>';
+        kids(m.id).forEach(function(c){ var ca=act(c); out+='<a href="'+ca.href+'" onclick="'+ca.click.replace(';return false', close+'return false')+'" class="pl-3 text-ink/60">└ '+esc(c.label)+'</a>'; });
+        return out;
+      }).join('');
+    })();
+
     function openSheet(){ var s=document.getElementById('sheet'); s.classList.remove('hidden'); document.body.style.overflow='hidden'; setTimeout(function(){ document.getElementById('sName').focus(); },50); track('cta_click',{cta:'mobile_consult'}); }
     function closeSheet(){ document.getElementById('sheet').classList.add('hidden'); document.body.style.overflow=''; }
     document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeSheet(); });
     /* 상담 신청: 접수 저장소(전용 테이블)가 준비되기 전까지는 안내만 표시.
        ※ 개인정보가 담기므로 site_kv(공개 테이블)에는 절대 저장하지 말 것 */
+    /* 빠른 상담 신청 (PC 하단 바·모바일 시트) — 관리자 「예약 목록」에 '빠른 상담 신청'으로 저장 */
     function consultSubmit(form, where){
-      track('lead_submit',{form:where});
-      alert('상담 신청이 접수되었습니다.\n(데모: 실제 접수는 서버 연동 후 동작합니다)\n빠른 상담은 전화 '+(SITE.tel||'')+' 로 연락 주세요.');
-      form.reset(); closeSheet(); return false;
+      var tel=form.tel.value.trim();
+      if(!/^0\d{1,2}-?\d{3,4}-?\d{4}$/.test(tel)){ alert('연락처를 정확히 입력해주세요. (예: 010-1234-5678)'); form.tel.focus(); return false; }
+      var btn=form.querySelector('button[type=submit]'); btn.disabled=true;
+      var time=form.time ? String(form.time.value||'').replace(/^오전\s*|^오후\s*/,'') : '';
+      if(form.time && /^오후/.test(form.time.value)){ var hm=time.split(':'); if(+hm[0]<12) time=(+hm[0]+12)+':'+hm[1]; }
+      RES.submit({ name:form.name.value, phone:tel, date:(form.date&&form.date.value)||null, time:time||null, item:'빠른 상담 신청', source:where })
+        .then(function(){
+          track('lead_submit',{form:where});
+          alert('상담 신청이 접수되었습니다.\n병원에서 확인 후 '+tel+' 로 연락드리겠습니다.');
+          form.reset(); closeSheet();
+        }, function(){ alert(RES.failMsg()); })
+        .then(function(){ btn.disabled=false; });
+      return false;
     }
   </script>
 
@@ -1178,6 +1301,27 @@
     const TEX=['img/tex-water-ripple.jpg','img/tex-gel-glitter.jpg','img/tex-cream-beam.jpg',
                'img/tex-gel-dome.jpg','img/tex-cream-gel.jpg','img/tex-petal-water.jpg'];
     const won = n => n.toLocaleString('ko-KR');
+    /* 관리자 「시술 상품 관리」의 상세 옵션(details)이 있으면: 공개·기간 유효한 옵션만 골라
+       목록 카드의 대표 이벤트 문구와 가격을 첫 번째 옵션으로 표시 */
+    products.forEach(function(p){
+      if(!(p.details && p.details.length)) return;
+      var now=Date.now();
+      p._vis=p.details.filter(function(dt){
+        if(dt.on===false) return false;
+        if(dt.gid && p.groups && p.groups.length){
+          var gg=p.groups.find(function(x){ return x.id===dt.gid; });
+          if(gg && gg.on===false) return false;          /* 비공개 중분류 그룹의 옵션은 숨김 */
+        }
+        if(dt.perType==='range'){
+          try{
+            if(dt.start && now<new Date(dt.start+'T00:00').getTime()) return false;
+            if(dt.end && now>new Date(dt.end+'T23:59').getTime()) return false;
+          }catch(e){}
+        }
+        return true;
+      });
+      if(p._vis.length){ p.event=p._vis[0].t||p.event; p.price=parseInt(p._vis[0].sale)||parseInt(p._vis[0].price)||p.price; }
+    });
     products.forEach(function(p,i){ p._seed=i; });
     window.__products = products;   /* 라우팅(#detail/번호)에서 사용 */
 
@@ -1514,12 +1658,27 @@
   <script>
 /* ===== 온라인예약 스크립트 — 독립 범위 ===== */
 (function(){
-    /* ===== 온라인예약 ===== */
-    var resState={ y:0, m:0, date:null, time:null };
-    var TIME_SLOTS=['10:00','10:30','11:00','11:30','14:00','14:30','15:00','15:30','16:00','16:30','17:00'];
+    /* ===== 온라인예약 — 관리자 「예약 가능시간·마감처리」 반영, 접수 시 관리자 「예약 목록」에 저장 ===== */
+    var resState={ y:0, m:0, date:null, time:null, booked:{} };
     var today=new Date(); today.setHours(0,0,0,0);
 
-    /* 카카오 인증 */
+    /* 「남은 시술권으로 예약」 자리를 시술 선택으로 교체 (관리자 「시술 상품 관리」 목록 사용) */
+    function buildItemPicker(){
+      if(document.getElementById('resItem')) return;
+      var target=null;
+      document.querySelectorAll('#resAfter .rounded-2xl').forEach(function(pn){ var h=pn.querySelector('h3'); if(h && h.textContent.indexOf('시술권')>=0) target=pn; });
+      if(!target) return;
+      var opts=['<option value="상담 후 결정">상담 후 결정하기</option>'];
+      (window.__products||[]).forEach(function(p){
+        var vis=p._vis||[];
+        if(vis.length) vis.forEach(function(d){ var nm=(p.big||p.title||'')+' · '+(d.t||''); opts.push('<option value="'+esc(nm)+'">'+esc(nm)+'</option>'); });
+        else if(p.big||p.title) opts.push('<option value="'+esc(p.big||p.title)+'">'+esc(p.big||p.title)+'</option>');
+      });
+      target.innerHTML='<h3 class="krhead text-lg text-ink mb-5" style="font-weight:700"><label for="resItem">예약할 시술 선택</label></h3>'+
+        '<select id="resItem" class="krhead w-full px-4 py-3 rounded-lg border border-ink/12 bg-ink/[0.02] text-sm focus:outline-none focus:border-pink" style="font-weight:400">'+opts.join('')+'</select>'+
+        '<p class="krhead text-[13px] text-ink/55 mt-3 break-keep" style="font-weight:400">정하지 못하셨다면 「상담 후 결정하기」를 선택해 주세요. 내원 시 상담해 드립니다.</p>';
+    }
+
     /* 예약 입력 영역 열기 (카카오 인증 또는 비회원 공통) */
     function openResForm(label){
       document.getElementById('resAuthBox').innerHTML =
@@ -1528,6 +1687,7 @@
         '<p class="krhead text-pinkstrong" style="font-weight:700">'+label+'</p></div>';
       var after=document.getElementById('resAfter');
       after.classList.remove('hidden');
+      buildItemPicker();
       resState.y=today.getFullYear(); resState.m=today.getMonth();
       renderCal();
       setTimeout(function(){ try{ scrollToY(after,true,-90); document.getElementById('resName').focus({preventScroll:true}); }catch(e){} }, 60);
@@ -1535,48 +1695,47 @@
     document.getElementById('resKakaoBtn').addEventListener('click', function(){ track('reserve_auth',{type:'kakao'}); openResForm('인증 완료 · 예약 정보를 입력해 주세요'); });
     document.getElementById('resGuestBtn').addEventListener('click', function(){ track('reserve_auth',{type:'guest'}); openResForm('비회원 예약 · 예약 정보를 입력해 주세요'); });
 
-    /* 캘린더 */
+    /* 시간 선택 — 이미 찬 시간대(관리자 「동시 예약 수」 기준)는 선택 불가 */
     function renderTimes(){
       var wrap=document.getElementById('resTimeWrap');
       if(!resState.date){ wrap.className='krhead text-sm text-muted'; wrap.style.fontWeight='300'; wrap.textContent='날짜를 먼저 선택해주세요.'; return; }
+      var slots=RES.slots(resState.date), cap=RES.hours().capacity;
+      if(!slots.length){ wrap.className='krhead text-sm text-muted'; wrap.style.fontWeight='300'; wrap.textContent='이 날짜는 예약을 받지 않습니다. 다른 날짜를 선택해주세요.'; return; }
       wrap.className='krhead grid grid-cols-2 md:grid-cols-1 gap-2';
       wrap.style.fontWeight='400';
-      wrap.innerHTML=TIME_SLOTS.map(function(t){
-        var on = resState.time===t;
+      wrap.innerHTML=slots.map(function(t){
+        if((resState.booked[t]||0)>=cap) return '<button disabled class="px-3 py-2 rounded-lg border text-sm border-ink/10 text-ink/25 cursor-not-allowed line-through" title="예약 마감">'+t+'</button>';
+        var on=resState.time===t;
         return '<button data-t="'+t+'" class="resTime px-3 py-2 rounded-lg border text-sm transition '+
           (on?'bg-pinkstrong text-white border-pinkstrong':'border-ink/15 text-ink/70 hover:border-pink')+'">'+t+'</button>';
       }).join('');
       wrap.querySelectorAll('.resTime').forEach(function(b){ b.addEventListener('click',function(){ resState.time=b.dataset.t; renderTimes(); }); });
     }
 
+    /* 달력 — 지난 날짜·휴무 요일·마감일은 선택 불가 */
     function renderCal(){
       var y=resState.y, m=resState.m;
       document.getElementById('resCalTitle').textContent=y+'년 '+(m+1)+'월';
-      var first=new Date(y,m,1).getDay();          // 0=일
-      var dim=new Date(y,m+1,0).getDate();          // 말일
-      var cells='';
+      var first=new Date(y,m,1).getDay(), dim=new Date(y,m+1,0).getDate(), cells='';
       for(var i=0;i<first;i++){ cells+='<span></span>'; }
       for(var d=1; d<=dim; d++){
         var dateObj=new Date(y,m,d); dateObj.setHours(0,0,0,0);
-        var dow=dateObj.getDay();
-        var past = dateObj < today;
-        var sel = resState.date && resState.date.getTime()===dateObj.getTime();
-        var base='krhead mx-auto w-9 h-9 grid place-items-center rounded-full text-sm transition ';
-        var cls;
-        if(past){ cls='text-ink/20 cursor-not-allowed'; }
+        var dow=dateObj.getDay(), past=dateObj<today, off=!past && RES.slots(dateObj).length===0;
+        var sel=resState.date && resState.date.getTime()===dateObj.getTime();
+        var base='krhead mx-auto w-9 h-9 grid place-items-center rounded-full text-sm transition ', cls;
+        if(past||off){ cls='text-ink/20 cursor-not-allowed'; }
         else if(sel){ cls='bg-pinkstrong text-white'; }
-        else {
-          var col = dow===0?'text-red-400':(dow===6?'text-blue-400':'text-ink/80');
-          cls=col+' hover:bg-pink hover:text-white cursor-pointer';
-        }
-        cells+='<button data-d="'+d+'" '+(past?'disabled':'')+' class="resDay '+base+cls+'" style="font-weight:400">'+d+'</button>';
+        else { cls=(dow===0?'text-red-400':(dow===6?'text-blue-400':'text-ink/80'))+' hover:bg-pink hover:text-white cursor-pointer'; }
+        cells+='<button data-d="'+d+'" '+((past||off)?'disabled':'')+' title="'+(off?'휴진 · 예약 불가':'')+'" class="resDay '+base+cls+'" style="font-weight:400">'+d+'</button>';
       }
       var days=document.getElementById('resCalDays');
       days.innerHTML=cells;
       days.querySelectorAll('.resDay:not([disabled])').forEach(function(b){
         b.addEventListener('click',function(){
           resState.date=new Date(resState.y,resState.m,+b.dataset.d); resState.date.setHours(0,0,0,0);
-          resState.time=null; renderCal(); renderTimes();
+          resState.time=null; resState.booked={}; renderCal();
+          var ds=RES.ymd(resState.date);
+          RES.booked(ds).then(function(o){ if(resState.date && RES.ymd(resState.date)===ds){ resState.booked=o; renderTimes(); } });
         });
       });
       renderTimes();
@@ -1591,17 +1750,32 @@
       resState.m++; if(resState.m>11){ resState.m=0; resState.y++; } renderCal();
     });
 
-    /* 예약하기 */
-    document.getElementById('resReserveBtn').addEventListener('click',function(){
+    /* 예약하기 — 관리자 「예약 목록」에 '미확정'으로 저장 */
+    var btn=document.getElementById('resReserveBtn');
+    btn.addEventListener('click',function(){
       var nm=document.getElementById('resName'), ph=document.getElementById('resPhone');
       if(!nm.value.trim()){ alert('이름을 입력해주세요.'); nm.focus(); return; }
       if(!/^0\d{1,2}-?\d{3,4}-?\d{4}$/.test(ph.value.trim())){ alert('연락처를 정확히 입력해주세요. (예: 010-1234-5678)'); ph.focus(); return; }
       if(!document.getElementById('resAgreeReq').checked){ alert('개인정보 취급방침 동의(필수)를 체크해주세요.'); return; }
       if(!resState.date){ alert('예약 날짜를 선택해주세요.'); return; }
       if(!resState.time){ alert('예약 시간을 선택해주세요.'); return; }
-      var d=resState.date;
-      track('reserve_submit',{date:(d.getMonth()+1)+'/'+d.getDate(), time:resState.time});
-      alert('데모 예약 완료\n'+(d.getMonth()+1)+'월 '+d.getDate()+'일 '+resState.time+'\n실제 예약은 서버 연동 후 동작합니다.');
+      var d=resState.date, ds=RES.ymd(d), t=resState.time;
+      var sms=document.querySelectorAll('#resAfter input[type="checkbox"]')[0];
+      var item=(document.getElementById('resItem')||{}).value||'상담 후 결정';
+      btn.disabled=true; var label=btn.textContent; btn.textContent='접수 중...';
+      /* 저장 직전에 한 번 더 자리 확인 (동시에 예약하는 경우 대비) */
+      RES.booked(ds).then(function(o){
+        if((o[t]||0)>=RES.hours().capacity){ resState.booked=o; resState.time=null; renderTimes(); throw {full:true}; }
+        return RES.submit({ name:nm.value, phone:ph.value, date:ds, time:t, item:item, sms:sms&&sms.checked, source:'reserve' });
+      }).then(function(){
+        track('reserve_submit',{form:'reserve', date:ds, time:t});
+        alert('예약 신청이 접수되었습니다.\n\n'+nm.value.trim()+' 님 · '+(d.getMonth()+1)+'월 '+d.getDate()+'일 '+t+'\n'+item+
+              '\n\n병원에서 확인 후 확정 연락을 드립니다.');
+        resState.time=null; resState.booked[t]=(resState.booked[t]||0)+1; renderTimes();
+      }).catch(function(e){
+        if(e && e.full) alert('방금 다른 분이 이 시간을 예약했습니다. 다른 시간을 선택해주세요.');
+        else alert(RES.failMsg());
+      }).then(function(){ btn.disabled=false; btn.textContent=label; });
     });
 
 })();
@@ -1695,7 +1869,52 @@
         ]
       };
     }
-    function detailOf(p){ return DETAILS[p.title] || genericDetail(p); }
+    /* ===== 관리자 「시술 상품 관리」 데이터로 상세 구성 ===== */
+    var DAYS=['일','월','화','수','목','금','토'];
+    /* 권종(이용 조건) 이름 — 관리자 「카테고리 관리 > 권종」 */
+    function voucherOf(id){
+      if(!id) return '';
+      try{
+        var v=(KK.get('voucherTypes', [])||[]).find(function(x){ return x.id===id; });
+        if(!v || v.on===false) return '';
+        var d=v.days||[], base='';
+        if(d.length && d.length<7){
+          var wk=[1,2,3,4,5], isWeek=wk.every(function(x){return d.indexOf(x)>=0;}) && d.indexOf(6)<0;
+          if(isWeek && d.indexOf(0)>=0) base='평일+일요일';
+          else if(isWeek && d.length===5) base='평일';
+          else if(d.length===1) base=DAYS[d[0]]+'요일';
+          else base=d.slice().sort().map(function(x){ return DAYS[x]; }).join('');
+        }
+        var cond=[base, v.before?(v.before+'시 이전'):''].filter(Boolean).join(' ');
+        if(!cond) return v.name||'';
+        return (String(v.name||'').indexOf(cond)>=0) ? v.name : ((v.name||'')+' · '+cond+' 한정');
+      }catch(e){ return ''; }
+    }
+    function realDetail(p){
+      var g=genericDetail(p), vis=p._vis||[];
+      return {
+        desc: (p.desc && String(p.desc).trim()) ? p.desc : g.desc,
+        options: vis.map(function(dt){
+          var sub=[];
+          if(dt.perType==='range' && (dt.start||dt.end)) sub.push('기간 '+(dt.start||'')+' ~ '+(dt.end||''));
+          var vc=voucherOf(dt.voucher); if(vc) sub.push(vc);
+          if(dt.avail) sub.push(dt.avail);
+          if(dt.notice) sub.push(dt.notice);
+          var price=parseInt(dt.sale)||parseInt(dt.price)||0, orig=parseInt(dt.price)||0;
+          return {name:dt.t||'', sub:sub.join(' · '), price:price, orig:(orig>price?orig:0), off:(orig>price&&orig>0)? Math.round((1-price/orig)*100)+'%':'', part:'전체'};
+        }),
+        bodies: vis.filter(function(dt){ return dt.body && (String(dt.body).replace(/<[^>]*>/g,'').trim().length || String(dt.body).indexOf('<img')>=0); }),
+        youtube: p.youtube||'', mainBody: p.body||'',
+        stepsTitle: p.stepsTitle||'', steps: p.steps||[], basic: p.basic||null,
+        points: p.points||[], qna: p.qna||[],
+        introTitle:g.introTitle, question:g.question, emphasis:g.emphasis, features:g.features,
+        precisionPhoto:false, precisionIntro:'', precision:[],
+        aftercare: (Array.isArray(p.cautions) && p.cautions.length) ? p.cautions
+                 : (typeof p.cautions==='string' && p.cautions.trim()) ? p.cautions.split(/\n+/).filter(Boolean) : g.aftercare,
+        real:true
+      };
+    }
+    function detailOf(p){ return (p.details && p.details.length) ? realDetail(p) : (DETAILS[p.title] || genericDetail(p)); }
 
     var detState={ p:null, q:'', sort:'none', part:'전체' };
 
@@ -1754,11 +1973,17 @@
       '<div class="grid lg:grid-cols-2 gap-8 lg:gap-12 mb-20">'+
         '<div class="space-y-5">'+
           '<div class="overflow-hidden">'+banner+'</div>'+
-          '<div class="relative aspect-video overflow-hidden bg-black grid place-items-center">'+
-            '<img src="img/tex-cream-beam.jpg" class="absolute inset-0 w-full h-full object-cover opacity-55" alt="" loading="lazy">'+
-            '<span class="relative w-16 h-16 rounded-full bg-white/90 grid place-items-center"><iconify-icon icon="solar:play-bold" width="26" class="text-ink"></iconify-icon></span>'+
-            '<span class="absolute top-3 left-3 krhead text-[11px] text-white/85 bg-black/40 px-2 py-0.5 rounded" style="font-weight:400">시술 영상</span>'+
-          '</div>'+
+          /* 관리자에 유튜브 주소가 있으면 영상, 관리자 데이터 상품인데 영상이 없으면 생략, 샘플 상품만 자리 표시 */
+          (function(){
+            var m=String(d.youtube||'').match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,20})/);
+            if(m) return '<div class="relative aspect-video overflow-hidden bg-black"><iframe src="https://www.youtube.com/embed/'+m[1]+'" title="시술 영상" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>';
+            if(d.real) return '';
+            return '<div class="relative aspect-video overflow-hidden bg-black grid place-items-center">'+
+              '<img src="img/tex-cream-beam.jpg" class="absolute inset-0 w-full h-full object-cover opacity-55" alt="" loading="lazy">'+
+              '<span class="relative w-16 h-16 rounded-full bg-white/90 grid place-items-center"><iconify-icon icon="solar:play-bold" width="26" class="text-ink"></iconify-icon></span>'+
+              '<span class="absolute top-3 left-3 krhead text-[11px] text-white/85 bg-black/40 px-2 py-0.5 rounded" style="font-weight:400">시술 영상</span>'+
+            '</div>';
+          })()+
         '</div>'+
         '<div>'+
           '<div class="bg-white border border-ink/10 p-6 sm:p-8 mb-8">'+
@@ -1775,6 +2000,28 @@
           '<div id="detOptList" class="space-y-2.5"></div>'+
         '</div>'+
       '</div>'+
+
+      /* ----- 관리자 입력 상세 내용 (본문 HTML은 정화, 나머지 글은 escape) ----- */
+      (function(){
+        function sec(title, inner){ return '<div class="max-w-3xl mx-auto mb-20"><h3 class="krhead text-2xl text-ink mb-6 text-center" style="font-weight:700">'+title+'</h3>'+inner+'</div>'; }
+        var h='';
+        if(d.mainBody && (String(d.mainBody).replace(/<[^>]*>/g,'').trim() || String(d.mainBody).indexOf('<img')>=0))
+          h+='<div class="max-w-3xl mx-auto mb-20"><div class="note-body krhead text-[15px] text-ink/75 leading-loose break-keep" style="font-weight:300">'+cleanHtml(d.mainBody)+'</div></div>';
+        if(d.bodies && d.bodies.length)
+          h+='<div class="max-w-3xl mx-auto mb-20">'+d.bodies.map(function(dt){
+            return '<div class="mb-12"><h3 class="krhead text-xl text-ink mb-3 break-keep" style="font-weight:700">'+esc(dt.t)+'</h3><div class="h-0.5 w-10 bg-pink mb-5"></div>'+
+              '<div class="note-body krhead text-[15px] text-ink/75 leading-loose break-keep" style="font-weight:300">'+cleanHtml(dt.body)+'</div></div>'; }).join('')+'</div>';
+        if(d.steps && d.steps.length)
+          h+=sec(esc(d.stepsTitle||'시술 과정'), '<div class="space-y-2.5">'+d.steps.map(function(s,i){ return '<div class="flex items-center gap-4 bg-white border border-ink/10 px-5 py-4"><span class="marcellus shrink-0 text-[12px] tracking-[0.25em] text-pinkstrong">STEP '+(i+1)+'</span><span class="krhead text-[15px] text-ink/80 break-keep" style="font-weight:400">'+esc(s)+'</span></div>'; }).join('')+'</div>');
+        var b=d.basic||{};
+        if(b.time||b.anesthesia||b.daily||b.duration)
+          h+=sec('시술 기본정보', '<div class="grid grid-cols-2 lg:grid-cols-4 gap-3">'+[['시술시간',b.time],['마취여부',b.anesthesia],['회복기간',b.daily],['유지기간',b.duration]].map(function(x){ return x[1]? '<div class="bg-white border border-ink/10 px-4 py-5 text-center"><p class="krhead text-[12px] text-pinkstrong mb-1.5" style="font-weight:700">'+x[0]+'</p><p class="krhead text-[14px] text-ink/80 break-keep" style="font-weight:400">'+esc(x[1])+'</p></div>':''; }).join('')+'</div>');
+        if(d.points && d.points.length)
+          h+=sec('이런 분께 추천해요', '<div class="space-y-3">'+d.points.map(function(pt,i){ return '<div class="flex items-start gap-3 bg-white border border-ink/10 px-5 py-4"><span class="marcellus shrink-0 text-[12px] tracking-[0.25em] text-pinkstrong mt-0.5">POINT '+(i+1)+'</span><span class="krhead text-[15px] text-ink/80 break-keep" style="font-weight:400">'+esc(pt)+'</span></div>'; }).join('')+'</div>');
+        if(d.qna && d.qna.length)
+          h+=sec('자주 묻는 질문', d.qna.map(function(x){ return '<div class="bg-white border border-ink/10 p-5 mb-3"><p class="krhead text-[15px] text-ink mb-2 break-keep" style="font-weight:700"><span class="text-pinkstrong">Q.</span> '+esc(x.q)+'</p><p class="krhead text-[14px] text-ink/70 leading-relaxed break-keep" style="font-weight:400"><span class="text-pinkstrong" style="font-weight:700">A.</span> '+esc(x.a)+'</p></div>'; }).join(''));
+        return h;
+      })()+
 
       '<div class="text-center max-w-2xl mx-auto mb-16">'+
         '<h3 class="krhead text-2xl text-ink mb-8" style="font-weight:500">'+(d.introTitle||'맞춤 케어')+'</h3>'+
@@ -1885,7 +2132,10 @@
           <span id="popupDots" class="flex items-center gap-1.5"></span>
           <button id="popupNext" class="krhead text-xs text-ink/45 hover:text-ink flex items-center gap-1">다음 <iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></button>
         </div>
-        <button onclick="document.getElementById('popupModal').classList.add('hidden');document.getElementById('popupModal').classList.remove('flex')" class="krhead w-full text-center text-xs text-ink/40 hover:text-ink mt-3 py-1" style="font-weight:300">오늘 하루 닫기</button>
+        <div class="grid grid-cols-2 mt-3 border-t border-ink/10 pt-2">
+          <button id="popupCloseToday" class="krhead text-center text-[13px] text-ink/50 hover:text-ink py-2" style="font-weight:400">오늘 하루 보지 않기</button>
+          <button id="popupClose" class="krhead text-center text-[13px] text-ink/70 hover:text-ink py-2 border-l border-ink/10" style="font-weight:500">닫기</button>
+        </div>
       </div>
     </div>
   </div>
@@ -2035,24 +2285,46 @@
     }
   })();
 
-  /* ===== 팝업 노출 (admin 팝업 관리 연동) ===== */
+  /* ===== 팝업 노출 (admin 「팝업 관리」 연동: 이미지 · 노출 기간 · 순서 · 오늘 하루 보지 않기) ===== */
   (function(){
     if(!window.KK) return;
-    var popups=(KK.get('popups', [])||[]).filter(function(p){return p.on!==false;}).sort(function(a,b){return (a.order||0)-(b.order||0);});
+    var now=Date.now();
+    var popups=(KK.get('popups', [])||[]).filter(function(p){
+      if(p.on===false) return false;
+      if(!p.img && !p.title) return false;
+      if(p.period){                                     /* 기간 설정한 팝업은 기간 안에만 */
+        try{
+          if(p.start && now < new Date(p.start+(String(p.start).length<=10?'T00:00':'')).getTime()) return false;
+          if(p.end   && now > new Date(p.end  +(String(p.end).length<=10?'T23:59':'')).getTime()) return false;
+        }catch(e){}
+      }
+      return true;
+    }).sort(function(a,b){return (a.order||0)-(b.order||0);});
     if(!popups.length) return;
-    var idx=0, modal=document.getElementById('popupModal');
+    try{ if(localStorage.getItem('yj_popup_closed')===new Date().toDateString()) return; }catch(e){}
+    var idx=0, modal=document.getElementById('popupModal'), box=document.getElementById('popupImg');
+    function close(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }
     function show(){
       var p=popups[idx];
-      document.getElementById('popupImg').innerHTML='<div><p class="krhead text-lg font-bold" style="color:#8a5a66;font-weight:700">'+esc(p.title)+'</p><p class="krhead text-xs mt-2" style="color:#b08792;font-weight:300">XXI</p></div>';
-      var lk=document.getElementById('popupLink'); lk.href=(safeUrl(p.link)==='#'?'#':p.link);
+      if(p.img && safeUrl(p.img)!=='#'){
+        box.className='bg-cream'; box.style.background='';
+        box.innerHTML='<img src="'+safeUrl(p.img)+'" alt="'+esc(p.title)+'" style="width:100%;max-height:70vh;object-fit:contain;display:block">';
+      } else {
+        box.className='h-72 grid place-items-center text-center px-6'; box.style.background='linear-gradient(135deg,#e9e1d6,#dccfc0)';
+        box.innerHTML='<div><p class="krhead text-lg text-ink" style="font-weight:700">'+esc(p.title)+'</p><p class="marcellus text-xs mt-2 tracking-[0.3em] text-pinkstrong/70">XXI</p></div>';
+      }
+      var lk=document.getElementById('popupLink');
+      if(p.link && safeUrl(p.link)!=='#'){ lk.href=p.link; lk.style.display=''; } else { lk.style.display='none'; }
       document.getElementById('popupDots').innerHTML=popups.map(function(_,i){return '<span class="w-1.5 h-1.5 rounded-full" style="background:'+(i===idx?'#4a5d4e':'#cdc4ba')+'"></span>';}).join('');
       document.getElementById('popupPrev').style.visibility = popups.length>1?'visible':'hidden';
       document.getElementById('popupNext').style.visibility = popups.length>1?'visible':'hidden';
     }
     document.getElementById('popupPrev').onclick=function(){ idx=(idx-1+popups.length)%popups.length; show(); };
     document.getElementById('popupNext').onclick=function(){ idx=(idx+1)%popups.length; show(); };
+    document.getElementById('popupClose').onclick=close;
+    document.getElementById('popupCloseToday').onclick=function(){ try{ localStorage.setItem('yj_popup_closed', new Date().toDateString()); }catch(e){} close(); };
     show(); modal.classList.remove('hidden'); modal.classList.add('flex');
-    modal.addEventListener('click', function(e){ if(e.target===modal){ modal.classList.add('hidden'); modal.classList.remove('flex'); } });
+    modal.addEventListener('click', function(e){ if(e.target===modal) close(); });
   })();
 
   /* ===== 시술 후 주의사항 / 의료진 / 비급여 / 지점 안내 렌더 ===== */

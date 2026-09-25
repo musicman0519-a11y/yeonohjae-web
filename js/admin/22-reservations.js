@@ -1,14 +1,34 @@
-  /* ---------- 고객 예약 목록 (홈페이지 온라인예약과 실시간 연동) ---------- */
+  /* ---------- 고객 예약 목록 ----------
+     저장소: Supabase 「reservations」 테이블 (로그인한 관리자만 조회·수정 가능, 방문자는 추가만)
+     ※ 예전처럼 site_kv(공개 저장소)에 두면 고객 이름·전화번호가 누구나 읽을 수 있어서 옮겼습니다.
+       테이블 생성 SQL: 저장소의 「supabase-예약테이블.sql」 */
   let _rvQuery='', _rvDate='', _rvStatus='전체', _rvPanel=null;
+  let _rvList=[], _rvState='idle', _rvErr='';   /* idle → loading → ok | error | setup(테이블 없음) */
 
-  function rvGet(){
-    const l=KK.get('reservations', []);
-    return Array.isArray(l)? l : [];
+  function rvGet(){ return _rvList; }
+  /* DB 행 → 화면용 모양 (초진/재진은 같은 번호의 이전 접수 여부로 계산) */
+  function rvMap(rows){
+    const seen={};
+    const list=rows.slice().sort((a,b)=>String(a.created_at).localeCompare(String(b.created_at))).map(r=>{
+      const k=rvDigits(r.phone), first=!seen[k]; seen[k]=1;
+      return { id:r.id, name:r.name, phone:r.phone, date:r.res_date||'', time:r.res_time||'', item:r.item||'상담하기',
+               first: first?'초진':'재진', sms: r.sms_agree?'동의':'거부', status:r.status||'미확정',
+               memo:r.memo||'', source:r.source||'', createdAt:r.created_at };
+    });
+    return list.reverse();
   }
-  function rvPut(list, msg){
-    KK.set('reservations', list);
-    if(msg) toast(STORAGE_OK? msg : '미리보기 환경에선 저장이 제한됩니다.', STORAGE_OK);
+  function rvLoad(){
+    if(!window.__sb){ _rvState='error'; _rvErr='DB 연결이 준비되지 않았습니다. 새로고침해 주세요.'; rerenderReservations(); return; }
+    _rvState='loading';
+    window.__sb.from('reservations').select('*').order('created_at',{ascending:false}).limit(3000).then(r=>{
+      if(r.error){
+        const m=String(r.error.message||''), missing=/relation|does not exist|schema cache|Could not find/i.test(m) || r.error.code==='42P01' || r.error.code==='PGRST205';
+        _rvState= missing ? 'setup' : 'error'; _rvErr=m;
+      } else { _rvList=rvMap(r.data||[]); _rvState='ok'; _rvErr=''; }
+      rerenderReservations();
+    });
   }
+  function rvDbFail(e){ toast('저장에 실패했습니다: '+((e&&e.message)||'연결 오류'), false); }
   function rvHours(){
     const d=KK.get('resHours', null) || {};
     return {
@@ -40,20 +60,19 @@
     }).sort((a,b)=> (b.date+b.time).localeCompare(a.date+a.time));
   }
   function rvSetStatusOf(id, st){
-    const list=rvGet().slice();
-    const hit=list.find(x=>x.id===id); if(!hit) return;
-    hit.status=st;
-    rvPut(list, '「'+(hit.name||'')+'」 예약을 '+st+' 처리했습니다.');
-    rerenderReservations();
+    const hit=_rvList.find(x=>x.id===id); if(!hit) return;
+    window.__sb.from('reservations').update({status:st}).eq('id',id).then(r=>{
+      if(r.error) return rvDbFail(r.error);
+      hit.status=st; toast('「'+(hit.name||'')+'」 예약을 '+st+' 처리했습니다.'); rerenderReservations();
+    });
   }
   function rvDelete(id){
-    const list=rvGet().slice();
-    const i=list.findIndex(x=>x.id===id); if(i<0) return;
-    const r=list[i];
+    const r=_rvList.find(x=>x.id===id); if(!r) return;
     if(!confirm('「'+(r.name||'')+' · '+r.date+' '+r.time+'」 예약을 목록에서 완전히 삭제할까요?\n(고객에게 취소 안내를 하려면 「취소」를 쓰세요)')) return;
-    list.splice(i,1);
-    rvPut(list, '예약을 삭제했습니다.');
-    rerenderReservations();
+    window.__sb.from('reservations').delete().eq('id',id).then(res=>{
+      if(res.error) return rvDbFail(res.error);
+      _rvList=_rvList.filter(x=>x.id!==id); toast('예약을 삭제했습니다.'); rerenderReservations();
+    });
   }
   function rvAddManual(){
     const name=prompt('예약자 이름을 입력하세요 (전화 예약 등 수기 등록)');
@@ -64,15 +83,13 @@
     const time=prompt('예약 시간 (예: 14:30)') || '';
     if(!/^\d{1,2}:\d{2}$/.test(time)){ toast('시간 형식이 올바르지 않습니다.', false); return; }
     const item=prompt('시술/이벤트 (비우면 상담하기)') || '상담하기';
-    const list=rvGet().slice();
-    list.unshift({
-      id:'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),
-      name:name.trim(), phone:phone.trim(), date:date, time:time, item:item,
-      first: list.some(x=>rvDigits(x.phone)===rvDigits(phone)) ? '재진':'초진',
-      sms:'동의', status:'확정', memo:'수기 등록', createdAt:new Date().toISOString()
+    window.__sb.from('reservations').insert({
+      name:name.trim().slice(0,30), phone:phone.trim().slice(0,20), res_date:date, res_time:time, item:item.slice(0,200),
+      sms_agree:true, status:'확정', memo:'수기 등록', source:'admin'
+    }).then(r=>{
+      if(r.error) return rvDbFail(r.error);
+      toast('예약을 수기로 등록했습니다.'); rvLoad();
     });
-    rvPut(list, '예약을 수기로 등록했습니다.');
-    rerenderReservations();
   }
   function rvExport(){
     const rows=rvFiltered();
@@ -124,12 +141,14 @@
     if(typeof peCss==='function') peCss();
     if(typeof catCss==='function') catCss();
     const esc=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;');
+    if(_rvState==='idle') setTimeout(rvLoad, 0);          /* 처음 열 때 DB에서 불러오기 */
     const all=rvGet(), rows=rvFiltered(), cfg=rvHours(), closed=rvClosed();
     const cnt=s=>all.filter(r=>(r.status||'미확정')===s).length;
     const DOW=['일','월','화','수','목','금','토'];
     const el = makeView('reservations');
 
-    el.innerHTML = pageHead('고객 예약 목록','홈페이지 「온라인예약」으로 접수된 예약이 실시간으로 여기에 쌓입니다.',
+    el.innerHTML = pageHead('고객 예약 목록','홈페이지의 온라인예약 · 첫 화면 예약 · 빠른 상담 신청이 모두 여기에 쌓입니다.',
+      '<button onclick="rvLoad()" class="px-3 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)">↻ 새로고침</button>'+
       '<button onclick="rvAddManual()" class="px-3 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="solar:add-circle-linear" width="15"></iconify-icon> 수기 등록</button>'+
       '<button onclick="rvExport()" class="px-3 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="solar:download-minimalistic-linear" width="15"></iconify-icon> CSV 내려받기</button>'+
       '<button onclick="rvTogglePanel(\'hours\')" class="px-3 h-9 rounded-lg text-[13px] font-semibold text-white" style="background:'+(_rvPanel==='hours'?'var(--accent-strong)':'#5849d4')+'">예약 가능시간 수정</button>'+
@@ -203,7 +222,10 @@
           '</tr>';
         }).join('')
         : '<tr><td colspan="9" class="text-center py-16" style="color:var(--muted)">'+
-            (all.length ? '조건에 맞는 예약이 없습니다.' :
+            (_rvState==='loading' || _rvState==='idle' ? '예약 목록을 불러오는 중입니다…' :
+             _rvState==='setup' ? '<b style="color:var(--bad)">예약 저장소(DB 테이블)가 아직 만들어지지 않았습니다.</b><br><span class="text-[12.5px]">Supabase 대시보드 → SQL Editor 에서 「supabase-예약테이블.sql」 내용을 한 번 실행하면 바로 사용할 수 있습니다.</span>' :
+             _rvState==='error' ? '<b style="color:var(--bad)">예약 목록을 불러오지 못했습니다.</b><br><span class="text-[12.5px]">'+esc(_rvErr)+' · 「새로고침」을 눌러 다시 시도해 주세요.</span>' :
+             all.length ? '조건에 맞는 예약이 없습니다.' :
              '아직 접수된 예약이 없습니다.<br><span class="text-[12.5px]">홈페이지 「온라인예약」에서 예약이 들어오면 이 목록에 자동으로 표시됩니다. 전화 예약은 「수기 등록」으로 넣으세요.</span>')+
           '</td></tr>')+
       '</tbody></table></div></div>';
