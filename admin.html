@@ -66,9 +66,10 @@
   <!-- ===================== 로그인 화면 (Supabase Auth) =====================
        ※ 예전엔 브라우저 prompt() + localStorage 비밀번호였음(소스에 평문 노출, RLS 미적용 시 우회 가능).
           지금은 Supabase Auth 로그인 + RLS 로 서버 단에서 쓰기 권한을 막습니다.
-          관리자 계정은 이 화면에 가입 기능이 없고, Supabase 대시보드에서만 생성/삭제합니다. -->
+          관리자 계정은 「관리자 계정 신청」으로 신청 → 최고관리자가 「관리자 관리」에서 승인해야 사용 가능 (admin_members 테이블).
+          로그인한 뒤에도 승인 전이면 관리자 화면이 열리지 않습니다. -->
   <div id="loginScreen" class="fixed inset-0 z-[999] flex items-center justify-center px-4" style="background:var(--side)">
-    <div class="w-full max-w-[360px] rounded-2xl p-8" style="background:var(--panel)">
+    <div id="loginCard" class="w-full max-w-[360px] rounded-2xl p-8" style="background:var(--panel)">
       <div class="text-center mb-7">
         <span class="inline-flex w-12 h-12 rounded-xl items-center justify-center text-white font-extrabold text-lg mb-3"
               style="background:linear-gradient(135deg,#c79a5b,#9a7438)">K</span>
@@ -84,6 +85,34 @@
         <button type="submit" id="loginBtn" class="w-full h-11 rounded-lg font-semibold text-[14px] btn-gold">로그인</button>
       </form>
       <button type="button" onclick="adminForgotPw()" class="w-full text-center text-[12.5px] mt-4 hover:underline" style="color:var(--muted)">비밀번호를 잊으셨나요?</button>
+      <div class="mt-5 pt-5 text-center" style="border-top:1px solid var(--border)">
+        <p class="text-[12.5px]" style="color:var(--muted)">처음 오셨나요?</p>
+        <button type="button" onclick="showReqForm(true)" class="mt-1.5 text-[13.5px] font-semibold hover:underline" style="color:var(--accent-strong)">관리자 계정 신청하기</button>
+      </div>
+    </div>
+    <!-- 관리자 계정 신청 (최고관리자가 승인해야 사용 가능) -->
+    <div id="reqCard" class="w-full max-w-[380px] rounded-2xl p-8" style="background:var(--panel);display:none">
+      <p class="text-[16px] font-bold text-center" style="color:var(--text)">관리자 계정 신청</p>
+      <p class="text-[12.5px] text-center mt-1 mb-6 break-keep" style="color:var(--muted)">신청 후 이메일 인증을 하고, 최고관리자가 승인하면 로그인할 수 있습니다.</p>
+      <form id="reqForm" class="space-y-3" onsubmit="submitAdminRequest(event)">
+        <input id="reqName" required maxlength="30" placeholder="이름 (예: 홍길동 실장)" autocomplete="name"
+               class="w-full px-3.5 h-11 rounded-lg text-[14px]" style="background:var(--panel-soft); border:1px solid var(--border); color:var(--text)">
+        <input id="reqEmail" type="email" required placeholder="이메일" autocomplete="email"
+               class="w-full px-3.5 h-11 rounded-lg text-[14px]" style="background:var(--panel-soft); border:1px solid var(--border); color:var(--text)">
+        <input id="reqPw" type="password" required minlength="8" placeholder="비밀번호 (8자 이상)" autocomplete="new-password"
+               class="w-full px-3.5 h-11 rounded-lg text-[14px]" style="background:var(--panel-soft); border:1px solid var(--border); color:var(--text)">
+        <input id="reqPw2" type="password" required minlength="8" placeholder="비밀번호 확인" autocomplete="new-password"
+               class="w-full px-3.5 h-11 rounded-lg text-[14px]" style="background:var(--panel-soft); border:1px solid var(--border); color:var(--text)">
+        <p id="reqMsg" class="hidden text-[12.5px] break-keep"></p>
+        <button type="submit" id="reqBtn" class="w-full h-11 rounded-lg font-semibold text-[14px] btn-gold">신청하기</button>
+      </form>
+      <button type="button" onclick="showReqForm(false)" class="w-full text-center text-[12.5px] mt-4 hover:underline" style="color:var(--muted)">← 로그인으로 돌아가기</button>
+    </div>
+    <!-- 로그인은 됐지만 아직 승인 전 / 거절된 경우 -->
+    <div id="pendCard" class="w-full max-w-[380px] rounded-2xl p-8 text-center" style="background:var(--panel);display:none">
+      <p id="pendTitle" class="text-[16px] font-bold" style="color:var(--text)">승인 대기 중입니다</p>
+      <p id="pendText" class="text-[13px] mt-2 break-keep" style="color:var(--muted)">최고관리자가 승인하면 관리자 화면을 이용할 수 있습니다.</p>
+      <button type="button" onclick="adminLogoutNow()" class="mt-6 w-full h-11 rounded-lg font-semibold text-[14px] btn-gold">로그아웃</button>
     </div>
   </div>
 
@@ -131,7 +160,7 @@
         </div>
         <!-- center welcome -->
         <div class="text-center leading-tight hidden sm:block">
-          <p class="text-[15px] font-bold"><span id="hdrUser">관리자</span>님 반갑습니다.</p>
+          <p class="text-[15px] font-bold"><span id="hdrUser">관리자</span>님 반갑습니다. <span id="hdrRole" class="text-[11px] font-semibold px-2 py-0.5 rounded-full align-middle" style="background:var(--accent-soft);color:var(--accent-strong)"></span></p>
           <p id="hdrLast" class="text-[11.5px]" style="color:var(--muted)"></p>
         </div>
         <!-- right -->
@@ -257,12 +286,71 @@
     }, 50);
   }
 
+  /* 화면 전환: 'login' 로그인 / 'pending' 승인 대기·거절 / 'app' 관리자 화면 */
+  function showCard(which){
+    var l = document.getElementById('loginScreen'), a = document.getElementById('appRoot');
+    if (l) l.style.display = which === 'app' ? 'none' : 'flex';
+    if (a) a.style.display = which === 'app' ? '' : 'none';
+    var lc=document.getElementById('loginCard'), rc=document.getElementById('reqCard'), pc=document.getElementById('pendCard');
+    if (lc) lc.style.display = which === 'login' ? '' : 'none';
+    if (rc) rc.style.display = which === 'request' ? '' : 'none';
+    if (pc) pc.style.display = which === 'pending' ? '' : 'none';
+  }
+  /* 로그인되면 「관리자 명단(admin_members)」에서 승인 여부·등급을 확인한 뒤에만 관리자 화면을 엶 */
+  var _gateBusy = false;
   function showApp(loggedIn){
-    var l = document.getElementById('loginScreen');
-    var a = document.getElementById('appRoot');
-    if (l) l.style.display = loggedIn ? 'none' : 'flex';
-    if (a) a.style.display = loggedIn ? '' : 'none';
-    if (loggedIn && window.adminAfterLogin) window.adminAfterLogin();
+    if (!loggedIn){ showCard('login'); return; }
+    if (_gateBusy) return; _gateBusy = true;
+    waitForSb(function(sb){
+      sb.rpc('my_admin_status').then(function(r){
+        _gateBusy = false;
+        /* 승인 시스템 SQL을 아직 실행하지 않은 경우: 예전처럼 로그인한 관리자를 최고관리자로 */
+        if (r.error){ window.__adminRole = 'owner'; openApp(); return; }
+        var me = (r.data || [])[0];
+        if (me && me.status === 'approved'){ window.__adminRole = me.role; window.__adminName = me.name; window.__adminEmail = me.email; openApp(); return; }
+        document.getElementById('pendTitle').textContent = (me && me.status === 'rejected') ? '승인되지 않은 계정입니다' : '승인 대기 중입니다';
+        document.getElementById('pendText').textContent = (me && me.status === 'rejected')
+          ? '최고관리자가 신청을 승인하지 않았습니다. 필요하면 병원에 문의해 주세요.'
+          : (me ? '신청이 접수되었습니다. 최고관리자가 승인하면 관리자 화면을 이용할 수 있습니다.' : '관리자 명단에 없는 계정입니다. 「관리자 계정 신청」으로 신청해 주세요.');
+        showCard('pending');
+      });
+    });
+  }
+  function openApp(){
+    showCard('app');
+    if (window.adminApplyRole) window.adminApplyRole(window.__adminRole);
+    if (window.adminAfterLogin) window.adminAfterLogin();
+  }
+  function adminLogoutNow(){ waitForSb(function(sb){ sb.auth.signOut().then(function(){ location.reload(); }); }); }
+  function showReqForm(on){ showCard(on ? 'request' : 'login'); }
+  /* 관리자 계정 신청: 계정 만들기(이메일 인증 메일 발송) + 명단에 「승인 대기」로 등록 */
+  function submitAdminRequest(e){
+    e.preventDefault();
+    var name=document.getElementById('reqName').value.trim(), email=document.getElementById('reqEmail').value.trim().toLowerCase();
+    var pw=document.getElementById('reqPw').value, pw2=document.getElementById('reqPw2').value;
+    var msg=document.getElementById('reqMsg'), btn=document.getElementById('reqBtn');
+    function say(t, ok){ msg.textContent=t; msg.style.color= ok ? 'var(--good)' : 'var(--bad)'; msg.classList.remove('hidden'); }
+    if (pw !== pw2){ say('비밀번호 확인이 일치하지 않습니다.'); return; }
+    btn.disabled = true; btn.textContent = '신청 중...';
+    waitForSb(function(sb){
+      sb.from('admin_members').insert({ email: email, name: name }).then(function(r1){
+        if (r1.error){
+          btn.disabled=false; btn.textContent='신청하기';
+          say(/duplicate|already|23505/i.test(r1.error.message + r1.error.code) ? '이미 신청했거나 등록된 이메일입니다. 로그인해 보세요.' : '신청을 받을 수 없습니다. (' + r1.error.message + ')');
+          return;
+        }
+        sb.auth.signUp({ email: email, password: pw, options: { data: { name: name }, emailRedirectTo: location.origin + location.pathname } }).then(function(r2){
+          btn.disabled=false; btn.textContent='신청하기';
+          if (r2.error){
+            say(/signups not allowed|disabled/i.test(r2.error.message) ? '지금은 신청을 받지 않고 있습니다. 병원에 문의해 주세요.' : ('계정 만들기 실패: ' + r2.error.message));
+            return;
+          }
+          if (r2.data && r2.data.session) sb.auth.signOut();   /* 승인 전에는 로그인 상태로 두지 않음 */
+          document.getElementById('reqForm').reset();
+          say('신청이 접수되었습니다. ① 받은 메일의 인증 링크를 누르고 ② 최고관리자 승인 후 로그인해 주세요.', true);
+        });
+      });
+    });
   }
 
   function adminLogout(){

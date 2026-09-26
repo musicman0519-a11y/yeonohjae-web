@@ -76,3 +76,6 @@
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden){ _raNew=0; document.title=_raTitle; } });
   raLabel();
   setTimeout(raStart, 3000);
+
+  /* 로그인 확인이 메뉴 스크립트보다 먼저 끝난 경우: 여기서 등급별 메뉴를 적용 */
+  if(window.__adminRole && typeof adminApplyRole==='function') adminApplyRole(window.__adminRole);

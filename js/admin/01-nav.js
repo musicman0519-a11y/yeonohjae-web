@@ -1,12 +1,24 @@
   /* ===================== 사용 중인 메뉴 =====================
      지금은 아래 6개만 켜 둡니다. 나머지 메뉴를 다시 쓰려면 ADMIN_ENABLED 에 id를 추가하고
      SIMPLE_NAV 에 항목을 한 줄 넣으면 됩니다. (전체 메뉴 목록은 아래 ALL_NAV 에 그대로 보관) */
-  const ADMIN_ENABLED = ['dashboard', 'settings', 'notes', 'beforeafter', 'reservations', 'products', 'categories', 'popups', 'blog', 'menus'];
+  const ADMIN_ENABLED = ['dashboard', 'settings', 'admins', 'notes', 'beforeafter', 'reservations', 'products', 'categories', 'popups', 'blog', 'menus'];
+  const ADMIN_ALL = ADMIN_ENABLED.slice();
+  /* 등급별로 볼 수 있는 메뉴: 최고관리자 = 전부 / 관리자 = 관리자 관리 제외 / 직원 = 대시보드·예약만 */
+  function adminApplyRole(role){
+    const allow = role==='staff' ? ['dashboard','reservations'] : role==='manager' ? ADMIN_ALL.filter(x=>x!=='admins') : ADMIN_ALL;
+    ADMIN_ENABLED.length=0; allow.forEach(x=>ADMIN_ENABLED.push(x));
+    renderNav(); if(typeof renderIcons==='function') renderIcons(document.getElementById('nav'));
+    const a=document.querySelector('.view.active'), cur=a?a.id.replace('view-',''):'';
+    if(cur && ADMIN_ENABLED.indexOf(cur)<0 && !/edit|sort|common/.test(cur)) go(role==='staff'?'reservations':'dashboard');
+    const b=document.getElementById('hdrRole'); if(b) b.textContent={owner:'최고관리자',manager:'관리자',staff:'직원'}[role]||'';
+  }
+  window.adminApplyRole = adminApplyRole;
   /* 대분류(접고 펼치기) 안에 실제 쓰는 메뉴를 넣음. soon:true 는 아직 없는 기능(회색, 누를 수 없음) */
   const SIMPLE_NAV = [
     {type:'item', id:'dashboard', label:'메인 대시보드', icon:'solar:home-2-linear'},
     {type:'group', label:'운영/설정', icon:'solar:settings-linear', items:[
       {id:'settings', label:'기본 설정', icon:'solar:settings-linear'},
+      {id:'admins', label:'관리자 관리', icon:'solar:users-group-rounded-linear'},
       {id:'popups', label:'팝업 관리', icon:'solar:gallery-wide-linear'},
       {id:'menus',  label:'상단 메뉴 관리', icon:'solar:list-linear'},
     ]},
@@ -108,7 +120,10 @@
   }
   function renderNav(){
     let html='';
+    const ok = it => it.soon || ADMIN_ENABLED.indexOf(it.id)>=0;   /* 등급에 따라 안 보이는 메뉴는 빼고 그림 */
     NAV.forEach((n,i)=>{
+      if(n.type==='item' && !ok(n)) return;
+      if(n.type==='group' && !n.items.some(it=>!it.soon && ok(it))) return;
       if(n.type==='item'){ html += navItem(n,false) + '<div class="my-2 mx-3" style="border-top:1px solid rgba(255,255,255,.07)"></div>'; }
       else if(n.type==='group'){
         html += `<div class="mb-0.5">
@@ -117,7 +132,7 @@
             <span class="font-semibold text-[14px]">${n.label}</span>
             <iconify-icon icon="solar:alt-arrow-down-linear" width="15" class="chev ml-auto" style="color:var(--side-muted)"></iconify-icon>
           </button>
-          <div class="grp-body" style="max-height:1000px"><div class="space-y-0.5 pb-1">${n.items.map(it=>navItem(it,true)).join('')}</div></div>
+          <div class="grp-body" style="max-height:1000px"><div class="space-y-0.5 pb-1">${n.items.filter(ok).map(it=>navItem(it,true)).join('')}</div></div>
         </div>`;
       }
       else if(n.type==='section'){
