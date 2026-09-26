@@ -190,6 +190,7 @@
       '<div class="flex items-center gap-2 flex-wrap mb-4">'+
         '<button onclick="openProductEditor(null)" class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:add-circle-linear" width="15"></iconify-icon> 시술 상품 추가</button>'+
         '<button onclick="openCommonModal()" class="px-4 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5" style="background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent-strong)"><iconify-icon icon="solar:list-check-linear" width="15"></iconify-icon> 공통 고정 내용 (시술정보·Q&amp;A·주의사항)</button>'+
+        (prodHeavyInfo().count ? '<button onclick="lightenProductImages()" class="px-4 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5" style="background:#fff4d6;border:1px solid #e0b64a;color:#7a5a00" title="상품 안에 통째로 들어 있는 사진을 사진 저장소로 옮겨 홈페이지를 빠르게 합니다"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 사진 가볍게 만들기 ('+prodHeavyInfo().count+'장)</button>' : '')+
         '<button onclick="exportProductsExcel()" class="px-4 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="solar:download-minimalistic-linear" width="15"></iconify-icon> 전체 엑셀 다운로드</button>'+
         '<button onclick="openSortMode()" class="px-4 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="solar:sort-vertical-linear" width="15"></iconify-icon> 전체보기 정렬 수정</button>'+
         '<button onclick="document.getElementById(\'prodXlsxFile\').click()" class="px-4 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 엑셀 일괄 업로드</button>'+
@@ -1225,3 +1226,46 @@
   /* 구버전 호환 */
   function saveProducts(){ productsPut(productsGet(), '상품이 저장됐습니다.'); }
   function productsSyncInline(base){ return base; }
+
+  /* ===================== 사진 가볍게 만들기 =====================
+     예전에 붙여넣은 사진이 상품 데이터 안에 글자(data:image…)로 통째로 들어 있으면 홈페이지가 무거워짐(상품 2개에 1MB).
+     그런 사진을 사진 저장소(media)에 올리고 주소만 남김. 화면에 보이는 사진은 그대로. */
+  function prodHeavyInfo(){
+    const base=productsGet();
+    let n=0; const size=JSON.stringify(base).length;
+    base.forEach(p=>{ n+=(JSON.stringify(p).match(/data:image\/[a-z+]+;base64,/gi)||[]).length; });
+    return {count:n, kb:Math.round(size/1024)};
+  }
+  function dataUrlToFile(u, i){
+    const m=/^data:(image\/[a-z+]+);base64,(.*)$/i.exec(u); if(!m) return null;
+    const bin=atob(m[2]); const arr=new Uint8Array(bin.length); for(let k=0;k<bin.length;k++) arr[k]=bin.charCodeAt(k);
+    const ext=(m[1].split('/')[1]||'jpg').replace('jpeg','jpg').replace('svg+xml','svg');
+    return new File([arr], 'product_'+Date.now()+'_'+i+'.'+ext, {type:m[1]});
+  }
+  async function lightenProductImages(){
+    if(typeof window.uploadImage!=='function'){ toast('사진 저장소 연결이 준비되지 않았습니다. 새로고침 후 다시 눌러주세요.', false); return; }
+    const info=prodHeavyInfo();
+    if(!info.count){ toast('옮길 사진이 없습니다. 이미 가벼운 상태예요.'); return; }
+    if(!confirm('상품 안에 들어 있는 사진 '+info.count+'장을 사진 저장소로 옮깁니다.\n홈페이지에 보이는 모습은 그대로이고, 데이터만 가벼워집니다. 진행할까요?')) return;
+    const base=productsGet(); let done=0, fail=0, i=0;
+    const cache={};
+    async function conv(u){
+      if(cache[u]) return cache[u];
+      const f=dataUrlToFile(u, i++); if(!f) return u;
+      try{ const url=await window.uploadImage(f); cache[u]=url; done++; toast('사진 옮기는 중… '+done+' / '+info.count); return url; }
+      catch(e){ fail++; console.error(e); return u; }
+    }
+    const RE=/data:image\/[a-z+]+;base64,[A-Za-z0-9+\/=]+/gi;
+    async function fixStr(s){
+      if(typeof s!=='string' || s.indexOf('data:image')<0) return s;
+      const found=s.match(RE)||[];
+      for(const u of found){ const url=await conv(u); s=s.split(u).join(url); }
+      return s;
+    }
+    for(const p of base){
+      p.img=await fixStr(p.img); p.body=await fixStr(p.body); p.desc=await fixStr(p.desc);
+      for(const d of (p.details||[])){ d.body=await fixStr(d.body); }
+    }
+    productsPut(base, fail ? ('사진 '+done+'장을 옮겼고 '+fail+'장은 실패했습니다. 다시 누르면 남은 것만 옮깁니다.') : ('사진 '+done+'장을 옮겼습니다. 데이터 '+info.kb+'KB → '+prodHeavyInfo().kb+'KB'));
+    rerenderProducts();
+  }

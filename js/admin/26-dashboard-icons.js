@@ -246,6 +246,7 @@
     pluscircle:'<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>',
     chevdown:'<path d="M6 9.5l6 6 6-6"/>',
     chevright:'<path d="M9.5 6l6 6-6 6"/>',
+    bell:'<path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/>',
     arrowleft:'<path d="M19 12H5M11 6l-6 6 6 6"/>',
     chevup:'<path d="M6 14.5l6-6 6 6"/>',
     arrowdown:'<path d="M12 5v14"/><path d="M6 13l6 6 6-6"/>',
@@ -273,6 +274,7 @@
     dot:'<circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/>',
   };
   const ICON_ALIAS = {
+    'solar:bell-linear':'bell',
     'solar:chart-2-linear':'calendar','solar:monitor-linear':'video','solar:hand-heart-linear':'like',
     'solar:quote-up-square-linear':'quote','solar:list-arrow-down-linear':'list','solar:text-field-focus-linear':'type','solar:align-horizonta-center-linear':'alignleft','solar:align-right-linear':'alignleft','solar:videocamera-record-linear':'video',
     'solar:alt-arrow-right-linear':'chevright','solar:arrow-left-linear':'arrowleft','solar:gallery-add-linear':'image','solar:sort-vertical-linear':'list',

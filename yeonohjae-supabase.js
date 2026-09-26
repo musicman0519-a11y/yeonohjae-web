@@ -17,21 +17,32 @@
   var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   window.__sb = sb;
 
-  /* ===== 1) Supabase → localStorage 동기화 후, 바뀐 값 있으면 1회 새로고침 ===== */
+  /* ===== 1) Supabase → localStorage 동기화
+     - 관리자 화면: 바뀐 값이 있으면 1회 새로고침 (항상 최신으로 편집)
+     - 홈페이지 첫 방문(저장된 데이터 없음): 「불러오는 중」 가림막 아래에서 1회 새로고침 → 입력하던 내용이 사라지는 일 없음
+     - 홈페이지 재방문: 새로고침하지 않음 (입력 중 화면이 갑자기 바뀌지 않게). 바뀐 내용은 다음 방문 때 반영 ===== */
+  var IS_ADMIN = /admin\.html/i.test(location.pathname);
+  var FIRST = false; try { FIRST = !localStorage.getItem(NS + '_synced'); } catch(e){}
+  function done(){ try { document.documentElement.classList.remove('yj-loading'); } catch(e){} }
   sb.from('site_kv').select('key,value').then(function(res){
-    if (res.error){ console.warn('[연오재] 불러오기 오류:', res.error.message); return; }
+    if (res.error){ console.warn('[연오재] 불러오기 오류:', res.error.message); done(); return; }
     var changed = false;
     (res.data || []).forEach(function(row){
+      if (row.key === 'admins') return;   /* 관리자 이메일 목록은 홈페이지에 둘 필요 없음 */
       try {
         var cur  = localStorage.getItem(NS + row.key);
         var next = JSON.stringify(row.value);
         if (cur !== next){ localStorage.setItem(NS + row.key, next); changed = true; }
       } catch(e){}
     });
+    try { localStorage.setItem(NS + '_synced', '1'); } catch(e){}
+    if (changed && !IS_ADMIN && !FIRST){ done(); return; }
+    if (!changed) done();
     if (changed){
       try {
         var n = parseInt(sessionStorage.getItem('sb_reload') || '0', 10);
         if (n < 3){ sessionStorage.setItem('sb_reload', String(n + 1)); location.reload(); return; }
+        done();
       } catch(e){ location.reload(); return; }
     } else {
       try { sessionStorage.setItem('sb_reload', '0'); } catch(e){}
@@ -46,6 +57,7 @@
     var origSet = K.set.bind(K);
     K.set = function(key, val){
       var ok = origSet(key, val);
+      if (key === 'admins') return ok;   /* 관리자 이메일은 공개 테이블(site_kv)에 올리지 않음 */
       try {
         sb.from('site_kv')
           .upsert({ key: key, value: val, updated_at: new Date().toISOString() })

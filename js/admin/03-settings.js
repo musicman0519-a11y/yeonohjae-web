@@ -226,6 +226,15 @@
           ${fieldCard('solar:hashtag-linear','네이버 사이트 인증 코드','navVerify',{ph:'naver-site-verification 값', hint:'네이버 서치어드바이저의 메타태그 content 값만 붙여넣으세요.'})}
           ${fieldCard('solar:hashtag-linear','구글 사이트 인증 코드','gVerify',{ph:'google-site-verification 값', hint:'구글 서치콘솔의 메타태그 content 값만 붙여넣으세요.'})}
         </div>
+        <p class="text-[12px] mt-2" style="color:var(--muted)">※ 네이버·구글 소유 확인은 홈페이지 파일 안에 직접 들어가야 인식됩니다. 코드를 받으면 개발 담당에게 전달해 주세요. 검색용 시술·노트 페이지 목록(사이트맵) 주소: <b>https://yeonohjae-web.vercel.app/sitemap-auto.xml</b></p>
+
+        ${sectionTitle('solar:soundwave-linear','방문 분석 · 광고 전환 추적')}
+        <div class="grid md:grid-cols-2 gap-3.5">
+          ${fieldCard('solar:hashtag-linear','Google 태그 관리자(GTM) ID','gtmId',{ph:'예) GTM-ABC1234', hint:'GTM을 쓰면 여기에만 넣으세요. 예약 신청·전화·카카오 클릭 이벤트가 자동으로 전달됩니다.'})}
+          ${fieldCard('solar:hashtag-linear','Google 애널리틱스(GA4) 측정 ID','ga4Id',{ph:'예) G-ABC123DEF4', hint:'GTM 없이 GA4만 쓸 때 넣으세요. 이벤트: reserve_submit(예약), lead_submit(상담), call_click(전화)'})}
+          ${fieldCard('solar:hashtag-linear','네이버 프리미엄로그분석 ID','naverWa',{ph:'예) s_1a2b3c4d5e6f', hint:'네이버 검색광고 → 도구 → 프리미엄로그분석의 사이트 ID. 예약·상담 신청이 「신청」 전환으로 잡힙니다.'})}
+        </div>
+        <p class="text-[12px] mt-2" style="color:var(--muted)">※ ID를 넣고 저장하면 다음 방문부터 켜지고, 개인정보처리방침에 해당 업체가 자동으로 표시됩니다. 이름·연락처는 분석 도구로 보내지 않습니다.</p>
 
         <div id="setPreview"></div>
 

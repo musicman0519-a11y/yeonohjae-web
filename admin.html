@@ -136,6 +136,11 @@
         </div>
         <!-- right -->
         <div class="flex items-center justify-end gap-2">
+          <!-- 새 예약 알림 (관리자 화면을 열어 두면 1분마다 확인) -->
+          <button id="resAlertBtn" onclick="resAlertToggle()" class="px-3.5 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5"
+                  style="background:var(--panel); border:1px solid var(--border); color:var(--text-soft)" title="관리자 화면을 열어 두면 새 예약이 들어올 때 소리와 알림으로 알려줍니다">
+            <iconify-icon icon="solar:bell-linear" width="16"></iconify-icon><span id="resAlertLabel" class="hidden sm:inline">예약 알림 켜기</span>
+          </button>
           <button onclick="openSecurity()" class="px-3.5 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5"
                   style="background:var(--panel); border:1px solid var(--border); color:var(--text-soft)">
             <iconify-icon icon="solar:settings-linear" width="16"></iconify-icon><span class="hidden sm:inline">보안 설정</span>
