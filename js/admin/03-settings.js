@@ -215,6 +215,9 @@
         ${sectionTitle('solar:list-check-linear','홈페이지 옆 버튼 (오른쪽에 떠 있는 아이콘)')}
         <div id="dockBox"></div>
 
+        ${sectionTitle('solar:user-id-linear','카카오 간편 인증 (예약할 때)')}
+        <div id="kakaoBox"></div>
+
         ${sectionTitle('solar:tag-linear','SEO')}
         <div class="grid md:grid-cols-2 gap-3.5">
           ${fieldCard('solar:tag-linear','SEO 키워드','seo',{hint:'쉼표(,)로 구분해 입력하세요. 예) 화정 피부, 고양 한의원, 화정 제모'})}
@@ -234,6 +237,7 @@
     setFillDom();
     renderSetPreview();
     renderDockBox();
+    renderKakaoBox();
     el.addEventListener('input', function(e){
       if(e.target && e.target.matches('[data-sk]')){ setDirty(true); setStashDom(); renderSetPreview(); renderDockBox(); }
     });
@@ -277,4 +281,24 @@
       }).join('')+'</div>'+
       '<p class="text-[11.5px] mt-2" style="color:var(--muted)">스위치를 바꾼 뒤 맨 위 <b>저장하기</b>를 눌러야 홈페이지에 반영됩니다. 위에서부터 보이는 순서입니다.</p>';
     if(typeof renderIcons==='function') renderIcons(box);
+  }
+
+  /* ---------- 카카오 간편 인증 켜기/끄기 ----------
+     settings.kakaoAuth='on' → 홈페이지 예약 칸이 「카카오 인증하기」로 바뀜
+     settings.kakaoPhone='on' → 이름·전화번호까지 요청(카카오 비즈앱 전환·동의항목 설정 후에만) */
+  function kakaoToggle(k, on){ _setDraft.ko[k]= on?'on':''; setDirty(true); renderKakaoBox(); }
+  function renderKakaoBox(){
+    const box=document.getElementById('kakaoBox'); if(!box || !_setDraft) return;
+    const ko=_setDraft.ko, row=(k,label,sub)=>
+      '<div class="flex items-center gap-3 px-4 py-3.5" style="border-top:1px solid var(--border-soft)">'+
+        '<span class="min-w-0 flex-1"><span class="block text-[13.5px] font-semibold">'+label+'</span><span class="block text-[11.5px] mt-0.5" style="color:var(--muted)">'+sub+'</span></span>'+
+        '<span class="text-[12px] font-semibold" style="color:'+(ko[k]==='on'?'var(--good)':'var(--muted)')+'">● '+(ko[k]==='on'?'켜짐':'꺼짐')+'</span>'+
+        '<input type="checkbox" class="pSw" '+(ko[k]==='on'?'checked':'')+' onchange="kakaoToggle(\''+k+'\', this.checked)"></div>';
+    box.innerHTML='<div class="rounded-xl overflow-hidden" style="background:var(--panel);border:1px solid var(--border)">'+
+      '<div class="px-4 py-3.5 text-[12.5px] leading-relaxed" style="background:#fff8db;color:#6b5200">'+
+        '<b>켜기 전에 꼭 준비가 끝나야 합니다.</b> 준비 없이 켜면 손님이 예약할 수 없게 됩니다.<br>'+
+        '① 카카오 개발자 앱 등록 → ② Supabase에 Kakao 로그인 연결 → ③ 권한 강화 SQL 실행 (작업 폴더의 「카카오_인증_설정방법.txt」 참고)</div>'+
+      row('kakaoAuth','카카오 간편 인증 사용','켜면 홈페이지 예약 칸의 이름·연락처 대신 「카카오 인증하기」 버튼이 나옵니다.')+
+      row('kakaoPhone','이름·전화번호까지 받기','카카오 「비즈 앱」 전환 후 동의항목(이름·전화번호)을 설정했을 때만 켜세요. 끄면 닉네임만 받고 전화번호는 손님이 직접 입력합니다.')+
+    '</div>';
   }

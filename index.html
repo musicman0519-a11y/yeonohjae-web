@@ -96,6 +96,41 @@
       function failMsg(){ return '죄송합니다. 지금은 온라인 접수가 원활하지 않습니다.\n전화 '+(SITE.tel||'')+' 로 연락 주시면 바로 도와드리겠습니다.'; }
       return { ymd:ymd, hours:hours, closed:closed, slots:slots, booked:booked, submit:submit, failMsg:failMsg };
     })();
+    /* ===== 카카오 간편 인증 (관리자 「기본 설정 → 카카오 간편 인증」을 켜야 동작)
+       Supabase Auth 의 Kakao 로그인으로 이름·전화번호를 받아 예약 칸에 채운 뒤, 바로 로그아웃(세션을 남기지 않음).
+       받은 값은 이 탭(sessionStorage)에만 잠시 보관. 준비: 카카오 개발자 앱 + Supabase Kakao 제공자 + 권한 강화 SQL ===== */
+    window.KAUTH = (function(){
+      var KEY='yj_kakao', RET='yj_kakao_ret';
+      function on(){ return (window.SITE||{}).kakaoAuth==='on'; }
+      function get(){ try{ return JSON.parse(sessionStorage.getItem(KEY)||'null'); }catch(e){ return null; } }
+      function phone(v){ v=String(v||'').replace(/^\+82\s*/,'0').replace(/[^0-9]/g,''); return v.length>=10 ? v.replace(/^(\d{3})(\d{3,4})(\d{4})$/,'$1-$2-$3') : ''; }
+      function start(){
+        if(!window.__sb){ alert('잠시 후 다시 눌러주세요. (연결 준비 중)'); return; }
+        try{ sessionStorage.setItem(RET, (location.hash||'#home').slice(1).split('/')[0] || 'home'); }catch(e){}
+        track('kakao_auth_start');
+        window.__sb.auth.signInWithOAuth({ provider:'kakao', options:{ redirectTo: location.origin + location.pathname, scopes: (window.SITE||{}).kakaoPhone==='on' ? 'profile_nickname name phone_number' : 'profile_nickname' } })
+          .then(function(r){ if(r && r.error) alert('카카오 인증을 시작하지 못했습니다. 직접 입력으로 진행해 주세요.'); });
+      }
+      /* 카카오에서 돌아오면: 정보 저장 → 즉시 로그아웃 → 원래 화면으로 */
+      function finish(sb){
+        sb.auth.getSession().then(function(res){
+          var s=res && res.data && res.data.session, u=s && s.user;
+          if(!u || (u.app_metadata||{}).provider!=='kakao') return;
+          var md=u.user_metadata||{};
+          var info={ name: md.name||md.full_name||md.nickname||md.preferred_username||md.user_name||'', phone: phone(md.phone_number||md.phone||u.phone) };
+          try{ sessionStorage.setItem(KEY, JSON.stringify(info)); }catch(e){}
+          track('kakao_auth_done');
+          sb.auth.signOut().finally(function(){
+            var ret='home'; try{ ret=sessionStorage.getItem(RET)||'home'; sessionStorage.removeItem(RET); }catch(e){}
+            if(typeof window.kakaoApply==='function') window.kakaoApply();
+            if(window.showView){ if(ret==='reserve' && window.__resOpenKakao) window.__resOpenKakao(); else if(ret!=='home') showView(ret); }
+          });
+        });
+      }
+      function wait(){ if(window.__sb) finish(window.__sb); else setTimeout(wait, 200); }
+      if(/access_token=|[?&]code=/.test(location.hash+location.search)) setTimeout(wait, 0);
+      return { on:on, get:get, start:start };
+    })();
     /* ===== 광고 전환 추적: dataLayer 이벤트 (GTM 설치 시 그대로 수집됨) ===== */
     window.dataLayer = window.dataLayer || [];
     window.track = function(event, params){ try{ window.dataLayer.push(Object.assign({event:event}, params||{})); }catch(e){} };
@@ -251,7 +286,8 @@
             </div>
             <div>
               <p class="text-[15px] text-ink mb-2" style="font-weight:700">고객정보 입력</p>
-              <div class="flex gap-2">
+              <button type="button" data-kbtn onclick="KAUTH.start()" class="hidden w-full h-10 rounded-lg bg-[#FEE500] text-[#3A1D1D] text-[14px] items-center justify-center gap-1.5" style="font-weight:700"><iconify-icon icon="ri:kakao-talk-fill" width="18"></iconify-icon> 카카오 인증하기</button>
+              <div data-kid class="flex gap-2">
                 <label class="sr-only" for="qbName">이름</label>
                 <input id="qbName" name="name" type="text" required autocomplete="name" placeholder="이름" class="w-24 h-10 border-b border-ink/15 bg-transparent text-[14px] focus:outline-none focus:border-pink">
                 <label class="sr-only" for="qbTel">연락처</label>
@@ -266,7 +302,7 @@
           <div class="mt-5 pt-4 border-t border-ink/10 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-ink/70">
             <span class="flex items-center gap-1.5"><iconify-icon icon="solar:clock-circle-linear" class="text-pinkstrong" width="16"></iconify-icon><span id="qbToday">오늘 진료시간은 18:00 까지입니다.</span></span>
             <a href="#location" onclick="scrollToY(document.getElementById('location'),true,-70);return false" class="text-pinkstrong inline-flex items-center gap-0.5" style="font-weight:500">진료시간 및 위치 안내 <iconify-icon icon="solar:arrow-right-linear"></iconify-icon></a>
-            <label class="lg:ml-auto flex items-center gap-1.5 text-ink/60"><input name="agree" type="checkbox" required class="accent-pink w-4 h-4"> 개인정보 수집·이용 동의(필수)</label>
+            <span data-agree class="lg:ml-auto flex items-center gap-1.5 text-ink/60"><label class="flex items-center gap-1.5"><input name="agree" type="checkbox" required class="accent-pink w-4 h-4"> 개인정보 수집·이용 동의(필수)</label><button type="button" onclick="openPrivacy(this)" class="underline underline-offset-2 text-ink/50 hover:text-pinkstrong">자세히</button></span>
           </div>
         </div>
         <button type="submit" class="shrink-0 lg:w-44 bg-pink hover:bg-pinkstrong text-white flex lg:flex-col items-center justify-center gap-2 lg:gap-3 h-14 lg:h-auto transition" style="font-weight:700"><iconify-icon icon="solar:check-circle-linear" width="30"></iconify-icon><span class="text-[16px]">상담 예약</span></button>
@@ -539,7 +575,7 @@
 
     <!-- 본인 인증 -->
     <h2 class="krhead text-xl text-ink mb-2" style="font-weight:700">예약 시작하기</h2>
-    <p class="krhead text-[15px] text-ink/60 mb-5" style="font-weight:400">처음 오시는 분은 인증 없이 바로 신청할 수 있습니다.</p>
+    <p class="krhead text-[15px] text-ink/60 mb-5" style="font-weight:400">원하는 날짜와 시간을 골라 예약을 신청해 주세요. 병원에서 확인 후 확정 연락을 드립니다.</p>
 
     <div id="resAuthBox" class="mb-10">
       <button id="resKakaoBtn" type="button" class="block w-full rounded-2xl border border-ink/12 p-7 sm:p-9 hover:border-pink/40 hover:bg-ink/[0.015] transition">
@@ -550,7 +586,7 @@
             </svg>
           </span>
           <span class="krhead text-[15px] text-ink/70" style="font-weight:500">카카오 인증하기</span>
-          <span class="krhead text-[13px] text-ink/50" style="font-weight:400">재방문 고객은 인증하면 남은 시술권을 불러옵니다</span>
+          <span class="krhead text-[13px] text-ink/50" style="font-weight:400">카카오 계정으로 이름·연락처를 간편하게 확인합니다</span>
         </span>
       </button>
       <!-- 처음 오시는 분은 인증 없이 바로 신청 -->
@@ -608,7 +644,7 @@
       <!-- 동의 -->
       <div class="krhead space-y-2.5 text-sm text-ink/70" style="font-weight:300">
         <label class="flex items-start gap-2 break-keep"><input type="checkbox" class="accent-pink mt-0.5" checked> ○○ 클리닉에서 발송하는 시술안내, 공지 등 문자 수신에 동의합니다. <span class="text-muted">(선택)</span></label>
-        <label class="flex items-start gap-2 break-keep"><input id="resAgreeReq" type="checkbox" class="accent-pink mt-0.5" checked> 개인정보 취급방침에 동의합니다. <span class="text-muted">(필수)</span> <a href="#" class="underline ml-1">전체보기</a></label>
+        <span data-agree class="flex items-start gap-2 break-keep"><label class="flex items-start gap-2"><input id="resAgreeReq" type="checkbox" class="accent-pink mt-0.5"> 개인정보 수집·이용에 동의합니다. <span class="text-muted">(필수)</span></label><button type="button" onclick="openPrivacy(this)" class="underline ml-1 shrink-0">자세히</button></span>
       </div>
 
       <!-- 안내 -->
@@ -817,6 +853,92 @@
     </section>
   </main>
 
+  <!-- ===== 개인정보처리방침 (본문은 아래 PRIVACY 스크립트가 채움 · 동의 팝업과 같은 내용) ===== -->
+  <main id="view-privacy" class="hidden">
+    <section class="max-w-3xl mx-auto px-5 sm:px-6 pt-32 lg:pt-56 pb-28">
+      <div class="flex items-center gap-4 mb-3"><span class="krhead text-[15px] text-ink/45" style="font-weight:400">정책</span><span class="h-px flex-1 bg-ink/15"></span></div>
+      <h1 class="krhead text-[34px] sm:text-[42px] text-pinkstrong mb-10" style="font-weight:300">개인정보처리방침</h1>
+      <div id="privacyBody" class="privacy-doc krhead text-[15px] text-ink/80 leading-[1.9] break-keep" style="font-weight:400"></div>
+    </section>
+  </main>
+
+  <!-- ===== 개인정보 수집·이용 동의 팝업 ("자세히"를 누르면 열림) ===== -->
+  <div id="privacyModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/55 px-4" role="dialog" aria-modal="true" aria-labelledby="pvTitle" data-lenis-prevent>
+    <div class="bg-white rounded-2xl w-full max-w-2xl max-h-[88vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-ink/10">
+        <h2 id="pvTitle" class="krhead text-[18px] text-ink" style="font-weight:700">개인정보 수집·이용 동의</h2>
+        <button type="button" onclick="closePrivacy()" aria-label="닫기" class="w-9 h-9 grid place-items-center text-ink/50 hover:text-ink"><iconify-icon icon="solar:close-circle-linear" width="24"></iconify-icon></button>
+      </div>
+      <div class="overflow-y-auto px-6 py-5 krhead text-[14px] text-ink/80 leading-[1.85] break-keep" style="font-weight:400">
+        <div id="pvSummary"></div>
+        <details class="mt-5 border-t border-ink/10 pt-4"><summary class="cursor-pointer text-pinkstrong" style="font-weight:600">개인정보처리방침 전문 보기</summary><div id="pvFull" class="privacy-doc mt-3 text-[13.5px]"></div></details>
+      </div>
+      <div class="grid grid-cols-2 border-t border-ink/10">
+        <button type="button" onclick="closePrivacy()" class="krhead h-14 text-[15px] text-ink/60 hover:text-ink" style="font-weight:500">닫기</button>
+        <button type="button" onclick="closePrivacy(true)" class="krhead h-14 text-[15px] bg-pink text-white hover:bg-pinkstrong transition" style="font-weight:700">동의하고 닫기</button>
+      </div>
+    </div>
+  </div>
+  <style>
+    .privacy-doc h3{font-weight:700;color:#2f343a;font-size:1.06em;margin:1.8em 0 .5em}
+    .privacy-doc p{margin:.4em 0}
+    .privacy-doc ul{list-style:disc;padding-left:1.3em;margin:.3em 0}
+    .privacy-doc table{width:100%;border-collapse:collapse;margin:.6em 0;font-size:.94em}
+    .privacy-doc th,.privacy-doc td{border:1px solid rgba(47,52,58,.15);padding:.5em .7em;text-align:left;vertical-align:top}
+    .privacy-doc th{background:rgba(47,52,58,.04);font-weight:600;white-space:nowrap}
+  </style>
+  <script>
+    /* ===== 개인정보처리방침 · 수집·이용 동의 (병원 정보는 관리자 「기본 설정」 값 사용)
+       ※ 초안입니다. 게시 전 원장님이 실제 운영 방식(보관 기간·위탁 업체 등)과 맞는지 확인해 주세요. ===== */
+    (function(){
+      var S=window.SITE||{}, biz=esc(S.biz||'연오재한의원'), ceo=esc(S.ceo||'김경민'), tel=esc(S.tel||'0507-1485-2378'), addr=esc((S.addr1||'경기 고양시 덕양구 화중로 60, 화정빌딩 2층 205·206호')+(S.addr2?' '+S.addr2:''));
+      var EFFECTIVE='2026년 9월 26일';
+      var SUMMARY=
+        '<p>'+biz+'은(는) 예약·상담 신청을 위해 아래와 같이 개인정보를 수집·이용합니다.</p>'+
+        '<table><tr><th>수집 항목</th><td>(필수) 이름, 휴대전화번호, 예약 희망 날짜·시간, 희망 시술<br>(카카오 인증 시) 카카오 계정의 이름(닉네임)·전화번호</td></tr>'+
+        '<tr><th>이용 목적</th><td>예약 접수·확인 및 변경 안내, 상담 연락, 본인 확인</td></tr>'+
+        '<tr><th>보유 기간</th><td><b>예약일로부터 1년</b> 보관 후 지체 없이 파기 (관계 법령에 따라 보존이 필요한 경우 해당 기간)</td></tr></table>'+
+        '<p class="text-ink/60">개인정보 수집·이용에 동의하지 않을 권리가 있습니다. 다만 동의하지 않으면 온라인 예약·상담 신청이 제한되며, 전화('+tel+')로 예약하실 수 있습니다.</p>';
+      var FULL=
+        '<p>'+biz+'(이하 “병원”)은 「개인정보 보호법」 제30조에 따라 정보주체의 개인정보를 보호하고 관련 고충을 신속하게 처리하기 위하여 다음과 같이 개인정보처리방침을 수립·공개합니다.</p>'+
+        '<h3>1. 개인정보의 처리 목적</h3><ul><li>온라인 예약 및 상담 신청의 접수·확인·변경·취소 안내</li><li>예약자 본인 확인 및 연락</li><li>문의·민원 처리</li></ul><p>병원은 위 목적 외의 용도로 개인정보를 이용하지 않으며, 목적이 바뀌는 경우 별도의 동의를 받습니다.</p>'+
+        '<h3>2. 처리하는 개인정보 항목</h3><ul><li>(필수) 이름, 휴대전화번호, 예약 희망 날짜·시간, 희망 시술</li><li>(선택) 문자 수신 동의 여부</li><li>(카카오 간편 인증 이용 시) 카카오 계정의 이름(닉네임), 전화번호 — 이용자가 카카오 화면에서 동의한 항목에 한함</li><li>(자동 수집) 접속 기록, 쿠키, 방문 일시, 브라우저 정보</li></ul>'+
+        '<h3>3. 개인정보의 처리 및 보유 기간</h3><ul><li>예약·상담 신청 정보: <b>예약일로부터 1년</b> 보관 후 파기</li><li>관계 법령에서 보존을 요구하는 경우 해당 법령이 정한 기간 동안 보관합니다.</li><li>실제 내원하여 진료를 받은 경우의 진료기록은 「의료법」에 따라 별도로 보관됩니다.</li></ul>'+
+        '<h3>4. 개인정보의 제3자 제공</h3><p>병원은 정보주체의 동의 또는 법률의 특별한 규정이 있는 경우를 제외하고 개인정보를 제3자에게 제공하지 않습니다.</p>'+
+        '<h3>5. 개인정보 처리의 위탁 및 국외 이전</h3><p>병원은 홈페이지 운영을 위해 아래와 같이 개인정보 처리 업무를 위탁하고 있습니다.</p>'+
+        '<table><tr><th>수탁자</th><th>위탁 업무</th><th>이전 국가·방법</th></tr>'+
+        '<tr><td>Supabase, Inc.</td><td>예약 정보 저장(클라우드 데이터베이스)</td><td>해외 서버 · 예약 접수 시 네트워크로 전송</td></tr>'+
+        '<tr><td>Vercel Inc.</td><td>홈페이지 호스팅</td><td>미국 등 · 접속 시 네트워크로 전송</td></tr>'+
+        '<tr><td>(주)카카오</td><td>카카오 간편 인증(이용자가 선택한 경우)</td><td>국내</td></tr></table>'+
+        '<p>이전 항목은 제2항의 항목과 같으며, 보유 기간은 제3항과 같습니다. 국외 이전을 원하지 않으시면 전화로 예약하실 수 있습니다.</p>'+
+        '<h3>6. 개인정보의 파기</h3><p>보유 기간이 지나거나 처리 목적이 달성된 개인정보는 지체 없이 복구할 수 없는 방법으로 삭제합니다.</p>'+
+        '<h3>7. 정보주체의 권리와 행사 방법</h3><p>정보주체는 언제든지 개인정보의 열람·정정·삭제·처리정지를 요구할 수 있으며, 전화('+tel+') 또는 내원하여 요청하시면 지체 없이 조치합니다.</p>'+
+        '<h3>8. 자동 수집 장치(쿠키)의 설치·운영 및 거부</h3><p>홈페이지는 이용 편의(예: 팝업 “오늘 하루 보지 않기”)와 방문 통계를 위해 쿠키 및 브라우저 저장소를 사용할 수 있습니다. 브라우저 설정에서 저장을 거부할 수 있으나, 일부 기능 이용이 제한될 수 있습니다.</p>'+
+        '<h3>9. 개인정보의 안전성 확보 조치</h3><ul><li>관리자 접근 권한 제한 및 계정 인증</li><li>전송 구간 암호화(HTTPS)</li><li>예약 정보는 관리자만 조회할 수 있도록 접근 통제</li></ul>'+
+        '<h3>10. 개인정보 보호책임자</h3><ul><li>성명: '+ceo+' (대표)</li><li>연락처: '+tel+'</li><li>주소: '+addr+'</li></ul>'+
+        '<p>개인정보 침해에 대한 신고·상담은 개인정보침해신고센터(국번 없이 118), 개인정보분쟁조정위원회(1833-6972) 등에 문의하실 수 있습니다.</p>'+
+        '<h3>11. 개인정보처리방침의 변경</h3><p>이 개인정보처리방침은 '+EFFECTIVE+'부터 적용되며, 내용이 변경되는 경우 홈페이지를 통해 공지합니다.</p>'+
+        '<p class="mt-8 pt-5 border-t border-ink/10 text-ink/55">개인정보처리방침 시행일: '+EFFECTIVE+'</p>';
+      var b=document.getElementById('privacyBody'); if(b) b.innerHTML=FULL;
+      var s=document.getElementById('pvSummary'); if(s) s.innerHTML=SUMMARY;
+      var f=document.getElementById('pvFull'); if(f) f.innerHTML=FULL;
+      var target=null;
+      /* btn: 누른 "자세히" 버튼 → 같은 줄의 동의 체크박스를 찾아 "동의하고 닫기" 때 체크 */
+      window.openPrivacy=function(btn){
+        var box=btn && (btn.closest('[data-agree]')||btn.parentElement);
+        target = box ? box.querySelector('input[type=checkbox]') : null;
+        var m=document.getElementById('privacyModal'); m.classList.remove('hidden'); m.classList.add('flex');
+        track('privacy_open');
+      };
+      window.closePrivacy=function(agree){
+        if(agree && target){ target.checked=true; target.dispatchEvent(new Event('change',{bubbles:true})); }
+        var m=document.getElementById('privacyModal'); m.classList.add('hidden'); m.classList.remove('flex');
+      };
+      document.getElementById('privacyModal').addEventListener('click', function(e){ if(e.target===this) closePrivacy(); });
+      document.addEventListener('keydown', function(e){ if(e.key==='Escape') closePrivacy(); });
+    })();
+  </script>
+
   <!-- ===== FOOTER ===== -->
   <footer class="bg-dark text-white pt-24 pb-28 sm:pb-24">
     <div class="max-w-3xl mx-auto px-6 text-center">
@@ -825,7 +947,7 @@
         <span class="krhead text-[15px] text-white/85 leading-tight text-left border-l border-white/25 pl-3" style="font-weight:500">연오재한의원<span class="block text-[9px] tracking-[0.28em] text-white/50 mt-1" style="font-weight:300">PREMIUM MEDICAL SKIN NETWORK</span></span>
       </div>
       <div class="krhead flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-white/55 mb-7" style="font-weight:300">
-        <a href="#" class="hover:text-white">개인정보처리방침</a><span>|</span>
+        <a href="#privacy" onclick="showView('privacy');return false" class="hover:text-white" style="font-weight:600">개인정보처리방침</a><span>|</span>
         <a href="#" class="hover:text-white">이용약관</a><span>|</span>
         <a href="#notes" onclick="showView('notes');return false" class="hover:text-white">시술 노트</a><span>|</span>
         <a href="#care" onclick="showView('care');return false" class="hover:text-white">시술 후 주의사항</a><span>|</span>
@@ -876,20 +998,24 @@
   <!-- ===== PC 하단 빠른 상담신청 바 (예약·상세 화면에서는 숨김: showView 참고) ===== -->
   <div id="consult" class="hidden lg:block fixed bottom-0 left-0 right-0 z-40 px-4 pb-2">
     <div class="max-w-7xl mx-auto bg-white rounded-2xl shadow-[0_-4px_30px_rgba(0,0,0,0.12)] px-6 py-3">
-      <form onsubmit="return consultSubmit(this, 'pc_bar')" class="krhead flex items-center gap-3" style="font-weight:400">
-        <span class="shrink-0 text-ink border-l-4 border-pink pl-2 text-base" style="font-weight:500">빠른 상담신청</span>
-        <label class="sr-only" for="cName">이름</label>
-        <input id="cName" name="name" type="text" required autocomplete="name" placeholder="이름" class="w-36 px-3 py-2.5 rounded-lg border border-ink/15 text-sm focus:outline-none focus:border-pink">
-        <label class="sr-only" for="cTel">전화번호</label>
-        <input id="cTel" name="tel" type="tel" required autocomplete="tel" inputmode="tel" placeholder="전화번호 010-1234-5678" class="w-52 px-3 py-2.5 rounded-lg border border-ink/15 text-sm focus:outline-none focus:border-pink">
-        <label class="sr-only" for="cDate">희망 날짜</label>
-        <input id="cDate" name="date" type="date" class="px-3 py-2.5 rounded-lg border border-ink/15 text-sm text-ink/70 focus:outline-none focus:border-pink">
-        <label class="sr-only" for="cTime">희망 시간</label>
-        <select id="cTime" name="time" class="px-3 py-2.5 rounded-lg border border-ink/15 text-sm text-ink/70 focus:outline-none focus:border-pink">
-          <option value="">시간 선택</option><option>오전 10:00</option><option>오전 11:00</option><option>오후 02:00</option><option>오후 05:00</option>
-        </select>
-        <label class="flex items-center gap-1.5 text-[13px] text-ink/65 whitespace-nowrap"><input name="agree" type="checkbox" required class="accent-pink w-4 h-4"> 개인정보 수집·이용 동의(필수)</label>
-        <button type="submit" class="ml-auto shrink-0 px-8 py-2.5 rounded-lg bg-pink hover:bg-pinkstrong text-white text-sm transition" style="font-weight:500">상담신청</button>
+      <!-- 고정 예약 바: 첫 화면 예약 카드와 같은 방식으로 저장(관리자 「예약 목록」) -->
+      <form id="barBook" onsubmit="return quickBookSubmit(this, 'bar')" class="krhead flex items-center gap-2.5" style="font-weight:400">
+        <span class="shrink-0 text-ink border-l-4 border-pink pl-2 text-[15px] mr-1" style="font-weight:700">빠른 예약</span>
+        <label class="sr-only" for="cbItem">시술</label>
+        <select id="cbItem" name="item" required class="w-48 xl:w-56 min-w-0 h-11 px-3 rounded-lg border border-ink/15 text-sm text-ink/80 bg-white focus:outline-none focus:border-pink"><option value="">시술 선택</option></select>
+        <label class="sr-only" for="cbDate">예약 날짜</label>
+        <input id="cbDate" name="date" type="date" required class="h-11 px-3 rounded-lg border border-ink/15 text-sm text-ink/80 focus:outline-none focus:border-pink">
+        <label class="sr-only" for="cbTime">예약 시간</label>
+        <select id="cbTime" name="time" required class="w-28 h-11 px-2 rounded-lg border border-ink/15 text-sm text-ink/80 bg-white focus:outline-none focus:border-pink"><option value="">시간</option></select>
+        <button type="button" data-kbtn onclick="KAUTH.start()" class="hidden flex-1 min-w-[190px] h-11 rounded-lg bg-[#FEE500] text-[#3A1D1D] text-[14px] items-center justify-center gap-1.5" style="font-weight:700"><iconify-icon icon="ri:kakao-talk-fill" width="18"></iconify-icon> 카카오 인증하기</button>
+        <span data-kid class="flex gap-2.5 flex-1 min-w-0">
+          <label class="sr-only" for="cName">이름</label>
+          <input id="cName" name="name" type="text" required autocomplete="name" placeholder="이름" class="w-24 xl:w-28 min-w-0 h-11 px-3 rounded-lg border border-ink/15 text-sm focus:outline-none focus:border-pink">
+          <label class="sr-only" for="cTel">전화번호</label>
+          <input id="cTel" name="tel" type="tel" required autocomplete="tel" inputmode="tel" placeholder="010-0000-0000" class="flex-1 min-w-0 h-11 px-3 rounded-lg border border-ink/15 text-sm focus:outline-none focus:border-pink">
+        </span>
+        <span data-agree class="flex items-center gap-1.5 text-[13px] text-ink/65 whitespace-nowrap h-11 px-3 rounded-lg border border-ink/15"><label class="flex items-center gap-1.5"><input name="agree" type="checkbox" required class="accent-pink w-4 h-4"> 개인정보 동의</label><button type="button" onclick="openPrivacy(this)" class="underline underline-offset-2 text-ink/45 hover:text-pinkstrong">자세히</button></span>
+        <button type="submit" class="shrink-0 px-7 h-11 rounded-lg bg-pink hover:bg-pinkstrong text-white text-[15px] transition" style="font-weight:700">상담 예약</button>
       </form>
     </div>
   </div>
@@ -910,11 +1036,14 @@
         <h2 id="sheetTitle" class="text-[20px] text-ink" style="font-weight:700">빠른 상담 신청</h2>
         <button type="button" onclick="closeSheet()" aria-label="닫기" class="w-10 h-10 grid place-items-center text-ink/50"><iconify-icon icon="solar:close-circle-linear" width="26"></iconify-icon></button>
       </div>
+      <button type="button" data-kbtn onclick="KAUTH.start()" class="hidden w-full h-12 rounded-xl bg-[#FEE500] text-[#3A1D1D] text-[16px] items-center justify-center gap-2 mb-2" style="font-weight:700"><iconify-icon icon="ri:kakao-talk-fill" width="20"></iconify-icon> 카카오로 간편 인증</button>
+      <div data-kid>
       <label class="block text-[14px] text-ink/70 mb-1.5" for="sName">이름</label>
       <input id="sName" name="name" type="text" required autocomplete="name" class="w-full h-12 px-4 rounded-xl border border-ink/15 text-[16px] focus:outline-none focus:border-pink">
       <label class="block text-[14px] text-ink/70 mb-1.5 mt-4" for="sTel">전화번호</label>
       <input id="sTel" name="tel" type="tel" required autocomplete="tel" inputmode="tel" placeholder="010-1234-5678" class="w-full h-12 px-4 rounded-xl border border-ink/15 text-[16px] focus:outline-none focus:border-pink">
-      <label class="flex items-start gap-2 mt-5 text-[14px] text-ink/70 break-keep"><input name="agree" type="checkbox" required class="accent-pink w-5 h-5 mt-0.5 shrink-0"> 상담을 위한 개인정보(이름·전화번호) 수집·이용에 동의합니다. (필수)</label>
+      </div>
+      <div data-agree class="mt-5 text-[14px] text-ink/70 break-keep"><label class="flex items-start gap-2"><input name="agree" type="checkbox" required class="accent-pink w-5 h-5 mt-0.5 shrink-0"> 상담을 위한 개인정보(이름·전화번호) 수집·이용에 동의합니다. (필수)</label><button type="button" onclick="openPrivacy(this)" class="ml-7 mt-1 underline underline-offset-2 text-ink/50">내용 자세히 보기</button></div>
       <button type="submit" class="w-full h-14 mt-6 rounded-xl bg-pink text-white text-[16px]" style="font-weight:700">상담 신청하기</button>
       <p class="text-[13px] text-ink/50 text-center mt-3">급하신 경우 <a data-q="tel" href="#" class="underline text-pinkstrong">전화 상담</a>이 가장 빠릅니다.</p>
     </form>
@@ -935,7 +1064,8 @@
     })();
     /* ===== 첫 화면 빠른 예약 카드 ===== */
     /* 첫 화면 예약 카드 — 관리자 「예약 목록」에 '미확정'으로 저장 */
-    function quickBookSubmit(form){
+    function quickBookSubmit(form, src){
+      if(KAUTH.on() && !KAUTH.get() && !form.__kManual){ alert('카카오 인증을 먼저 해주세요.\n(카카오 인증이 어려우시면 전화로 예약하실 수 있습니다: '+(SITE.tel||'')+')'); return false; }
       var tel=form.tel.value.trim();
       if(!/^0\d{1,2}-?\d{3,4}-?\d{4}$/.test(tel)){ alert('연락처를 정확히 입력해주세요. (예: 010-1234-5678)'); form.tel.focus(); return false; }
       var opt=form.item.options[form.item.selectedIndex], item=opt?opt.text:'상담 후 결정';
@@ -943,20 +1073,21 @@
       btn.disabled=true;
       RES.booked(ds).then(function(o){
         if((o[t]||0)>=RES.hours().capacity) throw {full:true};
-        return RES.submit({ name:form.name.value, phone:tel, date:ds, time:t, item:item, source:'hero' });
+        return RES.submit({ name:form.name.value, phone:tel, date:ds, time:t, item:item, source:src||'hero' });
       }).then(function(){
-        track('reserve_submit',{form:'hero_quickbook', item:item, date:ds, time:t});
+        track('reserve_submit',{form:src==='bar'?'fixed_bar':'hero_quickbook', item:item, date:ds, time:t});
         alert('예약 신청이 접수되었습니다.\n\n'+form.name.value.trim()+' 님 · '+ds+' '+t+'\n'+item+'\n\n병원에서 확인 후 확정 연락을 드립니다.');
-        form.reset(); document.getElementById('qbPrice').textContent='0'; document.getElementById('qbWon').hidden=false; qbTimes();
+        form.reset(); if(form.id==='quickBook'){ document.getElementById('qbPrice').textContent='0'; document.getElementById('qbWon').hidden=false; }
+        qbTimes(form); if(window.kakaoApply) kakaoApply();
       }).catch(function(e){
-        if(e && e.full){ alert('방금 다른 분이 이 시간을 예약했습니다. 다른 시간을 선택해주세요.'); qbTimes(); }
+        if(e && e.full){ alert('방금 다른 분이 이 시간을 예약했습니다. 다른 시간을 선택해주세요.'); qbTimes(form); }
         else alert(RES.failMsg());
       }).then(function(){ btn.disabled=false; });
       return false;
     }
     /* 예약 카드 시간 목록: 고른 날짜의 예약 가능 시간(관리자 설정)만, 찬 시간은 '마감' */
-    function qbTimes(){
-      var f=document.getElementById('quickBook'); if(!f) return;
+    function qbTimes(f){
+      if(!f || !f.tagName) f=document.getElementById('quickBook'); if(!f) return;
       var sel=f.time, v=f.date.value;
       if(!v){ sel.innerHTML='<option value="">시간</option>'; return; }
       var p=v.split('-'), date=new Date(+p[0], +p[1]-1, +p[2]), slots=RES.slots(date);
@@ -973,8 +1104,11 @@
       var sel=document.getElementById('qbItem'), price=document.getElementById('qbPrice');
       /* 날짜: 오늘 이전은 선택 불가 */
       var d=new Date(), pad=function(n){ return String(n).padStart(2,'0'); };
-      document.getElementById('qbDate').min=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
-      document.getElementById('qbDate').addEventListener('change', qbTimes);
+      ['qbDate','cbDate'].forEach(function(id){
+        var el=document.getElementById(id); if(!el) return;
+        el.min=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+        el.addEventListener('change', function(){ qbTimes(el.form); });
+      });
       /* 오늘 진료시간 안내 (관리자 기본 설정의 평일/주말 시간 사용) */
       var dow=d.getDay(), hrs=(dow===0||dow===6)?(SITE.hWeekend||'09:00 ~ 17:00'):(SITE.hWeek||'09:00 ~ 18:00');
       var end=(String(hrs).match(/(\d{1,2}:\d{2})\s*$/)||String(hrs).match(/~\s*(\d{1,2}:\d{2})/)||[])[1];
@@ -984,9 +1118,11 @@
         var list=(window.__products||[]);
         var groups={};
         list.forEach(function(p){ (groups[p.cat]=groups[p.cat]||[]).push(p); });
-        sel.innerHTML='<option value="">시술을 선택해 주세요</option>'+Object.keys(groups).map(function(cat){
+        var opts=Object.keys(groups).map(function(cat){
           return '<optgroup label="'+esc(cat)+'">'+groups[cat].map(function(p){ return '<option value="'+p._seed+'">'+esc(p.big||p.title)+'</option>'; }).join('')+'</optgroup>';
         }).join('');
+        sel.innerHTML='<option value="">시술을 선택해 주세요</option>'+opts;
+        var cb=document.getElementById('cbItem'); if(cb) cb.innerHTML='<option value="">시술 선택</option>'+opts;   /* 하단 고정 예약 바 */
       }
       sel.addEventListener('change',function(){
         var p=(window.__products||[])[+sel.value];
@@ -1048,7 +1184,27 @@
     /* 상담 신청: 접수 저장소(전용 테이블)가 준비되기 전까지는 안내만 표시.
        ※ 개인정보가 담기므로 site_kv(공개 테이블)에는 절대 저장하지 말 것 */
     /* 빠른 상담 신청 (PC 하단 바·모바일 시트) — 관리자 「예약 목록」에 '빠른 상담 신청'으로 저장 */
+    /* 카카오 인증 상태를 모든 예약 칸에 반영:
+       켜져 있고 아직 인증 전 → 이름·연락처 칸 대신 「카카오 인증하기」 버튼 / 인증 후 → 받은 이름·번호를 채움(번호가 없으면 직접 입력) */
+    window.kakaoApply=function(){
+      var on=KAUTH.on(), info=KAUTH.get();
+      document.querySelectorAll('form').forEach(function(f){
+        var kb=f.querySelector('[data-kbtn]'), kid=f.querySelector('[data-kid]'); if(!kb || !kid) return;
+        var need=on && !info;
+        kb.classList.toggle('hidden', !need); kb.classList.toggle('flex', need);
+        kid.style.display = need ? 'none' : '';
+        kid.querySelectorAll('input').forEach(function(i){ i.required=!need; });
+        if(info){
+          var n=kid.querySelector('input[name=name]'), t=kid.querySelector('input[name=tel]');
+          if(n && !n.value) n.value=info.name||''; if(t && !t.value) t.value=info.phone||'';
+        }
+      });
+      var rn=document.getElementById('resName'), rp=document.getElementById('resPhone');
+      if(info){ if(rn && !rn.value) rn.value=info.name||''; if(rp && !rp.value) rp.value=info.phone||''; }
+    };
+    kakaoApply();
     function consultSubmit(form, where){
+      if(KAUTH.on() && !KAUTH.get()){ alert('카카오 인증을 먼저 해주세요.\n(전화 예약: '+(SITE.tel||'')+')'); return false; }
       var tel=form.tel.value.trim();
       if(!/^0\d{1,2}-?\d{3,4}-?\d{4}$/.test(tel)){ alert('연락처를 정확히 입력해주세요. (예: 010-1234-5678)'); form.tel.focus(); return false; }
       var btn=form.querySelector('button[type=submit]'); btn.disabled=true;
@@ -1075,7 +1231,7 @@
     }
     /* hash: 주소에 남길 값(예: 'detail/3'). 생략하면 화면 이름 */
     window.showView=function(name, scrollSel, hash){
-      ['home','category','ba','reserve','detail','badetail','manage','notes','notedetail','care','doctors','noninsured','network'].forEach(function(v){
+      ['home','category','ba','reserve','detail','badetail','manage','notes','notedetail','care','doctors','noninsured','network','privacy'].forEach(function(v){
         document.getElementById('view-'+v).classList.toggle('hidden', v!==name);
       });
       /* 등장 애니메이션은 스크롤 반응 스크립트(맨 아래)가 화면에 들어올 때 처리 */
@@ -1717,8 +1873,20 @@
       renderCal();
       setTimeout(function(){ try{ scrollToY(after,true,-90); document.getElementById('resName').focus({preventScroll:true}); }catch(e){} }, 60);
     }
-    document.getElementById('resKakaoBtn').addEventListener('click', function(){ track('reserve_auth',{type:'kakao'}); openResForm('인증 완료 · 예약 정보를 입력해 주세요'); });
-    document.getElementById('resGuestBtn').addEventListener('click', function(){ track('reserve_auth',{type:'guest'}); openResForm('비회원 예약 · 예약 정보를 입력해 주세요'); });
+    /* 카카오 인증: 관리자 「기본 설정」에서 켰을 때만 실제 인증(카카오 → 돌아오면 이름·번호 채워서 예약 폼 열림).
+       꺼져 있으면 카카오 버튼을 숨기고 바로 예약만 제공 (예전처럼 인증 없이 '인증 완료'로 보이지 않게) */
+    window.__resOpenKakao=function(){ showView('reserve'); openResForm('카카오 인증 완료 · 예약 정보를 확인해 주세요'); if(window.kakaoApply) kakaoApply(); };
+    (function(){
+      var kb=document.getElementById('resKakaoBtn'), gb=document.getElementById('resGuestBtn');
+      if(KAUTH.on()){
+        kb.addEventListener('click', function(){ track('reserve_auth',{type:'kakao'}); if(KAUTH.get()) __resOpenKakao(); else KAUTH.start(); });
+        gb.style.display='none';
+      } else {
+        kb.style.display='none';
+        gb.textContent='예약 신청하기';
+      }
+    })();
+    document.getElementById('resGuestBtn').addEventListener('click', function(){ track('reserve_auth',{type:'guest'}); openResForm('예약 정보를 입력해 주세요'); });
 
     /* 시간 선택 — 이미 찬 시간대(관리자 「동시 예약 수」 기준)는 선택 불가 */
     function renderTimes(){
@@ -2132,10 +2300,12 @@
     /* 라우팅 (해시 기준) — 처음 들어올 때 + 뒤로/앞으로 가기 때 실행
        예) #category, #detail/3(시술 상세), #badetail/2(전후 상세), #note/4(시술 노트 글) */
     function route(){
+      /* 카카오 인증에서 돌아온 주소(#access_token=…)는 Supabase가 읽어야 하므로 주소를 건드리지 않음 */
+      if(/access_token=|error_description=/.test(location.hash)){ window.__routing=true; try{ showView('home'); } finally { window.__routing=false; } return; }
       var h=decodeURIComponent((location.hash||'').replace('#','')), parts=h.split('/'), id=+parts[1];
       window.__routing=true;
       try{
-        var simple={category:1,ba:1,reserve:1,manage:1,notes:1,care:1,doctors:1,noninsured:1,network:1};
+        var simple={category:1,ba:1,reserve:1,manage:1,notes:1,care:1,doctors:1,noninsured:1,network:1,privacy:1};
         if(h==='before-after') showView('ba');
         else if(h==='booking') showView('reserve');
         else if(simple[h]) showView(h);
