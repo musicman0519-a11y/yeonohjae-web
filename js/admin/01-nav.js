@@ -1,17 +1,27 @@
   /* ===================== 사용 중인 메뉴 =====================
      지금은 아래 6개만 켜 둡니다. 나머지 메뉴를 다시 쓰려면 ADMIN_ENABLED 에 id를 추가하고
      SIMPLE_NAV 에 항목을 한 줄 넣으면 됩니다. (전체 메뉴 목록은 아래 ALL_NAV 에 그대로 보관) */
-  const ADMIN_ENABLED = ['reservations', 'products', 'categories', 'popups', 'blog', 'menus'];
+  const ADMIN_ENABLED = ['dashboard', 'reservations', 'products', 'categories', 'popups', 'blog', 'menus'];
+  /* 대분류(접고 펼치기) 안에 실제 쓰는 메뉴를 넣음. soon:true 는 아직 없는 기능(회색, 누를 수 없음) */
   const SIMPLE_NAV = [
-    {type:'section', label:'예약 관리'},
-    {type:'item', id:'reservations', label:'예약 목록', desc:'홈페이지 예약 확인·확정·취소', icon:'solar:calendar-mark-linear'},
-    {type:'section', label:'운영/설정'},
-    {type:'item', id:'popups',     label:'팝업 관리',   desc:'첫 화면 공지·이벤트 팝업', icon:'solar:gallery-wide-linear'},
-    {type:'item', id:'menus',      label:'상단 메뉴',   desc:'홈페이지 메뉴 이름·순서', icon:'solar:list-linear'},
-    {type:'section', label:'홈페이지 관리'},
-    {type:'item', id:'products',   label:'시술 상품',   desc:'시술·가격·이벤트 등록', icon:'solar:folder-linear'},
-    {type:'item', id:'categories', label:'카테고리',    desc:'시술메뉴의 분류 탭',    icon:'solar:tag-linear'},
-    {type:'item', id:'blog',       label:'블로그',      desc:'블로그 글 링크 연결',   icon:'solar:notebook-linear'},
+    {type:'item', id:'dashboard', label:'메인 대시보드', icon:'solar:home-2-linear'},
+    {type:'group', label:'운영/설정', icon:'solar:settings-linear', items:[
+      {id:'popups', label:'팝업 관리', icon:'solar:gallery-wide-linear'},
+      {id:'menus',  label:'상단 메뉴 관리', icon:'solar:list-linear'},
+    ]},
+    {type:'group', label:'마케팅/홍보', icon:'solar:soundwave-linear', items:[
+      {id:'blog', label:'블로그', icon:'solar:notebook-linear'},
+    ]},
+    {type:'group', label:'시술/진료 관리', icon:'solar:stethoscope-linear', items:[
+      {id:'products',   label:'시술 상품 관리', icon:'solar:folder-linear'},
+      {id:'categories', label:'카테고리 관리',  icon:'solar:tag-linear'},
+    ]},
+    {type:'group', label:'예약/고객 관리', icon:'solar:calendar-mark-linear', items:[
+      {id:'reservations', label:'예약 목록 확인', icon:'solar:calendar-linear'},
+    ]},
+    {type:'group', label:'비대면 진료', icon:'solar:hand-stars-linear', items:[
+      {id:'remote', label:'준비 중', icon:'solar:clock-circle-linear', soon:true},
+    ]},
   ];
 
   /* ===================== 전체 메뉴 (보관용 — 현재 사이드바에는 SIMPLE_NAV만 표시) ===================== */
@@ -79,6 +89,8 @@
 
   /* ===================== RENDER SIDEBAR ===================== */
   function navItem(it, sub){
+    if(it.soon) return `<div class="w-full flex items-center gap-3 ${sub?'pl-9 pr-3':'px-3'} py-2 rounded-lg text-[13px] cursor-default" style="color:var(--side-muted);opacity:.6">
+      <iconify-icon icon="${it.icon}" width="15" class="shrink-0"></iconify-icon><span>${it.label}</span></div>`;
     /* desc가 있으면 메뉴 이름 아래에 무엇을 하는 곳인지 짧게 표시 */
     return `<button data-view="${it.id}" onclick="go('${it.id}')"
       class="navlink active:scale-[.99] w-full flex items-center gap-3 ${sub?'pl-9 pr-3':'px-3'} ${it.desc?'py-3':'py-2.5'} rounded-lg text-left"
@@ -94,7 +106,17 @@
   function renderNav(){
     let html='';
     NAV.forEach((n,i)=>{
-      if(n.type==='item'){ html += navItem(n,false); }
+      if(n.type==='item'){ html += navItem(n,false) + '<div class="my-2 mx-3" style="border-top:1px solid rgba(255,255,255,.07)"></div>'; }
+      else if(n.type==='group'){
+        html += `<div class="mb-0.5">
+          <button onclick="toggleGrp(this)" class="grp open w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg" style="color:#cdc4b6">
+            <iconify-icon icon="${n.icon}" width="17" class="shrink-0" style="color:var(--side-active)"></iconify-icon>
+            <span class="font-semibold text-[14px]">${n.label}</span>
+            <iconify-icon icon="solar:alt-arrow-down-linear" width="15" class="chev ml-auto" style="color:var(--side-muted)"></iconify-icon>
+          </button>
+          <div class="grp-body" style="max-height:1000px"><div class="space-y-0.5 pb-1">${n.items.map(it=>navItem(it,true)).join('')}</div></div>
+        </div>`;
+      }
       else if(n.type==='section'){
         html += `<p class="px-3 pt-4 pb-1.5 text-[11px] font-semibold tracking-wide" style="color:var(--side-muted)">${n.label}</p>`;
       }

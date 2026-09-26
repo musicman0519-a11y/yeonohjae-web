@@ -1,152 +1,209 @@
-  /* ===================== DASHBOARD DATA (실제 예약 데이터 집계) ===================== */
+  /* ===================== 예약 대시보드 =====================
+     데이터: Supabase 「reservations」 테이블 (예약 목록 화면과 같은 _rvList 를 함께 씀)
+     기간 선택 · 중복 통합(같은 전화번호 + 같은 날짜 접수를 한 줄로) · 일자별 차트 · 시간대별 · 시술 Top · 예약 목록(페이지) */
   const won = n => n.toLocaleString('ko-KR');
 
+  let _dashBusy=false, _dashErr='', _dashLoaded=false, _dashPage=1, _dashSize=20;
   function dashZ(n){ return String(n).padStart(2,'0'); }
   function dashYmd(d){ return d.getFullYear()+'-'+dashZ(d.getMonth()+1)+'-'+dashZ(d.getDate()); }
-  function dashResv(){ const l=KK.get('reservations', []); return Array.isArray(l)? l : []; }
+  function dashResv(){ return (typeof _rvList!=='undefined' && Array.isArray(_rvList)) ? _rvList : []; }
   function dashRange(){
     const f=document.getElementById('dashFrom'), t=document.getElementById('dashTo');
     return { from:(f&&f.value)||'', to:(t&&t.value)||'' };
   }
+  function dashMergeOn(){ const c=document.getElementById('dashMerge'); return !c || c.checked; }
+  /* DB에서 예약 불러오기 (대시보드를 열 때마다 최신으로) */
+  function dashLoad(){
+    if(!window.__sb){ setTimeout(dashLoad, 300); return; }
+    if(_dashBusy) return;
+    _dashBusy=true; renderDashboard();
+    window.__sb.from('reservations').select('*').order('created_at',{ascending:false}).limit(5000).then(r=>{
+      _dashBusy=false; _dashLoaded=true;
+      if(r.error){ _dashErr=String(r.error.message||'불러오기 실패'); }
+      else {
+        _dashErr='';
+        if(typeof rvMap==='function'){ _rvList=rvMap(r.data||[]); _rvState='ok'; }
+      }
+      renderDashboard();
+    });
+  }
+  function dashEnter(){
+    const f=document.getElementById('dashFrom');
+    if(f && !f.value){ const s=document.getElementById('dashPresetSel'); dashPreset(s?s.value:'thisWeek', true); }
+    dashLoad();
+  }
   function dashRows(){
     const {from,to}=dashRange();
-    return dashResv().filter(r=>{
+    const rows=dashResv().filter(r=>{
       if(from && (r.date||'') < from) return false;
       if(to   && (r.date||'') > to)   return false;
       return true;
     }).sort((a,b)=> (b.date+b.time).localeCompare(a.date+a.time));
+    if(!dashMergeOn()) return rows.map(r=>Object.assign({dup:1}, r));
+    /* 중복 통합: 같은 전화번호로 같은 날 여러 번 접수한 건 → 한 줄 (시술은 모아서 표시) */
+    const map={}, out=[];
+    rows.forEach(r=>{
+      const k=String(r.phone||'').replace(/[^0-9]/g,'')+'|'+r.date;
+      const m=map[k];
+      if(!m){ const c=Object.assign({dup:1, items:[r.item||'']}, r); map[k]=c; out.push(c); return; }
+      m.dup++;
+      if(r.item && m.items.indexOf(r.item)<0) m.items.push(r.item);
+      if(r.status==='확정') m.status='확정';
+      else if(m.status==='취소' && r.status!=='취소') m.status=r.status;
+      if(r.first==='초진') m.first='초진';
+    });
+    out.forEach(m=>{ m.item=m.items.filter(Boolean).join(' / '); });
+    return out;
   }
   /* 기간 프리셋 */
-  function dashPreset(v){
+  function dashPreset(v, silent){
     const now=new Date(); now.setHours(0,0,0,0);
     let from, to;
-    if(v==='thisWeek'){ const d=now.getDay(); from=new Date(now); from.setDate(now.getDate()-d); to=new Date(from); to.setDate(from.getDate()+6); }
-    else if(v==='lastWeek'){ const d=now.getDay(); to=new Date(now); to.setDate(now.getDate()-d-1); from=new Date(to); from.setDate(to.getDate()-6); }
+    if(v==='today'){ from=new Date(now); to=new Date(now); }
+    else if(v==='thisWeek'){ const d=(now.getDay()+6)%7; from=new Date(now); from.setDate(now.getDate()-d); to=new Date(from); to.setDate(from.getDate()+6); }
+    else if(v==='lastWeek'){ const d=(now.getDay()+6)%7; from=new Date(now); from.setDate(now.getDate()-d-7); to=new Date(from); to.setDate(from.getDate()+6); }
     else if(v==='thisMonth'){ from=new Date(now.getFullYear(), now.getMonth(), 1); to=new Date(now.getFullYear(), now.getMonth()+1, 0); }
+    else if(v==='lastMonth'){ from=new Date(now.getFullYear(), now.getMonth()-1, 1); to=new Date(now.getFullYear(), now.getMonth(), 0); }
     else return;
     const f=document.getElementById('dashFrom'), t=document.getElementById('dashTo');
     if(f) f.value=dashYmd(from);
     if(t) t.value=dashYmd(to);
-    renderDashboard();
+    _dashPage=1;
+    if(!silent) renderDashboard();
   }
+  function dashRangeChanged(){ const s=document.getElementById('dashPresetSel'); if(s) s.value=''; _dashPage=1; renderDashboard(); }
+  function dashGo(p){ _dashPage=p; renderDashboard(); const el=document.getElementById('dashListTop'); if(el) el.scrollIntoView({block:'start'}); }
+  function dashSetSize(v){ _dashSize=parseInt(v)||20; _dashPage=1; renderDashboard(); }
   function dashExportCsv(){
     const rows=dashRows();
     if(!rows.length){ toast('선택한 기간에 예약이 없습니다.', false); return; }
-    const head=['날짜','시간','이름','전화','초진','상태','시술/이벤트'];
-    const body=rows.map(r=>[r.date,r.time,r.name,r.phone,r.first,r.status,(r.item||'').replace(/,/g,' ')]);
+    const head=['날짜','시간','이름','전화','초진','확정','중복','상태','시술'];
+    const body=rows.map(r=>[r.date,r.time,r.name,r.phone,r.first==='초진'?'Y':'',r.status==='확정'?'Y':'',r.dup>1?r.dup:'',r.status,r.item||'']);
     const csv='﻿'+[head,...body].map(l=>l.map(c=>'"'+String(c==null?'':c).replace(/"/g,'""')+'"').join(',')).join('\n');
     const a=document.createElement('a');
     a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
     const d=new Date();
-    a.download='연오재_대시보드_'+d.getFullYear()+dashZ(d.getMonth()+1)+dashZ(d.getDate())+'.csv';
+    a.download='연오재_예약_'+d.getFullYear()+dashZ(d.getMonth()+1)+dashZ(d.getDate())+'.csv';
     a.click(); URL.revokeObjectURL(a.href);
     toast(rows.length+'건을 CSV로 내려받았습니다.');
   }
 
   function renderDashboard(){
+    if(!document.getElementById('statCards')) return;
     const rows=dashRows();
     const live=rows.filter(r=>r.status!=='취소');
     const conf=live.filter(r=>r.status==='확정').length;
     const pend=live.filter(r=>(r.status||'미확정')==='미확정').length;
     const firstN=live.filter(r=>r.first==='초진').length;
+    const waiting=(!_dashLoaded && _dashBusy) || (!_dashLoaded && !_dashErr);
+    const esc=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+    const note=document.getElementById('dashNote');
+    if(note) note.innerHTML = _dashErr ? '<span style="color:var(--bad)">예약을 불러오지 못했습니다: '+esc(_dashErr)+'</span>'
+      : (_dashBusy ? '불러오는 중…' : (_dashLoaded ? '최신 예약 기준' : ''));
 
     /* --- 상단 카드 --- */
     const stats = [
-      {label:'총 예약', value:live.length, icon:'solar:calendar-linear', color:'var(--text-soft)'},
+      {label:'총 예약', value:live.length, icon:'solar:calendar-linear', color:'var(--gold)'},
       {label:'확정',   value:conf,        icon:'solar:check-circle-linear', color:'var(--good)'},
       {label:'미확정', value:pend,        icon:'solar:close-circle-linear', color:'var(--bad)'},
-      {label:'초진',   value:firstN,      icon:'solar:clock-circle-linear', color:'var(--teal)'},
+      {label:'초진',   value:firstN,      icon:'solar:clock-circle-linear', color:'var(--blue)'},
     ];
     const sc=document.getElementById('statCards');
-    if(sc) sc.innerHTML = stats.map(s=>
+    sc.innerHTML = stats.map(s=>
       '<div class="rounded-xl p-4 sm:p-5" style="border:1px solid var(--border); background:var(--panel)">'+
         '<div class="flex items-start justify-between">'+
           '<span class="text-[13px] font-medium" style="color:var(--muted)">'+s.label+'</span>'+
           '<iconify-icon icon="'+s.icon+'" width="20" style="color:'+s.color+'"></iconify-icon>'+
-        '</div><p class="text-[30px] font-extrabold mt-2 tracking-tight">'+s.value+'</p></div>').join('');
+        '</div><p class="text-[30px] font-extrabold mt-2 tracking-tight">'+(waiting?'–':s.value)+'</p></div>').join('');
 
-    /* --- 일자별 차트 --- */
+    /* --- 일자별 차트: 기간 안의 모든 날짜를 표시 (최대 62일) --- */
     const DOW=['일','월','화','수','목','금','토'];
     const byDay={};
     live.forEach(r=>{ byDay[r.date]=byDay[r.date]||{total:0,chojin:0}; byDay[r.date].total++; if(r.first==='초진') byDay[r.date].chojin++; });
-    const days=Object.keys(byDay).sort();
+    const {from,to}=dashRange();
+    let days=[];
+    if(from && to && from<=to){
+      const d=new Date(from+'T00:00'), end=new Date(to+'T00:00');
+      while(d<=end && days.length<62){ days.push(dashYmd(d)); d.setDate(d.getDate()+1); }
+    } else days=Object.keys(byDay).sort();
     const chartData=days.map(d=>{
-      const dt=new Date(d+'T00:00');
-      return {d:(dt.getMonth()+1)+'/'+dt.getDate()+'('+DOW[dt.getDay()]+')', total:byDay[d].total, chojin:byDay[d].chojin};
+      const dt=new Date(d+'T00:00'), v=byDay[d]||{total:0,chojin:0};
+      return {d:(dt.getMonth()+1)+'/'+dt.getDate()+(days.length<=14?'('+DOW[dt.getDay()]+')':''), total:v.total, chojin:v.chojin};
     });
     const chartEl=document.getElementById('chart');
     if(chartEl){
-      if(!chartData.length){
-        chartEl.innerHTML='<p class="text-center py-20 text-[13px]" style="color:var(--muted)">선택한 기간에 예약이 없습니다.<br><span class="text-[12px]">홈페이지 「온라인예약」으로 예약이 들어오면 여기에 표시됩니다.</span></p>';
+      if(!live.length){
+        chartEl.innerHTML='<p class="text-center py-20 text-[13px]" style="color:var(--muted)">'+(waiting?'예약을 불러오는 중입니다…':'선택한 기간에 예약이 없습니다.<br><span class="text-[12px]">홈페이지에서 예약이 들어오면 여기에 표시됩니다.</span>')+'</p>';
       } else {
-        const peak=Math.max(...chartData.map(c=>c.total));
+        const peak=Math.max(1,...chartData.map(c=>c.total));
         const step=Math.max(1, Math.ceil(peak/4));
         const max=step*4, H=240;
-        const grid=[0,1,2,3,4].map(i=>i*step);
-        const gridLines=grid.map(g=>
-          '<div class="absolute left-0 right-0 flex items-center gap-2" style="bottom:'+((g/max)*H+28)+'px">'+
+        const many=chartData.length>14;
+        const gridLines=[0,1,2,3,4].map(i=>i*step).map(g=>
+          '<div class="absolute left-0 right-0 flex items-center gap-2" style="bottom:'+((g/max)*H)+'px">'+
             '<span class="text-[11px] w-5 text-right" style="color:var(--muted)">'+g+'</span>'+
             '<span class="flex-1 border-t border-dashed" style="border-color:var(--border)"></span></div>').join('');
+        const bw=many?'8px':'clamp(14px,3vw,46px)';
         const bars=chartData.map(c=>
-          '<div class="flex-1 flex flex-col items-center justify-end gap-1" style="height:'+H+'px" title="'+c.d+' · 전체 '+c.total+'건 / 초진 '+c.chojin+'건">'+
-            '<div class="flex items-end gap-1.5 w-full justify-center" style="height:'+H+'px">'+
-              '<div class="bar rounded-t-sm w-[26px] sm:w-[40px]" style="height:'+((c.total/max)*H)+'px; background:linear-gradient(180deg,#c79f63,#b8935a)"></div>'+
-              '<div class="bar rounded-t-sm w-[26px] sm:w-[40px]" style="height:'+((c.chojin/max)*H)+'px; background:linear-gradient(180deg,#4a7088,#3f6377)"></div>'+
-            '</div></div>').join('');
-        const labels=chartData.map(c=>'<div class="flex-1 text-center text-[11.5px] pt-2" style="color:var(--muted)">'+c.d+'</div>').join('');
+          '<div class="flex-1 flex items-end justify-center gap-1" style="height:'+H+'px" title="'+c.d+' · 전체 '+c.total+'건 / 초진 '+c.chojin+'건">'+
+            '<div class="rounded-t-sm" style="width:'+bw+';height:'+((c.total/max)*H)+'px;background:linear-gradient(180deg,#c79f63,#b8935a)"></div>'+
+            '<div class="rounded-t-sm" style="width:'+bw+';height:'+((c.chojin/max)*H)+'px;background:linear-gradient(180deg,#4a7088,#3f6377)"></div>'+
+          '</div>').join('');
+        const labels=chartData.map((c,i)=>'<div class="flex-1 text-center text-[11px] pt-2 whitespace-nowrap overflow-hidden" style="color:var(--muted)">'+(!many||i%Math.ceil(chartData.length/10)===0?c.d:'')+'</div>').join('');
         chartEl.innerHTML =
-          '<div class="relative pl-7" style="height:'+(H+28)+'px">'+gridLines+'<div class="flex items-end gap-1.5 sm:gap-3 h-full relative z-10">'+bars+'</div></div>'+
-          '<div class="flex gap-1.5 sm:gap-3 pl-7">'+labels+'</div>';
+          '<div class="relative pl-7" style="height:'+H+'px">'+gridLines+'<div class="flex items-end gap-1 sm:gap-2 h-full relative z-10">'+bars+'</div></div>'+
+          '<div class="flex gap-1 sm:gap-2 pl-7">'+labels+'</div>';
       }
     }
 
     /* --- 시간대별 --- */
     const byTime={};
-    live.forEach(r=>{ const h=String(r.time||'').slice(0,2)+':00'; if(h.length===5) byTime[h]=(byTime[h]||0)+1; });
+    live.forEach(r=>{ const h=String(r.time||'').slice(0,2)+':00'; if(/^\d\d:00$/.test(h)) byTime[h]=(byTime[h]||0)+1; });
+    const tk=Object.keys(byTime).sort(), tmax=Math.max(1,...tk.map(k=>byTime[k]));
     const tr=document.getElementById('timeRows');
-    if(tr) tr.innerHTML = Object.keys(byTime).sort().length
-      ? Object.keys(byTime).sort().map(t=>'<tr style="border-top:1px solid var(--border-soft)"><td class="px-4 py-2.5">'+t+'</td><td class="px-4 py-2.5 font-semibold">'+byTime[t]+'</td></tr>').join('')
+    if(tr) tr.innerHTML = tk.length
+      ? tk.map(t=>'<tr style="border-top:1px solid var(--border-soft)"><td class="px-4 py-2.5">'+t+'</td><td class="px-4 py-2.5"><div class="flex items-center gap-2"><span class="font-semibold w-7">'+byTime[t]+'</span><span class="h-1.5 rounded-full" style="background:var(--gold);width:'+Math.round(byTime[t]/tmax*100)+'%;max-width:140px"></span></div></td></tr>').join('')
       : '<tr><td colspan="2" class="px-4 py-8 text-center" style="color:var(--muted)">데이터 없음</td></tr>';
 
-    /* --- 인기 시술 --- */
+    /* --- 시술 Top (중복 통합된 줄도 시술별로 나눠 셈) --- */
     const byItem={};
-    live.forEach(r=>{ const k=(r.item||'상담하기'); byItem[k]=(byItem[k]||0)+1; });
+    live.forEach(r=>{ (r.items||[r.item]).forEach(it=>{ const k=it||'상담 문의'; byItem[k]=(byItem[k]||0)+1; }); });
     const top=Object.entries(byItem).sort((a,b)=>b[1]-a[1]).slice(0,10);
     const tp=document.getElementById('topRows');
     if(tp) tp.innerHTML = top.length
-      ? top.map(t=>'<tr style="border-top:1px solid var(--border-soft)"><td class="px-4 py-2.5 break-keep" style="color:var(--text-soft)">'+String(t[0]).replace(/</g,'&lt;')+'</td><td class="px-4 py-2.5 font-semibold text-right">'+t[1]+'</td></tr>').join('')
+      ? top.map(t=>'<tr style="border-top:1px solid var(--border-soft)"><td class="px-4 py-2.5 break-keep" style="color:var(--text-soft)">'+esc(t[0])+'</td><td class="px-4 py-2.5 font-semibold text-right">'+t[1]+'</td></tr>').join('')
       : '<tr><td colspan="2" class="px-4 py-8 text-center" style="color:var(--muted)">데이터 없음</td></tr>';
 
-    /* --- 예약 목록 --- */
+    /* --- 예약 목록 (페이지 나눔) --- */
+    const pages=Math.max(1, Math.ceil(rows.length/_dashSize));
+    if(_dashPage>pages) _dashPage=pages;
+    const slice=rows.slice((_dashPage-1)*_dashSize, _dashPage*_dashSize);
     const rr=document.getElementById('resvRows');
-    const esc=v=>String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;');
-    if(rr) rr.innerHTML = rows.length
-      ? rows.map(r=>
+    if(rr) rr.innerHTML = slice.length
+      ? slice.map(r=>
         '<tr style="border-top:1px solid var(--border-soft)'+(r.status==='취소'?';opacity:.5':'')+'">'+
-          '<td class="px-3 py-2.5">'+esc((KK.get('settings',{})||{}).branch || '연오재')+'</td>'+
           '<td class="px-3 py-2.5">'+esc(String(r.date||'').replace(/-/g,''))+'</td>'+
           '<td class="px-3 py-2.5">'+esc(r.time)+'</td>'+
           '<td class="px-3 py-2.5 font-medium">'+esc(r.name)+'</td>'+
-          '<td class="px-3 py-2.5" style="color:var(--text-soft)">'+esc(r.phone)+'</td>'+
-          '<td class="px-3 py-2.5 text-center">'+(r.first==='초진'?'<span style="color:var(--good)">Y</span>':'')+'</td>'+
-          '<td class="px-3 py-2.5 text-center">'+(r.status==='확정'?'<span style="color:var(--good)">Y</span>':'')+'</td>'+
-          '<td class="px-3 py-2.5 text-center font-semibold" style="color:var(--accent-strong)">'+(r.status==='취소'?'취소':'')+'</td>'+
-          '<td class="px-3 py-2.5 whitespace-normal break-keep text-[12.5px]" style="color:var(--text-soft); min-width:280px">'+esc(r.item||'상담하기')+'</td>'+
+          '<td class="px-3 py-2.5" style="color:var(--text-soft)">'+esc(String(r.phone||'').replace(/[^0-9]/g,''))+'</td>'+
+          '<td class="px-3 py-2.5 text-center">'+(r.first==='초진'?'Y':'')+'</td>'+
+          '<td class="px-3 py-2.5 text-center">'+(r.status==='확정'?'<span style="color:var(--good)">Y</span>':(r.status==='취소'?'<span style="color:var(--bad)">취소</span>':''))+'</td>'+
+          '<td class="px-3 py-2.5 text-center">'+(r.dup>1?'×'+r.dup:'')+'</td>'+
+          '<td class="px-3 py-2.5 whitespace-normal break-keep text-[12.5px]" style="color:var(--text-soft); min-width:280px">'+esc(r.item||'')+'</td>'+
         '</tr>').join('')
-      : '<tr><td colspan="9" class="px-3 py-14 text-center" style="color:var(--muted)">선택한 기간에 예약이 없습니다.</td></tr>';
-
+      : '<tr><td colspan="8" class="px-3 py-14 text-center" style="color:var(--muted)">'+(waiting?'불러오는 중…':'선택한 기간에 예약이 없습니다.')+'</td></tr>';
     const cntEl=document.getElementById('dashResvCount');
-    if(cntEl) cntEl.textContent='('+rows.length+'건)';
+    if(cntEl) cntEl.textContent='('+rows.length+'건'+(dashMergeOn()?' · 중복 통합':'')+')';
+    const pb=(p,label,dis)=>'<button '+(dis?'disabled':'onclick="dashGo('+p+')"')+' class="px-3 h-8 rounded-full text-[12px] font-semibold" style="background:var(--panel);border:1px solid var(--border);color:'+(dis?'var(--muted);opacity:.5':'var(--text-soft)')+'">'+label+'</button>';
+    const pager='<span class="flex items-center gap-1.5">'+pb(1,'« 처음',_dashPage===1)+pb(_dashPage-1,'‹ 이전',_dashPage===1)+
+      '<span class="px-2 text-[12.5px]" style="color:var(--text-soft)">'+_dashPage+' / '+pages+'</span>'+pb(_dashPage+1,'다음 ›',_dashPage===pages)+pb(pages,'끝 »',_dashPage===pages)+'</span>';
+    const info='<span class="text-[12.5px]" style="color:var(--muted)">페이지 '+_dashPage+'/'+pages+' · 표시 '+slice.length+'건 (총 '+rows.length+'건)</span>';
+    const sizeSel='<label class="flex items-center gap-1.5 text-[12.5px]" style="color:var(--muted)">페이지 크기 <select onchange="dashSetSize(this.value)" class="px-2 h-8 rounded-lg" style="background:var(--panel);border:1px solid var(--border);color:var(--text)">'+[20,50,100].map(n=>'<option'+(n===_dashSize?' selected':'')+'>'+n+'</option>').join('')+'</select></label>';
+    const pt=document.getElementById('dashPagerTop'), pbm=document.getElementById('dashPagerBottom');
+    if(pt) pt.innerHTML=info+'<span class="flex items-center gap-3 flex-wrap">'+sizeSel+pager+'</span>';
+    if(pbm) pbm.innerHTML=pages>1?pager:'';
     if(typeof renderIcons==='function') renderIcons(document.getElementById('view-dashboard'));
   }
-
-  /* 최초 렌더: 기본 기간 = 이번 주
-     (아이콘 GLYPH 정의가 이 파일 아래쪽에 있어 한 틱 뒤에 실행) */
-  setTimeout(function initDash(){
-    const f=document.getElementById('dashFrom'), t=document.getElementById('dashTo');
-    if(f && t && !f.value){ dashPreset('thisWeek'); }
-    else renderDashboard();
-  }, 0);
 
   /* ===================== INLINE SVG ICONS (self-contained) ===================== */
   const GLYPH = {
@@ -216,6 +273,7 @@
     dot:'<circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/>',
   };
   const ICON_ALIAS = {
+    'solar:chart-2-linear':'calendar','solar:monitor-linear':'video','solar:hand-heart-linear':'like',
     'solar:quote-up-square-linear':'quote','solar:list-arrow-down-linear':'list','solar:text-field-focus-linear':'type','solar:align-horizonta-center-linear':'alignleft','solar:align-right-linear':'alignleft','solar:videocamera-record-linear':'video',
     'solar:alt-arrow-right-linear':'chevright','solar:arrow-left-linear':'arrowleft','solar:gallery-add-linear':'image','solar:sort-vertical-linear':'list',
     'solar:home-2-linear':'home','solar:settings-linear':'settings','solar:user-linear':'user','solar:user-id-linear':'userid',

@@ -157,16 +157,17 @@
           <div class="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4 mb-6">
             <div>
               <h1 class="text-2xl font-bold tracking-tight">예약 대시보드</h1>
-              <p class="text-[13.5px] mt-1.5" style="color:var(--muted)">지점별 예약 흐름과 시술 인사이트를 한 화면에서 확인합니다.</p>
+              <p class="text-[13.5px] mt-1.5" style="color:var(--muted)">홈페이지로 들어온 예약 흐름과 인기 시술을 한 화면에서 확인합니다. <span id="dashNote"></span></p>
             </div>
             <div class="flex flex-wrap items-center gap-2 text-[13px]">
-              <span class="px-3 h-9 rounded-lg grid place-items-center font-semibold" style="background:var(--accent-soft); color:var(--accent-strong)">지점: 화정</span>
-              <select onchange="dashPreset(this.value)" class="px-3 h-9 rounded-lg" style="background:var(--panel); border:1px solid var(--border); color:var(--text-soft)">
-                <option value="thisWeek">이번 주</option><option value="lastWeek">지난 주</option><option value="thisMonth">이번 달</option>
+              <select id="dashPresetSel" onchange="dashPreset(this.value)" class="px-3 h-9 rounded-lg" style="background:var(--panel); border:1px solid var(--border); color:var(--text-soft)">
+                <option value="today">오늘</option><option value="thisWeek" selected>이번 주</option><option value="lastWeek">지난 주</option><option value="thisMonth">이번 달</option><option value="lastMonth">지난 달</option><option value="">직접 선택</option>
               </select>
-              <input id="dashFrom" type="date" onchange="renderDashboard()" class="px-2.5 h-9 rounded-lg" style="background:var(--panel); border:1px solid var(--border); color:var(--text-soft)">
+              <input id="dashFrom" type="date" onchange="dashRangeChanged()" class="px-2.5 h-9 rounded-lg" style="background:var(--panel); border:1px solid var(--border); color:var(--text-soft)">
               <span style="color:var(--muted)">~</span>
-              <input id="dashTo" type="date" onchange="renderDashboard()" class="px-2.5 h-9 rounded-lg" style="background:var(--panel); border:1px solid var(--border); color:var(--text-soft)">
+              <input id="dashTo" type="date" onchange="dashRangeChanged()" class="px-2.5 h-9 rounded-lg" style="background:var(--panel); border:1px solid var(--border); color:var(--text-soft)">
+              <label class="px-3 h-9 rounded-lg flex items-center gap-1.5 font-semibold cursor-pointer" title="같은 전화번호로 같은 날 여러 번 접수한 예약을 한 줄로 합칩니다" style="background:var(--panel); border:1px solid var(--border); color:var(--text-soft)"><input id="dashMerge" type="checkbox" checked onchange="_dashPage=1;renderDashboard()" class="accent-[var(--accent)]"> 중복 통합</label>
+              <button onclick="dashLoad()" class="px-3 h-9 rounded-lg font-semibold" style="background:var(--panel); border:1px solid var(--border); color:var(--text-soft)">↻ 새로고침</button>
               <button onclick="dashExportCsv()" class="px-3 h-9 rounded-lg font-semibold flex items-center gap-1.5" style="background:var(--panel); border:1px solid var(--border); color:var(--text-soft)">
                 <iconify-icon icon="solar:download-minimalistic-linear" width="15"></iconify-icon> CSV
               </button>
@@ -188,12 +189,7 @@
           </div>
 
           <!-- 3 panels -->
-          <div class="grid lg:grid-cols-3 gap-4 mb-6">
-            <div class="rounded-xl overflow-hidden" style="border:1px solid var(--border)">
-              <div class="px-4 py-3 font-bold text-[15px]" style="border-bottom:1px solid var(--border)">지점별 집계</div>
-              <table class="tbl w-full text-[13.5px]"><thead><tr style="background:var(--panel-soft); color:var(--muted)"><th class="px-4 py-2.5 font-semibold">지점</th><th class="px-4 py-2.5 font-semibold">건수</th></tr></thead>
-                <tbody><tr style="border-top:1px solid var(--border-soft)"><td class="px-4 py-3">화정</td><td class="px-4 py-3 font-semibold">32</td></tr></tbody></table>
-            </div>
+          <div class="grid lg:grid-cols-[2fr_3fr] gap-4 mb-6">
             <div class="rounded-xl overflow-hidden" style="border:1px solid var(--border)">
               <div class="px-4 py-3 font-bold text-[15px]" style="border-bottom:1px solid var(--border)">시간대별</div>
               <table class="tbl w-full text-[13.5px]"><thead><tr style="background:var(--panel-soft); color:var(--muted)"><th class="px-4 py-2.5 font-semibold">시간</th><th class="px-4 py-2.5 font-semibold">건수</th></tr></thead>
@@ -207,20 +203,23 @@
           </div>
 
           <!-- 예약 목록 -->
-          <div class="rounded-xl overflow-hidden" style="border:1px solid var(--border)">
+          <div id="dashListTop" class="rounded-xl overflow-hidden" style="border:1px solid var(--border)">
             <div class="px-4 py-3 flex items-center justify-between" style="border-bottom:1px solid var(--border)">
               <span class="font-bold text-[15px]">예약 목록 <span id="dashResvCount" style="color:var(--muted)" class="font-normal text-[13px]">(0건)</span></span>
+              <button onclick="go('reservations')" class="text-[12.5px] font-semibold" style="color:var(--accent-strong)">확정·취소 처리는 예약 목록에서 →</button>
             </div>
+            <div id="dashPagerTop" class="px-4 py-3 flex items-center justify-between flex-wrap gap-2"></div>
             <div class="overflow-x-auto">
               <table class="tbl w-full text-[13px] whitespace-nowrap">
                 <thead><tr style="background:var(--panel-soft); color:var(--muted)">
-                  <th class="px-3 py-2.5 font-semibold">지점</th><th class="px-3 py-2.5 font-semibold">날짜</th><th class="px-3 py-2.5 font-semibold">시간</th>
+                  <th class="px-3 py-2.5 font-semibold">날짜</th><th class="px-3 py-2.5 font-semibold">시간</th>
                   <th class="px-3 py-2.5 font-semibold">이름</th><th class="px-3 py-2.5 font-semibold">전화</th><th class="px-3 py-2.5 font-semibold">초진</th>
                   <th class="px-3 py-2.5 font-semibold">확정</th><th class="px-3 py-2.5 font-semibold">중복</th><th class="px-3 py-2.5 font-semibold whitespace-normal min-w-[280px]">시술</th>
                 </tr></thead>
                 <tbody id="resvRows"></tbody>
               </table>
             </div>
+            <div id="dashPagerBottom" class="px-4 py-3 flex justify-end"></div>
           </div>
         </div>
       </section>
@@ -258,6 +257,7 @@
     var a = document.getElementById('appRoot');
     if (l) l.style.display = loggedIn ? 'none' : 'flex';
     if (a) a.style.display = loggedIn ? '' : 'none';
+    if (loggedIn && window.adminAfterLogin) window.adminAfterLogin();
   }
 
   function adminLogout(){

@@ -32,6 +32,7 @@
     document.getElementById('view-'+id).classList.add('active');
     document.querySelectorAll('.navlink').forEach(a=>a.classList.toggle('active', a.dataset.view===id));
     history.replaceState(null,'','#'+id);
+    if(id==='dashboard' && typeof dashEnter==='function') dashEnter();   /* 열 때마다 최신 예약으로 */
     document.body.classList.remove('nav-open');
     window.scrollTo({top:0,behavior:'auto'});
   }
