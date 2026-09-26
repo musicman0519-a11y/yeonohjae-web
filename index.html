@@ -108,7 +108,7 @@
         if(!window.__sb){ alert('잠시 후 다시 눌러주세요. (연결 준비 중)'); return; }
         try{ sessionStorage.setItem(RET, (location.hash||'#home').slice(1).split('/')[0] || 'home'); }catch(e){}
         track('kakao_auth_start');
-        window.__sb.auth.signInWithOAuth({ provider:'kakao', options:{ redirectTo: location.origin + location.pathname, scopes: (window.SITE||{}).kakaoPhone==='on' ? 'profile_nickname name phone_number' : 'profile_nickname' } })
+        window.__sb.auth.signInWithOAuth({ provider:'kakao', options:{ redirectTo: location.origin + location.pathname, scopes: ['profile_nickname'].concat((window.SITE||{}).kakaoPhone==='on' ? ['name','phone_number'] : [], (window.SITE||{}).kakaoChannel==='on' ? ['plusfriends'] : []).join(' ') } })
           .then(function(r){ if(r && r.error) alert('카카오 인증을 시작하지 못했습니다. 직접 입력으로 진행해 주세요.'); });
       }
       /* 카카오에서 돌아오면: 정보 저장 → 즉시 로그아웃 → 원래 화면으로 */
@@ -131,6 +131,8 @@
       if(/access_token=|[?&]code=/.test(location.hash+location.search)) setTimeout(wait, 0);
       return { on:on, get:get, start:start };
     })();
+    /* 카카오톡 채널 친구 추가 주소: 기본 설정의 카카오톡 링크(pf.kakao.com/_xxxx)에서 만듦. 채널 주소가 아니면 null */
+    window.kakaoChannelUrl=function(){ var m=String((window.SITE||{}).kakao||'').match(/pf\.kakao\.com\/(_[A-Za-z0-9]+)/); return m ? 'https://pf.kakao.com/'+m[1]+'/friend' : null; };
     /* ===== 장바구니 (시술 상세에서 「담기」 → 장바구니 → 예약하기)
        이 브라우저에만 보관(localStorage). 결제는 없고, 예약 신청 시 담은 시술 이름·수량이 예약 내용으로 함께 저장됨 ===== */
     window.CART = (function(){
@@ -594,6 +596,8 @@
     <h2 class="krhead text-xl text-ink mb-2" style="font-weight:700">예약 시작하기</h2>
     <p class="krhead text-[15px] text-ink/60 mb-5" style="font-weight:400">원하는 날짜와 시간을 골라 예약을 신청해 주세요. 병원에서 확인 후 확정 연락을 드립니다.</p>
 
+    <!-- 장바구니에서 넘어온 경우: 인증 전에도 무엇을 예약하는지 보이게 -->
+    <div id="resCartPreview" hidden class="mb-4"></div>
     <div id="resAuthBox" class="mb-10">
       <button id="resKakaoBtn" type="button" class="block w-full rounded-2xl border border-ink/12 p-7 sm:p-9 hover:border-pink/40 hover:bg-ink/[0.015] transition">
         <span class="max-w-md mx-auto flex flex-col items-center gap-3">
@@ -2023,8 +2027,21 @@
     }
     document.addEventListener('cartchange', renderResItems);
     /* 장바구니·상세 「예약하기」에서 들어올 때: 바로 예약 입력 화면 (카카오 인증이 켜져 있고 아직이면 인증 단계부터) */
+    /* 인증 단계 위에 담은 시술 요약 (예약 입력 칸이 열리면 그쪽 목록이 대신 보이므로 숨김) */
+    function renderResCartPreview(){
+      var el=document.getElementById('resCartPreview'); if(!el) return;
+      var n=CART.count(), formOpen=!document.getElementById('resAfter').classList.contains('hidden');
+      el.hidden = !n || formOpen;
+      if(el.hidden) return;
+      el.innerHTML='<div class="rounded-2xl bg-bglight border border-ink/10 px-5 py-4 flex items-center justify-between gap-3">'+
+        '<span class="krhead text-[14px] text-ink/80 break-keep" style="font-weight:500"><iconify-icon icon="solar:cart-large-2-linear" class="text-pinkstrong align-[-3px] mr-1"></iconify-icon>담은 시술 <b>'+n+'개</b> · 예상 '+CART.total().toLocaleString('ko-KR')+'원</span>'+
+        '<button type="button" onclick="showView(\'cart\')" class="krhead text-[13px] text-pinkstrong underline underline-offset-2 shrink-0" style="font-weight:500">변경</button></div>'+
+        (KAUTH.on() && !KAUTH.get() ? '<p class="krhead text-[13px] text-ink/55 mt-2 px-1" style="font-weight:400">아래에서 카카오 인증을 하면 이 시술로 예약이 이어집니다.</p>' : '');
+    }
+    document.addEventListener('cartchange', renderResCartPreview);
     window.__resOpen=function(){
       showView('reserve');
+      renderResCartPreview();
       if(KAUTH.on() && !KAUTH.get()) return;
       openResForm(CART.count() ? '담은 시술로 예약합니다 · 날짜와 시간을 골라주세요' : '예약 정보를 입력해 주세요');
     };
@@ -2037,7 +2054,7 @@
         '<p class="krhead text-pinkstrong" style="font-weight:700">'+label+'</p></div>';
       var after=document.getElementById('resAfter');
       after.classList.remove('hidden');
-      buildItemPicker(); renderResItems();
+      buildItemPicker(); renderResItems(); renderResCartPreview();
       resState.y=today.getFullYear(); resState.m=today.getMonth();
       renderCal();
       setTimeout(function(){ try{ scrollToY(after,true,-90); document.getElementById('resName').focus({preventScroll:true}); }catch(e){} }, 60);
@@ -2136,6 +2153,9 @@
               '\n\n병원에서 확인 후 확정 연락을 드립니다.');
         resState.time=null; resState.booked[t]=(resState.booked[t]||0)+1; renderTimes();
         if(fromCart) CART.clear();   /* 예약 완료된 시술은 장바구니에서 비움 */
+        /* 예약 완료 후: 카카오톡 채널 추가 안내 (기본 설정의 카카오톡 링크가 채널 주소일 때) */
+        var ch=window.kakaoChannelUrl && kakaoChannelUrl();
+        if(ch){ var ab=document.getElementById('resAuthBox'); ab.innerHTML='<div class="rounded-2xl border border-ink/12 p-6 text-center"><p class="krhead text-pinkstrong text-[16px]" style="font-weight:700">예약 신청이 접수되었습니다</p><p class="krhead text-[14px] text-ink/60 mt-1 break-keep" style="font-weight:400">카카오톡 채널을 추가하면 예약 확인·변경 안내를 카카오톡으로 편하게 받으실 수 있어요.</p><a href="'+ch+'" target="_blank" rel="noopener" onclick="track(\'kakao_channel_add\',{cta:\'reserve_done\'})" class="krhead mt-4 inline-flex items-center gap-2 h-12 px-6 rounded-xl bg-[#FEE500] text-[#3A1D1D]" style="font-weight:700">카카오톡 채널 추가하기</a></div>'; scrollToY(ab,true,-120); }
       }).catch(function(e){
         if(e && e.full) alert('방금 다른 분이 이 시간을 예약했습니다. 다른 시간을 선택해주세요.');
         else alert(RES.failMsg());
