@@ -6,17 +6,19 @@
     ['about','병원 소개 (홈 소개 섹션)'], ['hairprice','제모 가격 안내 페이지'], ['home','홈 화면'], ['ext','외부 링크 (URL 직접 입력)'],
   ];
   const DEFAULT_MENUS = [
-    {id:'m1',  label:'시술메뉴/이벤트', view:'category', parent:'', on:true},
-    {id:'m2',  label:'온라인예약',     view:'reserve',  parent:'', on:true},
+    {id:'m1',  label:'진료 안내', view:'category', parent:'', on:true},
+    {id:'m2',  label:'예약하기',       view:'reserve',  parent:'', on:true},
     {id:'m21', label:'온라인예약',     view:'reserve',  parent:'m2', on:true},
     {id:'m22', label:'예약 변경/취소', view:'manage',   parent:'m2', on:true},
     {id:'m3',  label:'시술전후',       view:'ba',       parent:'', on:true},
-    {id:'m4',  label:'연오재한의원',   view:'about',    parent:'', on:true},
-    {id:'m41', label:'병원 소개',      view:'about',    parent:'m4', on:true},
+    {id:'m4',  label:'한의원 소개',    view:'about',    parent:'', on:true},
+    {id:'m41', label:'한의원 소개',    view:'about',    parent:'m4', on:true},
     {id:'m42', label:'의료진 소개',    view:'doctors',  parent:'m4', on:true},
-    {id:'m5',  label:'시술 노트',      view:'notes',    parent:'', on:true},
+    {id:'m5',  label:'진료 칼럼',      view:'notes',    parent:'', on:true},
   ];
-  function menusGet(){ return KK.get('menus', DEFAULT_MENUS); }
+  /* 2026-09 메뉴 이름 변경: 예전 이름은 새 이름으로 보여 주고, 다음 저장 때 새 이름으로 저장 */
+  const MENU_RENAME = {'시술메뉴/이벤트':'진료 안내','병원소개':'한의원 소개','병원 소개':'한의원 소개','시술 노트':'진료 칼럼'};
+  function menusGet(){ return KK.get('menus', DEFAULT_MENUS).map(m=>{ const o=Object.assign({}, m); if(MENU_RENAME[o.label]) o.label=MENU_RENAME[o.label]; if(o.id==='m2' && o.label==='온라인예약') o.label='예약하기'; return o; }); }
   function rerenderMenus(){ const old=document.getElementById('view-menus'); if(old) old.remove(); BUILDERS.menus(); go('menus'); }
   function menuHrefLabel(m){ return m.view==='ext' ? (m.url||'외부 링크') : '/'+(m.view||''); }
   function toggleMenuOn(id){
@@ -74,7 +76,7 @@
           </div>
           <div>
             <label class="pml">레이블 (<span id="mnLangName">KO</span>)</label>
-            <input id="mnLabel" class="pmi" placeholder="예) 시술메뉴/이벤트">
+            <input id="mnLabel" class="pmi" placeholder="예) 진료 안내">
             <p id="mnLabelHint" class="text-[11.5px] mt-1" style="color:var(--muted)">한국어(KO)는 필수입니다. 다른 언어를 비워두면 홈에서 한국어로 표시됩니다.</p>
           </div>
           <div>

@@ -1294,6 +1294,9 @@
     (function(){
       var menus=KK.get('menus', null);
       if(!Array.isArray(menus) || !menus.length) return;
+      /* 2026-09 메뉴 이름 변경: 예전 이름으로 저장돼 있으면 새 이름으로 표시 */
+      var RENAME={'시술메뉴/이벤트':'진료 안내','병원소개':'한의원 소개','병원 소개':'한의원 소개','시술 노트':'진료 칼럼'};
+      menus=menus.map(function(m){ var o={}; for(var k in m) o[k]=m[k]; if(RENAME[o.label]) o.label=RENAME[o.label]; if(o.id==='m2' && o.label==='온라인예약') o.label='예약하기'; return o; });
       function ok(m){
         if(m.on===false) return false;
         if(m.view==='ext') return safeUrl(m.url)!=='#';
