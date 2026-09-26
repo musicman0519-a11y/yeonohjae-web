@@ -1658,10 +1658,13 @@
     if(stored.length){
       items.length=0;
       stored.forEach(function(s){
-        items.push({loc:s.loc||'연오재', cat:s.cat||'기타', title:[s.title||'', s.sub||'', s.loc||'화정'].filter(Boolean), layout:'v', imgB:s.imgB||'', imgA:s.imgA||'', dates:s.date?[s.date]:[]});
+        items.push({stored:true, loc:s.loc||'화정', cat:s.cat||'기타', title:[s.title||'', s.sub||'', s.loc||'화정'].filter(Boolean), mode:s.mode||'pair', layout:s.layout||'h', imgB:s.imgB||'', imgA:s.imgA||'', imgC:s.imgC||'', body:s.body||'', recs:s.recs||[], dates:s.date?[s.date]:[]});
       });
+      /* 분류 탭: 관리자 「분류 관리」 순서대로, 사례가 있는 분류만 */
       filters.splice(1);
-      stored.forEach(function(s){ if(s.cat && filters.indexOf(s.cat)<0) filters.push(s.cat); });
+      var order=(KK.get('baCats', null)||[]).slice();
+      stored.forEach(function(s){ if(s.cat && order.indexOf(s.cat)<0) order.push(s.cat); });
+      order.forEach(function(c){ if(stored.some(function(s){ return s.cat===c; })) filters.push(c); });
     }
 
     items.forEach(function(c,i){ c._seed=i; });
@@ -1710,8 +1713,12 @@
           +'<div><p class="marcellus text-ink/35 text-[13px] tracking-[0.3em]">'+label+'</p><p class="krhead text-[11px] text-ink/35 mt-1.5" style="font-weight:400">사진 준비 중</p></div></div>';
       }
       var date = (c.dates&&c.dates[0]) ? '<span class="absolute top-4 left-4 krhead text-[11px] text-white bg-black/35 px-2 py-0.5 z-10" style="font-weight:500">'+esc(c.dates[0])+'</span>' : '';
+      /* 관리자에서 「합쳐진 사진 1장」으로 올린 경우 */
+      if(c.mode==='single' && c.imgC) return '<div class="relative aspect-[4/3] overflow-hidden bg-beige"><img src="'+safeUrl(c.imgC)+'" class="absolute inset-0 w-full h-full object-cover transition duration-700 group-hover:scale-105" style="'+blurCss+'" alt="전후 사진" loading="lazy">'+date+'</div>';
+      /* 합성 방향: 가로(좌 전·우 후) / 세로(위 전·아래 후) */
+      var grid = c.layout==='v' ? 'grid grid-rows-2' : 'grid grid-cols-2';
       return '<div class="relative aspect-[4/3] overflow-hidden">'
-        +'<div class="grid grid-cols-2 gap-px bg-white h-full">'+half(c.imgB,'BEFORE')+half(c.imgA,'AFTER')+'</div>'
+        +'<div class="'+grid+' gap-px bg-white h-full">'+half(c.imgB,'BEFORE')+half(c.imgA,'AFTER')+'</div>'
         +((c.imgB||c.imgA)?date:'')
       +'</div>';
     }
@@ -1800,7 +1807,22 @@
         {n:'5) 시술 정보', body:'시술명 : '+(c.title[1]||c.title[0])+'\n시술부위 : '+area}
       ]};
     }
-    function baDetailOf(c){ return BA_DETAILS[c.title.join('|')] || genericBADetail(c); }
+    /* 관리자가 올린 사례는 관리자가 쓴 본문만 보여줌 (자동으로 지어낸 치료 설명을 붙이지 않음) */
+    function baDetailOf(c){ if(c.stored) return { sections:[] }; return BA_DETAILS[c.title.join('|')] || genericBADetail(c); }
+    /* 관리자에서 고른 추천 시술 카드 (누르면 시술 상세로) */
+    function baRecsHTML(c){
+      var prods=window.__products||[];
+      var list=(c.recs||[]).map(function(id){ return prods.find(function(p){ return p.id===id; }); }).filter(Boolean);
+      if(!list.length) return '';
+      window.__baRecs=list;
+      return '<div class="max-w-3xl mt-14"><div class="flex items-end justify-between gap-3 mb-5"><h2 class="krhead text-[20px] text-ink" style="font-weight:700">이 사례에 쓰인 시술</h2><span class="marcellus text-[12px] tracking-[0.25em] text-pinkstrong/80">RECOMMEND</span></div>'+
+        '<div class="grid sm:grid-cols-2 gap-4">'+list.map(function(p,k){ var price=parseInt(p.price)||0;
+          return '<a href="#" onclick="window.openDetail&&openDetail(window.__baRecs['+k+']);return false" class="group flex items-center gap-4 bg-white border border-ink/10 p-4 hover:shadow-[0_12px_30px_rgba(47,52,58,0.10)] transition-shadow">'+
+            (p.img?'<img src="'+safeUrl(p.img)+'" class="w-20 h-20 object-cover shrink-0" alt="" loading="lazy">':'<span class="w-20 h-20 bg-beige shrink-0"></span>')+
+            '<span class="min-w-0 flex-1"><span class="krhead block text-[12px] text-ink/45" style="font-weight:400">'+esc(p.cat||'')+'</span><span class="krhead block text-[15px] text-ink leading-snug break-keep line-clamp-2 group-hover:text-pinkstrong transition" style="font-weight:700">'+esc(p.big||p.title||'')+'</span>'+
+            (price?'<span class="krhead block text-[14px] text-ink mt-1" style="font-weight:700">'+price.toLocaleString('ko-KR')+'원~</span>':'')+'</span>'+
+            '<iconify-icon icon="solar:alt-arrow-right-linear" class="text-ink/30 group-hover:text-pinkstrong shrink-0"></iconify-icon></a>'; }).join('')+'</div></div>';
+    }
 
     window.openBADetail=function(c){
       var d=baDetailOf(c);
@@ -1822,10 +1844,12 @@
         '<div class="max-w-3xl bg-white border border-ink/10 p-5 my-8">'+
           BA_DISCLAIMERS.map(function(t){ return '<p class="krhead text-[13px] text-ink/60 break-keep leading-relaxed" style="font-weight:300">※ '+t+'</p>'; }).join('')+
         '</div>'+
+        (c.body && (String(c.body).replace(/<[^>]*>/g,'').trim() || String(c.body).indexOf('<img')>=0) ? '<div class="max-w-3xl note-body krhead text-[15px] text-ink/75 leading-loose break-keep" style="font-weight:300">'+cleanHtml(c.body)+'</div>' : '')+
         '<div class="max-w-3xl space-y-8">'+
           d.sections.map(function(sec){ return '<div><p class="krhead text-ink mb-2" style="font-weight:700">'+esc(sec.n)+'</p><p class="krhead text-[14px] text-ink/70 leading-relaxed whitespace-pre-line break-keep" style="font-weight:300">'+esc(sec.body)+'</p></div>'; }).join('')+
         '</div>'+
-        '<div class="max-w-3xl mt-12">'+img+'</div>'+
+        (c.stored ? '' : '<div class="max-w-3xl mt-12">'+img+'</div>')+
+        baRecsHTML(c)+
         '<div class="max-w-3xl mt-10"><button onclick="showView(\'ba\')" class="krhead px-6 py-3 rounded-full border border-ink/15 text-sm hover:bg-ink hover:text-white transition flex items-center gap-2" style="font-weight:400"><iconify-icon icon="solar:alt-arrow-left-linear"></iconify-icon> 전후사진 목록으로</button></div>';
       document.getElementById('baDetailBody').innerHTML=html;
       showView('badetail', null, 'badetail/'+c._seed);
