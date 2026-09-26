@@ -2208,6 +2208,29 @@
     }
     window.__notePage=function(p){ page=p; render(); scrollToY(document.getElementById('noteGrid'),true,-140); };
 
+    /* ===== 글 아래: #키워드 태그 · 추천 시술 카드 (admin 시술 노트 관리 연동) ===== */
+    function noteKwHTML(n){
+      var kw=String(n.kw||'').split(/[,，]/).map(function(s){return s.trim();}).filter(Boolean);
+      if(!kw.length) return '';
+      return '<div class="mt-10 flex flex-wrap gap-2">'+kw.map(function(k){ return '<span class="krhead text-[13px] text-ink/60 bg-bglight border border-ink/10 rounded-full px-3 py-1" style="font-weight:400">#'+esc(k)+'</span>'; }).join('')+'</div>';
+    }
+    function noteRecsHTML(n){
+      var prods=window.__products||[];
+      var list=(n.recs||[]).map(function(id){ return prods.find(function(p){ return p.id===id; }); }).filter(Boolean);
+      if(!list.length) return '';
+      window.__noteRecs=list;
+      return '<div class="mt-14"><div class="flex items-end justify-between gap-3 mb-5"><h2 class="krhead text-[20px] text-ink" style="font-weight:700">함께 보면 좋은 시술</h2><span class="marcellus text-[12px] tracking-[0.25em] text-pinkstrong/80">RECOMMEND</span></div>'+
+        '<div class="grid sm:grid-cols-2 gap-4">'+list.map(function(p,k){
+          var price=parseInt(p.price)||0;
+          return '<a href="#" onclick="window.openDetail&&openDetail(window.__noteRecs['+k+']);return false" class="group flex items-center gap-4 bg-white border border-ink/10 p-4 hover:shadow-[0_12px_30px_rgba(47,52,58,0.10)] transition-shadow">'+
+            (p.img?'<img src="'+safeUrl(p.img)+'" class="w-20 h-20 object-cover shrink-0" alt="" loading="lazy">':'<span class="w-20 h-20 bg-beige shrink-0"></span>')+
+            '<span class="min-w-0 flex-1"><span class="krhead block text-[12px] text-ink/45" style="font-weight:400">'+esc(p.cat||'')+'</span>'+
+            '<span class="krhead block text-[15px] text-ink leading-snug break-keep line-clamp-2 group-hover:text-pinkstrong transition" style="font-weight:700">'+esc(p.big||p.title||'')+'</span>'+
+            (price?'<span class="krhead block text-[14px] text-ink mt-1" style="font-weight:700">'+price.toLocaleString('ko-KR')+'원~</span>':'')+'</span>'+
+            '<iconify-icon icon="solar:alt-arrow-right-linear" class="text-ink/30 group-hover:text-pinkstrong shrink-0"></iconify-icon></a>';
+        }).join('')+'</div></div>';
+    }
+
     /* ===== 글 상세 보기 ===== */
     window.__noteOpen=function(i){
       var n=all[i]; if(!n) return;
@@ -2225,6 +2248,7 @@
         '<div class="flex items-center gap-3 my-8"><span class="h-px flex-1 bg-ink/10"></span><span class="w-1.5 h-1.5 rotate-45 border border-ink/30"></span><span class="h-px flex-1 bg-ink/10"></span></div>'+
         (n.img?'<div class="rounded-2xl overflow-hidden mb-8"><img src="'+safeUrl(n.img)+'" class="w-full object-cover" alt=""></div>':'')+
         '<div class="note-body krhead text-[15px] text-ink/75 leading-loose break-keep" style="font-weight:300">'+bodyHTML+'</div>'+
+        noteKwHTML(n)+noteRecsHTML(n)+
         '<div class="mt-14 flex flex-wrap items-center gap-3">'+
           '<button onclick="showView(\'notes\')" class="krhead px-6 py-3 rounded-full border border-ink/15 text-sm hover:bg-ink hover:text-white transition flex items-center gap-2" style="font-weight:400"><iconify-icon icon="solar:alt-arrow-left-linear"></iconify-icon> 시술 노트 목록</button>'+
           '<button onclick="showView(\'reserve\')" class="krhead px-6 py-3 rounded-full bg-ink text-white text-sm hover:bg-pinkstrong transition flex items-center gap-2" style="font-weight:500">온라인예약 하러 가기 <iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></button>'+

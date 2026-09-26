@@ -21,7 +21,7 @@
   function go(id){
     /* 지금 쓰지 않는 메뉴(주소로 직접 들어온 경우 포함)는 예약 목록으로 */
     /* 시술 상품의 하위 화면(추가·수정 / 정렬 / 공통 고정 내용)은 허용. 새로고침 등으로 화면이 없으면 상품 목록으로 */
-    const SUB = {productedit:'products', prodsort:'products', prodcommon:'products'};
+    const SUB = {productedit:'products', prodsort:'products', prodcommon:'products', noteedit:'notes'};
     if(SUB[id] && !document.getElementById('view-'+id) && !(typeof BUILDERS!=='undefined' && BUILDERS[id])) id=SUB[id];
     if(typeof ADMIN_ENABLED!=='undefined' && ADMIN_ENABLED.indexOf(id)<0 && !SUB[id]) id='reservations';
     if(!document.getElementById('view-'+id)){
