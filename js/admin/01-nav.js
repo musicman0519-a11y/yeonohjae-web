@@ -1,11 +1,12 @@
   /* ===================== 사용 중인 메뉴 =====================
      지금은 아래 6개만 켜 둡니다. 나머지 메뉴를 다시 쓰려면 ADMIN_ENABLED 에 id를 추가하고
      SIMPLE_NAV 에 항목을 한 줄 넣으면 됩니다. (전체 메뉴 목록은 아래 ALL_NAV 에 그대로 보관) */
-  const ADMIN_ENABLED = ['dashboard', 'notes', 'reservations', 'products', 'categories', 'popups', 'blog', 'menus'];
+  const ADMIN_ENABLED = ['dashboard', 'settings', 'notes', 'reservations', 'products', 'categories', 'popups', 'blog', 'menus'];
   /* 대분류(접고 펼치기) 안에 실제 쓰는 메뉴를 넣음. soon:true 는 아직 없는 기능(회색, 누를 수 없음) */
   const SIMPLE_NAV = [
     {type:'item', id:'dashboard', label:'메인 대시보드', icon:'solar:home-2-linear'},
     {type:'group', label:'운영/설정', icon:'solar:settings-linear', items:[
+      {id:'settings', label:'기본 설정', icon:'solar:settings-linear'},
       {id:'popups', label:'팝업 관리', icon:'solar:gallery-wide-linear'},
       {id:'menus',  label:'상단 메뉴 관리', icon:'solar:list-linear'},
     ]},

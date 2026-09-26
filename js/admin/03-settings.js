@@ -77,7 +77,7 @@
     setStashDom();
     const ko = {};
     Object.keys(_setDraft.ko).forEach(k=>{ ko[k] = (_setDraft.ko[k]||'').trim(); });
-    ['naver','kakao','nblog','ntv','line','insta'].forEach(k=>{
+    ['naver','kakao','nblog','ntv','line','insta','whatsapp'].forEach(k=>{
       if(ko[k] && !/^https?:\/\//i.test(ko[k]) && !/^[a-z]+:\/\//i.test(ko[k])) ko[k] = 'https://' + ko[k];
     });
     const ml = {};
@@ -91,7 +91,7 @@
     KK.set('settings_ml', ml);
     setDirty(false);
     renderSetPreview();
-    toast(STORAGE_OK? '저장됐습니다. 홈페이지에 반영됩니다. (다국어는 홈 상단 지구본에서 전환)' : '미리보기 환경에선 저장이 제한됩니다.', STORAGE_OK);
+    toast(STORAGE_OK? '저장됐습니다. 홈페이지(옆 버튼·오시는 길·하단 정보)에 바로 반영됩니다.' : '미리보기 환경에선 저장이 제한됩니다.', STORAGE_OK);
   }
   function renderSetPreview(){
     const box = document.getElementById('setPreview');
@@ -106,8 +106,7 @@
       </div>
       <div class="grid md:grid-cols-2 gap-3.5">
         <div class="rounded-xl p-5 space-y-1.5" style="background:var(--panel);border:1px solid var(--border)">
-          <p class="text-[12px]" style="color:var(--muted)">현재 언어</p>
-          <p class="text-xl font-extrabold mb-2">${_setLang.toUpperCase()}</p>
+          <p class="text-[12px] mb-2" style="color:var(--muted)">병원 정보</p>
           ${row('상호명', cur.biz)}
           ${row('주소', (cur.addr1||'')+(cur.addr2? ' '+cur.addr2:''))}
           ${row('평일', cur.hWeek)}
@@ -121,7 +120,7 @@
           ${row('구글 인증', ko.gVerify, true)}
         </div>
         <div class="rounded-xl p-5 space-y-1.5" style="background:var(--panel);border:1px solid var(--border)">
-          <p class="text-[12px] mb-2" style="color:var(--muted)">연락처 & 링크 (공통)</p>
+          <p class="text-[12px] mb-2" style="color:var(--muted)">연락처 & 링크</p>
           ${row('전화', ko.tel)}
           ${row('네이버', ko.naver)}
           ${row('카카오', ko.kakao)}
@@ -141,7 +140,7 @@
       <div class="flex items-center gap-2 mb-2.5">
         <iconify-icon icon="${icon}" width="16" style="color:var(--accent)"></iconify-icon>
         <span class="text-[13px] font-semibold">${label}</span>
-        <span class="chip ml-auto setChip" data-tr="${tr}" style="background:var(--accent-soft); color:var(--accent-strong)">KO</span>
+        
       </div>
       <input data-sk="${key}" ${opt.ph?`placeholder="${opt.ph}"`:''}
         class="w-full px-3 py-2.5 rounded-lg text-[13.5px]" style="background:var(--panel-soft); border:1px solid var(--border); color:var(--text)">
@@ -150,16 +149,13 @@
     </div>`;
   }
   BUILDERS.settings = function(){
+    if(typeof peCss==='function') peCss();   /* 스위치(pSw) 모양 */
     setDraftInit();
     const langTabs = SET_LANGS.map(([c,l,code])=>
       `<button onclick="pickLang('${code}')" data-lang="${code}" class="langtab px-3 h-9 rounded-lg text-[12.5px] font-bold flex items-center gap-1.5"
         style="${code===_setLang?'background:var(--side);color:#fff':'background:var(--panel);border:1px solid var(--border);color:var(--text-soft)'}">
         <span class="opacity-60 text-[10px]">${c}</span> ${l}</button>`).join('');
-    const right = `
-      <span class="px-3 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)">
-        <iconify-icon icon="solar:translation-linear" width="15"></iconify-icon> 언어 선택</span>
-      <div class="flex items-center gap-1.5">${langTabs}</div>
-      <button onclick="koFillBlanks()" class="px-3 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--accent-soft);color:var(--accent-strong)">✦ KO → 빈칸 채우기</button>
+    const right = `<a href="/" target="_blank" rel="noopener" class="px-4 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="solar:link-linear" width="15"></iconify-icon> 홈페이지에서 확인</a>
       <button onclick="saveSettings()" class="px-4 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5 btn-gold">
         <iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 저장하기</button>`;
 
@@ -179,7 +175,7 @@
             <li>아래에서 <b style="color:var(--text)">지점 정보 / 연락처 & 링크 / SEO</b> 항목을 수정합니다.</li>
             <li>각 항목을 수정하면 상단에 <i>변경 사항 있음</i> 표시가 나타납니다.</li>
             <li>수정이 끝나면 우측 상단 <b style="color:var(--text)">저장하기</b> 버튼을 눌러야 홈페이지에 반영됩니다.</li>
-            <li>다국어는 언어 탭(KO/EN/JA 등)을 전환하며 각 언어를 따로 입력합니다. <b style="color:var(--text)">✦ KO → 빈칸 채우기</b>를 누르면 비어있는 칸에 한국어 값이 복사되니, 그 위에 번역문을 덮어쓰면 편합니다. 홈페이지에서는 상단 지구본 아이콘으로 언어를 전환하며, 번역이 없는 항목은 한국어로 표시됩니다.</li>
+            <li><b style="color:var(--text)">홈페이지 옆 버튼</b>에서 네이버 예약·카카오톡·인스타그램·전화·LINE 등 오른쪽에 떠 있는 버튼을 켜고 끕니다. 링크가 비어 있는 버튼은 켜 두어도 보이지 않습니다.</li>
           </ol>
         </div>
       </div>`;
@@ -191,7 +187,7 @@
         right) +
       helpBox +
       `<div class="panel rounded-2xl p-5 sm:p-7">
-        ${sectionTitle('solar:translation-linear','지점 정보 (다국어)')}
+        ${sectionTitle('solar:buildings-2-linear','병원 정보')}
         <div class="grid md:grid-cols-2 gap-3.5">
           ${fieldCard('solar:map-point-linear','주소','addr1',{key2:'addr2', ph2:'상세주소를 입력해주세요.'})}
           ${fieldCard('solar:buildings-2-linear','상호명','biz')}
@@ -201,7 +197,7 @@
           ${fieldCard('solar:info-circle-linear','추가정보','extra')}
         </div>
 
-        ${sectionTitle('solar:link-circle-linear','연락처 & 링크 (모든 언어 공통)')}
+        ${sectionTitle('solar:link-circle-linear','연락처 & 링크')}
         <div class="grid md:grid-cols-2 gap-3.5">
           ${fieldCard('solar:phone-linear','전화번호','tel')}
           ${fieldCard('solar:user-id-linear','대표자명','ceo')}
@@ -216,6 +212,9 @@
           ${fieldCard('solar:chat-round-dots-linear','LINE 링크','line',{ph:'예) https://line.me/R/ti/p/xxxx', hint:'공식 라인 추가 URL을 넣어주세요.'})}
         </div>
 
+        ${sectionTitle('solar:list-check-linear','홈페이지 옆 버튼 (오른쪽에 떠 있는 아이콘)')}
+        <div id="dockBox"></div>
+
         ${sectionTitle('solar:tag-linear','SEO')}
         <div class="grid md:grid-cols-2 gap-3.5">
           ${fieldCard('solar:tag-linear','SEO 키워드','seo',{hint:'쉼표(,)로 구분해 입력하세요. 예) 화정 피부, 고양 한의원, 화정 제모'})}
@@ -229,15 +228,53 @@
 
         <div class="mt-7 rounded-xl px-4 py-3.5 text-[12.5px] flex items-center gap-2" style="background:var(--accent-soft); color:var(--accent-strong)">
           <iconify-icon icon="solar:info-circle-linear" width="16"></iconify-icon>
-          값을 수정하고 <b>저장하기</b>를 누르면 홈페이지 하단·오시는 길·검색 설정에 반영됩니다. 다국어는 홈 상단 지구본 아이콘으로 전환됩니다.
+          값을 수정하고 <b>저장하기</b>를 누르면 홈페이지 옆 버튼·오시는 길·하단 병원 정보에 바로 반영됩니다.
         </div>
       </div>`;
     setFillDom();
     renderSetPreview();
+    renderDockBox();
     el.addEventListener('input', function(e){
-      if(e.target && e.target.matches('[data-sk]')){ setDirty(true); setStashDom(); renderSetPreview(); }
+      if(e.target && e.target.matches('[data-sk]')){ setDirty(true); setStashDom(); renderSetPreview(); renderDockBox(); }
     });
   };
 
   /* 다국어 언어 탭은 API 연동 작업 때 함께 구현 예정 — 동작하지 않는 버튼은 두지 않습니다 */
   function langRow(){ return ''; }
+
+  /* ---------- 홈페이지 옆 버튼 켜기/끄기 ----------
+     저장: settings.dockOff = '끈 버튼 키,…' (문자열). 홈페이지 index.html 의 #quickDock 이 이 값과 링크를 보고 버튼을 만듦 */
+  const DOCK_ITEMS = [
+    ['naver','네이버 예약','naver','solar:calendar-linear','PC만 (모바일은 하단 바에 있음)'],
+    ['kakao','카카오톡 상담','kakao','solar:chat-round-dots-linear',''],
+    ['insta','인스타그램','insta','solar:link-linear',''],
+    ['tel','전화 연결','tel','solar:phone-linear','PC만 (모바일은 하단 바에 있음)'],
+    ['line','LINE 상담','line','solar:chat-round-dots-linear',''],
+    ['whatsapp','WhatsApp','whatsapp','solar:chat-round-dots-linear',''],
+    ['nblog','네이버 블로그','nblog','solar:notebook-linear',''],
+    ['loc','오시는 길 (지도로 이동)','','solar:map-point-linear','링크 필요 없음'],
+  ];
+  function dockOffList(){ return String((_setDraft&&_setDraft.ko.dockOff)||'').split(',').map(x=>x.trim()).filter(Boolean); }
+  function dockToggle(k, on){
+    const l=dockOffList().filter(x=>x!==k); if(!on) l.push(k);
+    _setDraft.ko.dockOff=l.join(','); setDirty(true); renderDockBox();
+  }
+  function renderDockBox(){
+    const box=document.getElementById('dockBox'); if(!box || !_setDraft) return;
+    const off=dockOffList(), ko=_setDraft.ko;
+    box.innerHTML='<div class="rounded-xl overflow-hidden" style="background:var(--panel);border:1px solid var(--border)">'+
+      DOCK_ITEMS.map(([k,label,field,icon,note],i)=>{
+        const has = !field || String(ko[field]||'').trim();
+        const on = off.indexOf(k)<0;
+        const state = !on ? ['숨김','var(--muted)'] : (has ? ['홈페이지에 보임','var(--good)'] : ['링크가 비어 있어 안 보임','#b45309']);
+        return '<div class="flex items-center gap-3 px-4 py-3"'+(i?' style="border-top:1px solid var(--border-soft)"':'')+'>'+
+          '<span class="w-8 h-8 rounded-full grid place-items-center shrink-0" style="background:var(--accent-soft);color:var(--accent-strong)"><iconify-icon icon="'+icon+'" width="16"></iconify-icon></span>'+
+          '<span class="min-w-0 flex-1"><span class="block text-[13.5px] font-semibold">'+label+'</span>'+
+            '<span class="block text-[11.5px]" style="color:var(--muted)">'+(note|| (field? '위 「연락처 & 링크」의 주소를 사용':''))+'</span></span>'+
+          '<span class="text-[12px] font-semibold" style="color:'+state[1]+'">● '+state[0]+'</span>'+
+          '<input type="checkbox" class="pSw" '+(on?'checked':'')+' onchange="dockToggle(\''+k+'\', this.checked)">'+
+        '</div>';
+      }).join('')+'</div>'+
+      '<p class="text-[11.5px] mt-2" style="color:var(--muted)">스위치를 바꾼 뒤 맨 위 <b>저장하기</b>를 눌러야 홈페이지에 반영됩니다. 위에서부터 보이는 순서입니다.</p>';
+    if(typeof renderIcons==='function') renderIcons(box);
+  }

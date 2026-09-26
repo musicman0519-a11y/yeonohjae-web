@@ -835,18 +835,43 @@
       </div>
       <p id="ftBiz" class="krhead text-sm text-white/60 break-keep" style="font-weight:300">상호 : 연오재한의원 | 대표 : 김경민 | 사업자등록번호 : 779-09-03367</p>
       <p id="ftAddr" class="krhead text-sm text-white/60 break-keep mt-1.5" style="font-weight:300">주소 : 경기 고양시 덕양구 화중로 60, 화정빌딩 2층 205·206호</p>
-      <p class="krhead text-sm text-white/60 mt-1.5" style="font-weight:300">대표전화 : <a href="tel:0507-1485-2378" class="underline underline-offset-2 hover:text-white">0507-1485-2378</a></p>
+      <p class="krhead text-sm text-white/60 mt-1.5" style="font-weight:300">대표전화 : <a id="ftTel" href="tel:0507-1485-2378" class="underline underline-offset-2 hover:text-white">0507-1485-2378</a></p>
       <p class="krhead text-xs text-white/50 mt-6" style="font-weight:300">© 2026 연오재한의원 · XXI PREMIUM MEDICAL SKIN NETWORK. All Rights Reserved</p>
     </div>
   </footer>
 
-  <!-- ===== PC 오른쪽 빠른 연락 버튼 (href는 아래 스크립트가 관리자 '기본 설정' 값으로 채움) ===== -->
-  <div id="quickDock" class="hidden lg:flex fixed right-5 bottom-28 z-30 flex-col gap-2.5">
-    <a data-q="naver" href="#" target="_blank" rel="noopener" aria-label="네이버 예약" class="group relative w-12 h-12 rounded-full bg-pink text-white grid place-items-center shadow-lg hover:bg-pinkstrong transition"><iconify-icon icon="solar:calendar-linear" width="22"></iconify-icon><span class="krhead pointer-events-none absolute right-14 whitespace-nowrap px-3 py-1.5 rounded-lg bg-ink text-white text-[13px] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition" style="font-weight:500">네이버 예약</span></a>
-    <a data-q="kakao" href="#" target="_blank" rel="noopener" aria-label="카카오톡 상담" class="group relative w-12 h-12 rounded-full bg-pink text-white grid place-items-center shadow-lg hover:bg-pinkstrong transition"><iconify-icon icon="solar:chat-round-dots-linear" width="22"></iconify-icon><span class="krhead pointer-events-none absolute right-14 whitespace-nowrap px-3 py-1.5 rounded-lg bg-ink text-white text-[13px] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition" style="font-weight:500">카카오톡 상담</span></a>
-    <a data-q="tel" href="#" aria-label="전화 상담" class="group relative w-12 h-12 rounded-full bg-pink text-white grid place-items-center shadow-lg hover:bg-pinkstrong transition"><iconify-icon icon="solar:phone-calling-linear" width="22"></iconify-icon><span data-q-label class="krhead pointer-events-none absolute right-14 whitespace-nowrap px-3 py-1.5 rounded-lg bg-ink text-white text-[13px] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition" style="font-weight:500">전화 상담</span></a>
-    <button onclick="scrollToY(0,true)" aria-label="맨 위로" class="w-12 h-12 rounded-full bg-white text-pinkstrong border border-pink/20 grid place-items-center shadow-lg hover:bg-bglight transition"><iconify-icon icon="solar:alt-arrow-up-linear" width="22"></iconify-icon></button>
+  <!-- ===== 오른쪽 빠른 연락 버튼 (관리자 「기본 설정」의 링크 + 「홈페이지 옆 버튼」 켜기/끄기로 자동 구성)
+       PC: 전부 / 모바일: 하단 바에 이미 있는 전화·네이버 예약은 빼고 표시 ===== -->
+  <div id="quickDock" class="flex fixed right-3 bottom-24 lg:right-5 lg:bottom-28 z-30 flex-col items-center gap-2 lg:gap-2.5">
+    <span id="quickDockItems" class="contents"></span>
+    <button onclick="scrollToY(0,true)" aria-label="맨 위로" class="hidden lg:grid w-12 h-12 rounded-full bg-white text-pinkstrong border border-pink/20 place-items-center shadow-lg hover:bg-bglight transition"><iconify-icon icon="solar:alt-arrow-up-linear" width="22"></iconify-icon></button>
   </div>
+  <script>
+    (function(){
+      var S=window.SITE||{}, off=String(S.dockOff||'').split(',').map(function(x){return x.trim();});
+      var tel=String(S.tel||'').replace(/[^0-9+\-]/g,'');
+      /* 순서 = 화면에 보이는 순서. m:false 는 모바일에서 숨김(하단 바에 이미 있음) */
+      var ITEMS=[
+        {k:'naver',    url:S.naver,  label:'네이버 예약',   icon:'solar:calendar-linear', m:false, ev:'naver_booking_click'},
+        {k:'kakao',    url:S.kakao,  label:'카카오톡 상담', icon:'ri:kakao-talk-fill', ev:'kakao_click'},
+        {k:'insta',    url:S.insta,  label:'인스타그램',    icon:'mdi:instagram', ev:'insta_click'},
+        {k:'tel',      url:tel?'tel:'+tel:'', label:'전화 '+(S.tel||''), icon:'solar:phone-calling-linear', m:false, ev:'call_click', self:true},
+        {k:'line',     url:S.line,   label:'LINE 상담',     icon:'ri:line-fill', ev:'line_click'},
+        {k:'whatsapp', url:S.whatsapp, label:'WhatsApp',    icon:'mdi:whatsapp', ev:'whatsapp_click'},
+        {k:'nblog',    url:S.nblog,  label:'네이버 블로그', icon:'solar:notebook-linear', ev:'blog_click'},
+        {k:'loc',      url:'#location', label:'오시는 길',  icon:'solar:map-point-linear', ev:'location_click', self:true}
+      ];
+      var box=document.getElementById('quickDockItems'); if(!box) return;
+      box.innerHTML=ITEMS.filter(function(it){ return off.indexOf(it.k)<0 && it.url && safeUrl(it.url)!=='#'; }).map(function(it){
+        var click = it.k==='loc' ? "showView('home','#location');" : '';
+        return '<a href="'+safeUrl(it.url)+'"'+(it.self?'':' target="_blank" rel="noopener"')+' aria-label="'+esc(it.label)+'" data-dock="'+it.k+'"'+
+          ' onclick="track(\''+it.ev+'\',{cta:\'dock\'});'+click+(click?'return false':'')+'"'+
+          ' class="group relative '+(it.m===false?'hidden lg:grid':'grid')+' w-11 h-11 lg:w-12 lg:h-12 rounded-full bg-pink text-white place-items-center shadow-lg hover:bg-pinkstrong transition">'+
+          '<iconify-icon icon="'+it.icon+'" width="22"></iconify-icon>'+
+          '<span class="krhead hidden lg:block pointer-events-none absolute right-14 whitespace-nowrap px-3 py-1.5 rounded-lg bg-ink text-white text-[13px] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition" style="font-weight:500">'+esc(it.label)+'</span></a>';
+      }).join('');
+    })();
+  </script>
 
   <!-- ===== PC 하단 빠른 상담신청 바 (예약·상세 화면에서는 숨김: showView 참고) ===== -->
   <div id="consult" class="hidden lg:block fixed bottom-0 left-0 right-0 z-40 px-4 pb-2">
@@ -905,7 +930,6 @@
         if(k==='naver'){ if(SITE.naver){ a.href=SITE.naver; a.addEventListener('click',function(){ track('naver_booking_click'); }); } else a.remove(); }
         if(k==='kakao'){ if(SITE.kakao){ a.href=SITE.kakao; a.addEventListener('click',function(){ track('kakao_click'); }); } else a.remove(); }
       });
-      var lbl=document.querySelector('#quickDock [data-q-label]'); if(lbl && SITE.tel) lbl.textContent='전화 '+SITE.tel;
       /* 위치 안내: 카카오톡 주소가 없어 버튼이 빠지면 네이버 예약 버튼을 한 줄 전체로 */
       var ln=document.getElementById('locNaver'); if(ln && !document.getElementById('locKakao')) ln.classList.add('col-span-2');
     })();
@@ -2300,6 +2324,7 @@
     set('locHoliday', (s.hHoliday||'').replace(/\s*\(.*?\)\s*/g,''));
     var biz=document.getElementById('ftBiz'); if(biz) biz.textContent='상호 : '+(s.biz||'')+' | 대표 : '+(s.ceo||'')+' | 사업자등록번호 : '+(s.reg||'');
     var fa=document.getElementById('ftAddr'); if(fa) fa.textContent='주소 : '+(s.addr1||'')+(s.addr2? ' '+s.addr2:'');
+    var ft=document.getElementById('ftTel'); if(ft && s.tel){ ft.textContent=s.tel; ft.href='tel:'+String(s.tel).replace(/[^0-9+\-]/g,''); }
     /* 네이버 예약·카카오톡 버튼 링크는 빠른 연락 스크립트(data-q)가 SITE 값으로 연결 */
 
   })();
