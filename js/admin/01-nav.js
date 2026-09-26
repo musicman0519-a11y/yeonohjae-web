@@ -5,12 +5,13 @@
   const SIMPLE_NAV = [
     {type:'section', label:'예약 관리'},
     {type:'item', id:'reservations', label:'예약 목록', desc:'홈페이지 예약 확인·확정·취소', icon:'solar:calendar-mark-linear'},
+    {type:'section', label:'운영/설정'},
+    {type:'item', id:'popups',     label:'팝업 관리',   desc:'첫 화면 공지·이벤트 팝업', icon:'solar:gallery-wide-linear'},
+    {type:'item', id:'menus',      label:'상단 메뉴',   desc:'홈페이지 메뉴 이름·순서', icon:'solar:list-linear'},
     {type:'section', label:'홈페이지 관리'},
     {type:'item', id:'products',   label:'시술 상품',   desc:'시술·가격·이벤트 등록', icon:'solar:folder-linear'},
     {type:'item', id:'categories', label:'카테고리',    desc:'시술메뉴의 분류 탭',    icon:'solar:tag-linear'},
-    {type:'item', id:'popups',     label:'팝업',        desc:'첫 화면 공지·이벤트 팝업', icon:'solar:gallery-wide-linear'},
     {type:'item', id:'blog',       label:'블로그',      desc:'블로그 글 링크 연결',   icon:'solar:notebook-linear'},
-    {type:'item', id:'menus',      label:'상단 메뉴',   desc:'홈페이지 메뉴 이름·순서', icon:'solar:list-linear'},
   ];
 
   /* ===================== 전체 메뉴 (보관용 — 현재 사이드바에는 SIMPLE_NAV만 표시) ===================== */

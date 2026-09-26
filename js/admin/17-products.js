@@ -179,7 +179,8 @@
       (help ? '<div class="panel rounded-xl p-5 mb-4 text-[13px] leading-relaxed" style="color:var(--text-soft)">'+
         '<p class="font-bold mb-2" style="color:var(--text)">이렇게 쓰세요</p>'+
         '<p>1. <b>시술 상품 추가</b> — 홈페이지 시술메뉴에 보일 상품 하나를 만듭니다. 상품 = 카테고리 카드 하나입니다.</p>'+
-        '<p>2. <b>수정</b> — 상세 페이지의 설명·시술과정·Q&amp;A와 <b>상세 상품(가격 항목)</b>을 편집합니다.</p>'+
+        '<p>2. <b>수정</b> — ① 사진·이름 → ② 가격 → ③ 상세 이미지 순서로 채우고 저장합니다.</p>'+
+        '<p>3. <b>공통 고정 내용</b> — 시술 기본정보·Q&amp;A·주의사항을 한 번만 만들어 두면 모든 시술에 자동으로 들어갑니다.</p>'+
         '<p>3. <b>공개</b> 체크를 끄면 홈페이지에서 즉시 숨겨집니다. (바로 저장됩니다)</p>'+
         '<p>4. <b>복사</b> — 비슷한 상품을 만들 때 통째로 복제합니다. 복사본은 비공개로 생성됩니다.</p>'+
         '<p>5. <b>전체보기 정렬 수정</b> — 홈페이지에 보이는 순서를 드래그로 바꿉니다.</p>'+
@@ -188,6 +189,7 @@
       pageHead('시술 상품 관리','상품을 추가하고, 「수정」으로 상세 페이지(설명·상세 상품·가격·기간)를 편집합니다.','') +
       '<div class="flex items-center gap-2 flex-wrap mb-4">'+
         '<button onclick="openProductEditor(null)" class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:add-circle-linear" width="15"></iconify-icon> 시술 상품 추가</button>'+
+        '<button onclick="openCommonModal()" class="px-4 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5" style="background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent-strong)"><iconify-icon icon="solar:list-check-linear" width="15"></iconify-icon> 공통 고정 내용 (시술정보·Q&amp;A·주의사항)</button>'+
         '<button onclick="exportProductsExcel()" class="px-4 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="solar:download-minimalistic-linear" width="15"></iconify-icon> 전체 엑셀 다운로드</button>'+
         '<button onclick="openSortMode()" class="px-4 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="solar:sort-vertical-linear" width="15"></iconify-icon> 전체보기 정렬 수정</button>'+
         '<button onclick="document.getElementById(\'prodXlsxFile\').click()" class="px-4 h-9 rounded-lg text-[13px] font-semibold flex items-center gap-1.5" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 엑셀 일괄 업로드</button>'+
@@ -438,7 +440,32 @@
   }
 
   /* ===================== 상품 편집기 ===================== */
-  let _peIdx=null, _pe=null, _peOpen={}, _peGroupsOpen=true;
+  let _peIdx=null, _pe=null, _peOpen={}, _peGroupsOpen=true, _peAdv=false;
+
+  /* ===== 공통 고정 내용 (시술 기본정보 · Q&A · 주의사항) =====
+     KK 'prodCommon' 에 저장. 상품에서 「공통 고정 내용 사용」이면 상품 쪽은 비워두고,
+     홈페이지(index.html realDetail)가 공통 내용을 대신 보여줌. */
+  const PC_SEED = {
+    basic:{time:'상담 후 안내', anesthesia:'필요 시 진행', daily:'개인차 있음', duration:'개인차 있음'},
+    qna:[
+      {q:'시술 전 상담은 꼭 받아야 하나요?', a:'네. 한의사가 피부 상태와 병력을 먼저 확인한 뒤 시술 여부와 방법을 정합니다.'},
+      {q:'시술 후 바로 일상생활이 가능한가요?', a:'대부분 가능하지만, 시술 종류와 피부 상태에 따라 붉은기·붓기가 생길 수 있어 상담 때 자세히 안내해 드립니다.'},
+      {q:'효과는 얼마나 유지되나요?', a:'피부 상태, 생활 습관, 관리 방법에 따라 개인차가 있습니다.'},
+      {q:'예약 변경이나 취소는 어떻게 하나요?', a:'전화 또는 네이버 예약으로 변경·취소하실 수 있습니다.'},
+    ],
+    cautions:[
+      '시술 당일은 사우나·찜질방·격한 운동과 음주를 피해 주세요.',
+      '시술 부위를 문지르거나 강한 자극을 주지 마세요.',
+      '자외선 차단제를 꼼꼼히 발라 주세요.',
+      '이상 증상이 있으면 바로 병원으로 연락해 주세요.',
+      '시술 결과와 부작용은 개인에 따라 다를 수 있습니다.',
+    ],
+  };
+  function pcGet(){ return KK.get('prodCommon', null); }
+  function peHasOwnFixed(p){
+    const b=p.basic||{};
+    return ['time','anesthesia','daily','duration'].some(k=>String(b[k]||'').trim()) || (p.qna||[]).length || (p.cautions||[]).length;
+  }
 
   function peBlank(){
     return {id:pUid('p'), cat:'', type:'promo', script:'', big:'', title:'', event:'', price:0, on:true, img:'',
@@ -456,7 +483,9 @@
     if(idx!==null && (idx<0 || idx>=base.length)) idx=null;
     _peIdx=idx;
     _pe = idx===null ? peBlank() : JSON.parse(JSON.stringify(Object.assign(peBlank(), base[idx])));
-    _peOpen={};
+    _pe.useCommon = !peHasOwnFixed(_pe);   /* 비어 있으면 공통 고정 내용 사용 */
+    if(idx===null) _pe.details=[peDetailBlank()];   /* 새 상품은 가격 한 줄을 미리 */
+    _peOpen={}; _peAdv=false;
     buildProductEditor();
   }
 
@@ -593,6 +622,10 @@
     if(!_pe.big){ toast('상품명을 입력해주세요.', false); return; }
     if(!_pe.cat){ toast('카테고리를 선택해주세요.', false); return; }
     if(!_pe.title) _pe.title=_pe.big;
+    /* 이름·가격이 모두 빈 가격 줄은 저장하지 않음 */
+    _pe.details=_pe.details.filter(d=>String(d.t||'').trim() || parseInt(d.sale) || parseInt(d.price));
+    if(_pe.useCommon){ _pe.basic={time:'',anesthesia:'',daily:'',duration:''}; _pe.qna=[]; _pe.cautions=[]; }
+    delete _pe.useCommon;
     syncLegacy(_pe);
     const base=productsGet();
     if(_peIdx===null) base.push(_pe);
@@ -631,34 +664,30 @@
       return '<option value="'+peEsc(v.id)+'"'+(v.id===sel?' selected':'')+'>'+peEsc(v.name+lb)+'</option>';
     }).join('');
   }
+  /* 가격 한 줄: 이름 · 정가 · 판매가 · 공개 (⚙ 세부 설정을 누르면 그룹·기간·설명 등) */
   function peDetailHTML(dt,i){
     const open=!!_peOpen[dt.id];
     const gOpts='<option value="">그룹 없음</option>'+_pe.groups.map(g=>'<option value="'+peEsc(g.id)+'"'+(g.id===dt.gid?' selected':'')+'>'+peEsc(g.name||'(이름 없는 그룹)')+'</option>').join('');
     return '<div class="peAcc'+(open?' open':'')+'" data-pdrow="'+i+'" data-pdid="'+peEsc(dt.id)+'">'+
-      '<div class="peAccHd" draggable="true">'+
-        '<span class="peGrip"><iconify-icon icon="solar:menu-dots-bold" width="16"></iconify-icon></span>'+
-        '<button class="rteBtn peChev" onclick="peToggleDetail('+i+')" title="펼치기/접기"><iconify-icon icon="solar:alt-arrow-right-linear" width="16"></iconify-icon></button>'+
-        '<span class="peBar" style="background:'+(dt.on!==false?'var(--good)':'var(--muted)')+'"></span>'+
-        '<span class="peNoWrap">No.<input type="number" min="1" value="'+(i+1)+'" onchange="peDetailNo('+i+', this.value)" onclick="event.stopPropagation()" class="peNo"></span>'+
-        '<span class="flex-1 text-[13.5px] font-semibold truncate" onclick="peToggleDetail('+i+')" style="cursor:pointer">'+(peEsc(dt.t)||'<span style="color:var(--muted);font-weight:400">(제목 없는 상세 상품)</span>')+'</span>'+
-        '<span class="chip" style="background:'+(dt.on!==false?'var(--good-bg)':'var(--panel-soft)')+';color:'+(dt.on!==false?'var(--good)':'var(--muted)')+'">'+(dt.on!==false?'공개':'비공개')+'</span>'+
+      '<div class="peAccHd" style="cursor:default;flex-wrap:wrap">'+
+        '<span class="peGrip peDragH" draggable="true" title="끌어서 순서 변경" style="cursor:grab"><iconify-icon icon="solar:menu-dots-bold" width="16"></iconify-icon></span>'+
+        '<span class="text-[12px] font-bold w-5 text-center" style="color:var(--muted)">'+(i+1)+'</span>'+
+        '<input data-pd="t" value="'+peEsc(dt.t)+'" placeholder="예) [첫 시술 EVENT] 온다 리프팅 60kj" class="pmi" style="flex:1 1 240px;min-width:0">'+
+        '<input data-pd="price" type="number" min="0" value="'+peEsc(dt.price)+'" placeholder="정가 (선택)" class="pmi" style="width:124px">'+
+        '<input data-pd="sale" type="number" min="0" value="'+peEsc(dt.sale)+'" placeholder="판매가" class="pmi" style="width:124px;font-weight:700">'+
+        '<label class="flex items-center gap-1.5 text-[12.5px]" style="color:var(--text-soft)"><input type="checkbox" data-pd="on" '+(dt.on!==false?'checked':'')+' class="pSw"> 공개</label>'+
+        '<button class="peIco" onclick="peToggleDetail('+i+')" title="세부 설정 (그룹·기간·설명)" style="'+(open?'border-color:var(--accent);color:var(--accent-strong)':'')+'"><iconify-icon icon="solar:settings-linear" width="15"></iconify-icon></button>'+
         '<button class="peIco bad" onclick="peDeleteDetail('+i+')" title="삭제"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button>'+
       '</div>'+
       (open ? '<div class="peAccBody">'+
-        '<div class="grid sm:grid-cols-[1fr_auto_auto_auto] gap-3 items-end mt-4 mb-3">'+
-          '<div><label class="pml">상세 상품 제목 *</label><input data-pd="t" value="'+peEsc(dt.t)+'" placeholder="예) [EVENT] 온다 리프팅 10kj" class="pmi"></div>'+
-          '<div><label class="pml">중분류 그룹</label><select data-pd="gid" class="pmi" style="width:170px">'+gOpts+'</select></div>'+
-          '<div><label class="pml">권종 (사용 조건)</label><select data-pd="voucher" class="pmi" style="width:180px">'+peVoucherOpts(dt.voucher)+'</select></div>'+
-          '<label class="flex items-center gap-2 text-[12.5px] pb-2.5" style="color:var(--text-soft)"><input type="checkbox" data-pd="on" '+(dt.on!==false?'checked':'')+' class="pSw"> 공개</label>'+
-        '</div>'+
-        '<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">'+
-          '<div><label class="pml">정가 (원)</label><input data-pd="price" type="number" value="'+peEsc(dt.price)+'" placeholder="예) 55000" class="pmi"></div>'+
-          '<div><label class="pml">할인가 (원)</label><input data-pd="sale" type="number" value="'+peEsc(dt.sale)+'" placeholder="예) 45000" class="pmi"></div>'+
+        '<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4 mb-3">'+
+          '<div><label class="pml">중분류 그룹</label><select data-pd="gid" class="pmi">'+gOpts+'</select></div>'+
+          '<div><label class="pml">권종 (사용 조건)</label><select data-pd="voucher" class="pmi">'+peVoucherOpts(dt.voucher)+'</select></div>'+
           '<div><label class="pml">이용 가능</label><input data-pd="avail" value="'+peEsc(dt.avail)+'" placeholder="예) 1인 1회" class="pmi"></div>'+
           '<div><label class="pml">안내 문구</label><input data-pd="notice" value="'+peEsc(dt.notice)+'" placeholder="예) 첫 시술 한정" class="pmi"></div>'+
         '</div>'+
         '<div class="flex items-center gap-2 flex-wrap mb-4">'+
-          '<label class="pml" style="margin:0">기간</label>'+
+          '<label class="pml" style="margin:0">판매 기간</label>'+
           '<select data-pd="perType" class="pmi" style="width:110px" onchange="this.closest(\'[data-pdrow]\').querySelector(\'[data-pd-range]\').style.display=this.value===\'range\'?\'\':\'none\'">'+
             '<option value="always" '+(dt.perType!=='range'?'selected':'')+'>상시</option>'+
             '<option value="range" '+(dt.perType==='range'?'selected':'')+'>기간 설정</option>'+
@@ -668,11 +697,11 @@
             '<span style="color:var(--muted)">~</span>'+
             '<input data-pd="end" type="date" value="'+peEsc(dt.end)+'" class="pmi" style="width:auto">'+
           '</span>'+
-          '<span class="text-[11.5px]" style="color:var(--muted)">기간을 설정하면 종료일이 지난 상세 상품은 홈에서 자동으로 숨겨지고, 「기간별 이벤트」에서 모아볼 수 있습니다.</span>'+
+          '<span class="text-[11.5px]" style="color:var(--muted)">기간이 끝나면 홈페이지에서 자동으로 숨겨집니다.</span>'+
         '</div>'+
-        '<label class="pml">이 상세 상품의 설명</label>'+
+        '<label class="pml">이 가격 항목만의 설명 (선택)</label>'+
         rteBar('peBody_'+i)+
-        '<div id="peBody_'+i+'" class="rteEd" style="min-height:150px" contenteditable="true" onmouseup="rteSaveSel(\'peBody_'+i+'\')" onkeyup="rteSaveSel(\'peBody_'+i+'\')" onblur="rteSaveSel(\'peBody_'+i+'\')">'+(dt.body||'')+'</div>'+
+        '<div id="peBody_'+i+'" class="rteEd" style="min-height:120px" contenteditable="true" onmouseup="rteSaveSel(\'peBody_'+i+'\')" onkeyup="rteSaveSel(\'peBody_'+i+'\')" onblur="rteSaveSel(\'peBody_'+i+'\')">'+(dt.body||'')+'</div>'+
       '</div>' : '')+
     '</div>';
   }
@@ -695,174 +724,325 @@
     '</div>';
   }
 
-  function buildProductEditor(){
+  /* ----- 고정 내용: 공통 사용 ↔ 이 시술만 따로 ----- */
+  function peSetCommon(v){
+    peStash();
+    if(v===_pe.useCommon) return;
+    if(v){
+      if(peHasOwnFixed(_pe) && !confirm('이 시술만 따로 쓴 시술정보·Q&A·주의사항 대신 공통 고정 내용을 보여줍니다.\n(저장하면 따로 쓴 내용은 지워집니다) 계속할까요?')) return;
+    } else if(!peHasOwnFixed(_pe)){
+      const c=JSON.parse(JSON.stringify(pcGet()||PC_SEED));   /* 공통 내용을 복사해 두고 고쳐 쓰기 */
+      _pe.basic=Object.assign({time:'',anesthesia:'',daily:'',duration:''}, c.basic||{}); _pe.qna=c.qna||[]; _pe.cautions=c.cautions||[];
+    }
+    _pe.useCommon=v;
+    buildProductEditor();
+  }
+  function peLoadCommon(){
+    peStash();
+    if(peHasOwnFixed(_pe) && !confirm('지금 쓴 내용을 공통 고정 내용으로 바꿀까요?')) return;
+    const c=JSON.parse(JSON.stringify(pcGet()||PC_SEED));
+    _pe.basic=Object.assign({time:'',anesthesia:'',daily:'',duration:''}, c.basic||{}); _pe.qna=c.qna||[]; _pe.cautions=c.cautions||[];
+    buildProductEditor();
+  }
+  function peToggleAdv(){
+    _peAdv=!_peAdv;
+    const b=document.getElementById('peAdvBody'), a=document.getElementById('peAdvArrow');
+    if(b) b.style.display=_peAdv?'':'none';
+    if(a) a.style.transform='rotate('+(_peAdv?90:0)+'deg)';
+  }
+  /* 상세 이미지 여러 장 한 번에 → 상세 설명 맨 아래에 순서대로 추가 */
+  async function peAddBodyImages(input){
+    const files=Array.from(input.files||[]); input.value='';
+    if(!files.length) return;
+    if(typeof window.uploadImage!=='function'){ toast('이미지 업로드 기능을 사용할 수 없습니다. (Supabase 연결 확인)', false); return; }
+    const btn=document.getElementById('peBodyImgBtn'); const prev=btn?btn.innerHTML:''; if(btn) btn.disabled=true;
+    let ok=0;
+    for(let n=0;n<files.length;n++){
+      if(btn) btn.innerHTML='올리는 중… ('+(n+1)+'/'+files.length+')';
+      try{
+        const url=await window.uploadImage(files[n]);
+        const ed=document.getElementById('peMainBody');
+        if(ed){ ed.insertAdjacentHTML('beforeend','<p><img src="'+peEsc(url)+'" alt=""></p>'); ok++; }
+      }catch(e){ console.error(e); toast('「'+files[n].name+'」 업로드 실패: '+((e&&e.message)||e), false); }
+    }
+    if(btn){ btn.innerHTML=prev; btn.disabled=false; }
+    if(ok) toast('상세 이미지 '+ok+'장을 넣었습니다. 「저장하기」를 눌러야 반영됩니다.');
+  }
+
+  /* ----- 공통 고정 내용 편집 창 ----- */
+  let _pc=null;
+  function pcStash(){
+    if(!_pc || !document.getElementById('pcModal')) return;
+    ['time','anesthesia','daily','duration'].forEach(k=>{ const e=document.getElementById('pcBasic_'+k); if(e) _pc.basic[k]=e.value.trim(); });
+    _pc.qna=Array.from(document.querySelectorAll('#pcModal [data-pcqa]')).map(r=>({q:r.querySelector('[data-q]').value.trim(), a:r.querySelector('[data-a]').value.trim()}));
+    _pc.cautions=Array.from(document.querySelectorAll('#pcModal [data-pcc]')).map(e=>e.value.trim());
+  }
+  function pcAdd(k){ pcStash(); if(k==='qna') _pc.qna.push({q:'',a:''}); else _pc.cautions.push(''); pcRender(); }
+  function pcDel(k,i){ pcStash(); _pc[k].splice(i,1); pcRender(); }
+  function pcMove(k,i,d){ pcStash(); const j=i+d; if(j<0||j>=_pc[k].length) return; const t=_pc[k][i]; _pc[k][i]=_pc[k][j]; _pc[k][j]=t; pcRender(); }
+  function openCommonModal(){
     peCss();
-    const old=document.getElementById('view-productedit');
-    if(old) old.remove();
-    const el=makeView('productedit');
-    const anyClosed=_pe.details.some(d=>!_peOpen[d.id]);
-    const others=productsGet().filter(x=>x.id!==_pe.id);
-
-    el.innerHTML =
-      '<div class="flex items-center gap-3 mb-5 flex-wrap">'+
-        '<button onclick="peBack()" class="w-9 h-9 rounded-lg grid place-items-center" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"><iconify-icon icon="solar:arrow-left-linear" width="18"></iconify-icon></button>'+
-        '<h1 class="text-xl font-extrabold tracking-tight">시술 상품 '+(_peIdx===null?'추가':'수정')+'</h1>'+
+    _pc=JSON.parse(JSON.stringify(pcGet()||PC_SEED));
+    _pc.basic=Object.assign({time:'',anesthesia:'',daily:'',duration:''}, _pc.basic||{}); _pc.qna=_pc.qna||[]; _pc.cautions=_pc.cautions||[];
+    let m=document.getElementById('pcModal');
+    if(!m){ m=document.createElement('div'); m.id='pcModal'; m.className='fixed inset-0 z-[80] flex items-center justify-center bg-black/50 px-4'; document.body.appendChild(m); }
+    m.style.display='';
+    pcRender();
+  }
+  function closeCommonModal(){ const m=document.getElementById('pcModal'); if(m) m.remove(); _pc=null; }
+  function pcRender(){
+    const m=document.getElementById('pcModal'); if(!m) return;
+    const B=[['time','시술시간','예) 30분 이내'],['anesthesia','마취여부','예) 마취 없음'],['daily','회복기간','예) 일상생활 바로 가능'],['duration','유지기간','예) 6~12개월']];
+    const ico=(fn,icon,bad)=>'<button class="peIco'+(bad?' bad':'')+'" onclick="'+fn+'"><iconify-icon icon="'+icon+'" width="14"></iconify-icon></button>';
+    m.innerHTML='<div class="panel rounded-2xl w-full max-w-3xl max-h-[92vh] flex flex-col" style="background:var(--panel)">'+
+      '<div class="flex items-center justify-between px-6 py-4" style="border-bottom:1px solid var(--border)">'+
+        '<div><h3 class="text-[17px] font-bold">공통 고정 내용</h3><p class="text-[12.5px] mt-0.5" style="color:var(--muted)">「공통 고정 내용 사용」으로 둔 모든 시술 상세 페이지에 똑같이 들어갑니다.</p></div>'+
+        '<button onclick="closeCommonModal()" class="w-8 h-8 rounded-lg grid place-items-center" style="color:var(--muted)"><iconify-icon icon="solar:close-circle-linear" width="20"></iconify-icon></button>'+
       '</div>'+
-
-      /* --- 기본 정보 --- */
-      '<div class="panel rounded-2xl p-6 space-y-4">'+
-        '<div class="grid lg:grid-cols-[170px_1fr] gap-6">'+
-          '<div>'+
-            '<label class="pml">상품 이미지</label>'+
-            '<div id="peImgPrev" class="w-full rounded-xl overflow-hidden grid place-items-center" style="aspect-ratio:4/3;background:var(--panel-soft);border:1px solid var(--border)">'+
-              (_pe.img?'<img src="'+peEsc(_pe.img)+'" style="width:100%;height:100%;object-fit:cover;display:block" alt="">':'<iconify-icon icon="solar:gallery-linear" width="24" style="color:var(--muted)"></iconify-icon>')+
-            '</div>'+
-            '<button id="peImgBtn" onclick="document.getElementById(\'peImgFile\').click()" class="mt-2 w-full py-2 rounded-lg text-[12.5px] font-semibold btn-gold">이미지 업로드</button>'+
-            '<button onclick="peClearImg()" class="mt-1 w-full py-1.5 rounded-lg text-[11.5px]" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">이미지 제거</button>'+
-            '<input id="peImgFile" type="file" accept="image/*" class="hidden" onchange="handlePeImage(this)">'+
-          '</div>'+
-          '<div class="space-y-3">'+
-            '<div class="grid sm:grid-cols-2 gap-3">'+
-              '<div><label class="pml">상품명 *</label><input id="peBig" value="'+peEsc(_pe.big)+'" placeholder="예) 온다 리프팅" class="pmi"></div>'+
-              '<div><label class="pml">페이지 타이틀 (미입력 시 상품명 사용)</label><input id="pePageTitle" value="'+peEsc(_pe.pageTitle)+'" placeholder="예) [탄력은 더하고, 통증은 줄이고] 온다 리프팅" class="pmi"></div>'+
-            '</div>'+
-            '<div><label class="pml">설명 (상세 페이지 상단 소개)</label><textarea id="peDesc" rows="5" class="pmi" placeholder="✓ 특징을 줄바꿈으로 나열해보세요">'+peEsc(_pe.desc)+'</textarea></div>'+
-            '<div class="grid sm:grid-cols-3 gap-3">'+
-              '<div><label class="pml">카테고리 *</label><select id="peCat" class="pmi">'+('<option value="">카테고리 선택</option>'+productCats().map(c=>'<option value="'+peEsc(c)+'"'+(c===_pe.cat?' selected':'')+'>'+peEsc(c)+'</option>').join(''))+'</select></div>'+
-              '<div><label class="pml">배너 형식 (이미지 없을 때)</label><select id="peType" class="pmi">'+PRODUCT_TYPES.map(t=>'<option value="'+t.v+'"'+(t.v===(_pe.type||'promo')?' selected':'')+'>'+t.l+'</option>').join('')+'</select></div>'+
-              '<div><label class="pml">짧은 카피 (카드 상단)</label><input id="peScript" value="'+peEsc(_pe.script)+'" placeholder="예) 마이크로웨이브로 비대칭까지" class="pmi"></div>'+
-            '</div>'+
-            '<div class="grid sm:grid-cols-[1fr_auto] gap-3 items-end">'+
-              '<div><label class="pml">유튜브 링크</label><input id="peYoutube" value="'+peEsc(_pe.youtube)+'" placeholder="예) https://www.youtube.com/watch?v=..." class="pmi"></div>'+
-              '<label class="flex items-center gap-2 text-[13.5px] pb-2" style="color:var(--text-soft)"><input id="peOn" type="checkbox" '+(_pe.on!==false?'checked':'')+' class="pSw"> 홈페이지에 노출</label>'+
-            '</div>'+
-            '<input id="peTitle" type="hidden" value="'+peEsc(_pe.title)+'">'+
-          '</div>'+
+      '<div class="p-6 overflow-y-auto space-y-6">'+
+        '<div><h4 class="text-[14.5px] font-bold mb-3">시술 기본정보</h4><div class="grid sm:grid-cols-2 gap-3">'+
+          B.map(b=>'<div><label class="pml">'+b[1]+'</label><input id="pcBasic_'+b[0]+'" value="'+peEsc(_pc.basic[b[0]])+'" placeholder="'+b[2]+'" class="pmi"></div>').join('')+
+        '</div><p class="text-[11.5px] mt-2" style="color:var(--muted)">비워 둔 칸은 홈페이지에 표시되지 않습니다.</p></div>'+
+        '<div><div class="flex items-center justify-between mb-3"><h4 class="text-[14.5px] font-bold">자주 묻는 질문 (Q&amp;A)</h4>'+
+          '<button onclick="pcAdd(\'qna\')" class="px-3 h-8 rounded-lg text-[12.5px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">+ Q&amp;A 추가</button></div>'+
+          (_pc.qna.length? _pc.qna.map((x,i)=>'<div class="peCard" data-pcqa="'+i+'">'+
+            '<div class="flex gap-2 mb-2"><input data-q value="'+peEsc(x.q)+'" placeholder="질문" class="pmi font-semibold">'+ico('pcMove(\'qna\','+i+',-1)','solar:arrow-up-linear')+ico('pcMove(\'qna\','+i+',1)','solar:arrow-down-linear')+ico('pcDel(\'qna\','+i+')','solar:trash-bin-trash-linear',1)+'</div>'+
+            '<textarea data-a rows="2" placeholder="답변" class="pmi">'+peEsc(x.a)+'</textarea></div>').join('')
+            : '<p class="text-[12.5px] py-3" style="color:var(--muted)">Q&amp;A가 없습니다.</p>')+
+        '</div>'+
+        '<div><div class="flex items-center justify-between mb-3"><h4 class="text-[14.5px] font-bold">시술 후 주의사항</h4>'+
+          '<button onclick="pcAdd(\'cautions\')" class="px-3 h-8 rounded-lg text-[12.5px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">+ 항목 추가</button></div>'+
+          (_pc.cautions.length? _pc.cautions.map((v,i)=>'<div class="flex gap-2 mb-2"><input data-pcc value="'+peEsc(v)+'" placeholder="주의사항" class="pmi">'+ico('pcMove(\'cautions\','+i+',-1)','solar:arrow-up-linear')+ico('pcMove(\'cautions\','+i+',1)','solar:arrow-down-linear')+ico('pcDel(\'cautions\','+i+')','solar:trash-bin-trash-linear',1)+'</div>').join('')
+            : '<p class="text-[12.5px] py-3" style="color:var(--muted)">주의사항이 없습니다.</p>')+
         '</div>'+
       '</div>'+
+      '<div class="flex items-center justify-end gap-2 px-6 py-4" style="border-top:1px solid var(--border)">'+
+        '<button onclick="closeCommonModal()" class="px-4 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">취소</button>'+
+        '<button onclick="pcSave()" class="px-5 h-9 rounded-lg text-[13px] font-semibold btn-gold">저장 (홈 반영)</button>'+
+      '</div></div>';
+    renderIcons(m);
+  }
+  function pcSave(){
+    pcStash();
+    _pc.qna=_pc.qna.filter(x=>x.q||x.a); _pc.cautions=_pc.cautions.filter(Boolean);
+    KK.set('prodCommon', _pc);
+    closeCommonModal();
+    toast(STORAGE_OK ? '공통 고정 내용을 저장했습니다. 공통 내용을 쓰는 모든 시술에 바로 반영됩니다.' : '미리보기 환경에선 저장이 제한됩니다.', STORAGE_OK);
+    if(document.getElementById('view-productedit') && _pe){ peStash(); buildProductEditor(); }
+  }
 
-      /* --- 중분류(옵션 그룹) --- */
-      '<div class="panel rounded-2xl p-6 mt-5">'+
-        '<div class="flex items-center justify-between mb-4 flex-wrap gap-2">'+
-          '<h2 class="text-[16px] font-bold flex items-center gap-2">'+
-            '<button class="rteBtn peChev'+(_peGroupsOpen?'':'')+'" onclick="peToggleGroups()" style="transform:rotate('+(_peGroupsOpen?'90':'0')+'deg)"><iconify-icon icon="solar:alt-arrow-right-linear" width="16"></iconify-icon></button>'+
-            '중분류(옵션 그룹) ('+_pe.groups.length+')</h2>'+
-          '<span class="flex items-center gap-2">'+
-            '<button onclick="peToggleGroups()" class="px-3 h-9 rounded-lg text-[12.5px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">전체 펼치기/접기</button>'+
-            '<button onclick="peAddGroup()" class="px-4 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)">+ 그룹 추가</button>'+
-          '</span>'+
-        '</div>'+
-        (_peGroupsOpen ? (_pe.groups.length
-          ? _pe.groups.map((g,i)=>{
-              const cnt=_pe.details.filter(d=>d.gid===g.id).length;
-              return '<div class="peCard" data-pgrow="'+i+'">'+
-                '<div class="flex items-center gap-2 flex-wrap">'+
-                  '<span class="w-7 h-7 rounded-full grid place-items-center text-[12px] font-bold" style="background:var(--accent-soft);color:var(--accent-strong)">'+(i+1)+'</span>'+
-                  '<input data-pg="name" value="'+peEsc(g.name)+'" placeholder="그룹 이름 예) 얼굴 / 바디 / 패키지" class="pmi flex-1" style="min-width:200px">'+
-                  '<span class="chip" style="background:var(--accent-soft);color:var(--accent-strong)">상세 '+cnt+'개</span>'+
-                  '<label class="flex items-center gap-2 text-[12.5px]" style="color:var(--text-soft)"><input type="checkbox" data-pg="on" '+(g.on!==false?'checked':'')+' class="pSw"> 공개</label>'+
-                  '<button class="peIco" onclick="peMoveGroup('+i+',-1)"><iconify-icon icon="solar:arrow-up-linear" width="14"></iconify-icon></button>'+
-                  '<button class="peIco" onclick="peMoveGroup('+i+',1)"><iconify-icon icon="solar:arrow-down-linear" width="14"></iconify-icon></button>'+
-                  '<button class="peIco bad" onclick="peDelGroup('+i+')"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button>'+
-                '</div></div>';
-            }).join('')
-          : '<p class="text-[13px] py-4" style="color:var(--muted)">그룹이 없습니다. “그룹 추가” 버튼으로 만들어 주세요.</p>') : '')+
-      '</div>'+
-
-      /* --- 상세 상품 --- */
-      '<div class="panel rounded-2xl p-6 mt-5">'+
-        '<div class="flex items-center justify-between mb-4 flex-wrap gap-2">'+
-          '<h2 class="text-[16px] font-bold">상세 상품 ('+_pe.details.length+')</h2>'+
-          '<span class="flex items-center gap-2">'+
-            '<button onclick="peExpandAll()" class="px-3 h-9 rounded-lg text-[12.5px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">'+(anyClosed?'전체 펼치기':'전체 접기')+'</button>'+
-            '<button onclick="peAddDetail()" class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold">상세 상품 추가</button>'+
-          '</span>'+
-        '</div>'+
-        '<div id="peDetails">'+(_pe.details.length ? _pe.details.map(peDetailHTML).join('') : '<p class="text-center py-10 text-[13px]" style="color:var(--muted)">상세 상품이 없습니다. 「상세 상품 추가」로 가격 항목을 등록하세요.<br>첫 번째 공개 상세 상품이 카테고리 카드의 대표 이벤트·가격으로 표시됩니다.</p>')+'</div>'+
-      '</div>'+
-
-      /* --- 상세 설명(본문) --- */
-      '<div class="panel rounded-2xl p-6 mt-5">'+
-        '<h2 class="text-[16px] font-bold mb-3">상세 설명</h2>'+
-        rteBar('peMainBody')+
-        '<div id="peMainBody" class="rteEd" contenteditable="true" onmouseup="rteSaveSel(\'peMainBody\')" onkeyup="rteSaveSel(\'peMainBody\')" onblur="rteSaveSel(\'peMainBody\')">'+(_pe.body||'')+'</div>'+
-      '</div>'+
-
-      /* --- 시술 과정 --- */
-      '<div class="panel rounded-2xl p-6 mt-5" id="peList_steps">'+
-        '<div class="flex items-center justify-between mb-4"><h2 class="text-[16px] font-bold">시술 과정</h2>'+
-        '<button onclick="peListAdd(\'steps\')" class="px-4 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)">+ 단계 추가</button></div>'+
-        '<input id="peStepsTitle" value="'+peEsc(_pe.stepsTitle)+'" placeholder="과정 제목 예) 시술 진행 단계" class="pmi mb-3" style="max-width:340px">'+
-        (_pe.steps.length ? _pe.steps.map((v,i)=>
-          '<div class="flex items-center gap-2 mb-2">'+
-            '<span class="shrink-0 text-[11px] font-bold px-2 py-1 rounded" style="background:var(--accent-soft);color:var(--accent-strong)">STEP '+(i+1)+'</span>'+
-            '<input data-pl="steps" value="'+peEsc(v)+'" placeholder="예) 개인별 세안 진행" class="pmi flex-1">'+
-            '<button class="peIco" onclick="peListMove(\'steps\','+i+',-1)"><iconify-icon icon="solar:arrow-up-linear" width="14"></iconify-icon></button>'+
-            '<button class="peIco" onclick="peListMove(\'steps\','+i+',1)"><iconify-icon icon="solar:arrow-down-linear" width="14"></iconify-icon></button>'+
-            '<button class="peIco bad" onclick="peListDel(\'steps\','+i+')"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button>'+
-          '</div>').join('') : '<p class="text-center py-6 text-[12.5px]" style="color:var(--muted)">단계가 없습니다.</p>')+
-      '</div>'+
-
-      /* --- 시술 기본정보 --- */
-      '<div class="panel rounded-2xl p-6 mt-5"><h2 class="text-[16px] font-bold mb-4">시술 기본정보</h2>'+
+  function peFixedHTML(){
+    const tab=(v,label,sub)=>'<button onclick="peSetCommon('+v+')" class="flex-1 text-left rounded-xl px-4 py-3" style="border:1.5px solid '+(_pe.useCommon===v?'var(--accent)':'var(--border)')+';background:'+(_pe.useCommon===v?'var(--accent-soft)':'var(--panel)')+'">'+
+      '<span class="block text-[13.5px] font-bold" style="color:'+(_pe.useCommon===v?'var(--accent-strong)':'var(--text)')+'">'+(_pe.useCommon===v?'● ':'○ ')+label+'</span>'+
+      '<span class="block text-[12px] mt-0.5" style="color:var(--muted)">'+sub+'</span></button>';
+    let body='';
+    if(_pe.useCommon){
+      const c=pcGet();
+      if(!c) body='<div class="rounded-xl p-5 text-center" style="background:var(--panel-soft);border:1px dashed var(--border)">'+
+          '<p class="text-[13.5px] font-semibold">아직 공통 고정 내용이 없습니다.</p>'+
+          '<p class="text-[12.5px] mt-1" style="color:var(--muted)">한 번만 만들어 두면 모든 시술에 똑같이 들어갑니다. 예시 문구가 미리 채워져 있어요.</p>'+
+          '<button onclick="openCommonModal()" class="mt-3 px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold">공통 고정 내용 만들기</button></div>';
+      else{
+        const b=c.basic||{};
+        const bi=[['시술시간',b.time],['마취여부',b.anesthesia],['회복기간',b.daily],['유지기간',b.duration]].filter(x=>x[1]);
+        body='<div class="rounded-xl p-5 text-[13px]" style="background:var(--panel-soft);border:1px solid var(--border)">'+
+          (bi.length?'<div class="flex flex-wrap gap-2 mb-3">'+bi.map(x=>'<span class="chip" style="background:var(--panel);border:1px solid var(--border)"><b>'+x[0]+'</b>&nbsp;'+peEsc(x[1])+'</span>').join('')+'</div>':'')+
+          '<p class="font-semibold mb-1">Q&amp;A '+(c.qna||[]).length+'개</p>'+
+          '<ul class="mb-3" style="color:var(--text-soft)">'+(c.qna||[]).slice(0,3).map(x=>'<li class="truncate">Q. '+peEsc(x.q)+'</li>').join('')+((c.qna||[]).length>3?'<li style="color:var(--muted)">…</li>':'')+'</ul>'+
+          '<p class="font-semibold">주의사항 '+(c.cautions||[]).length+'개</p>'+
+          '<div class="flex justify-end mt-3"><button onclick="openCommonModal()" class="px-4 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)">공통 고정 내용 편집</button></div>'+
+        '</div>';
+      }
+    } else {
+      body='<div class="flex justify-end mb-1"><button onclick="peLoadCommon()" class="px-3 h-8 rounded-lg text-[12.5px] font-semibold" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">공통 내용 불러와서 고치기</button></div>'+
+        '<h3 class="text-[14.5px] font-bold mb-3">시술 기본정보</h3>'+
         '<div class="grid sm:grid-cols-2 gap-3">'+
           '<div><label class="pml">시술시간</label><input id="peBasic_time" value="'+peEsc(_pe.basic.time)+'" placeholder="예) 30분 이내" class="pmi"></div>'+
           '<div><label class="pml">마취여부</label><input id="peBasic_anesthesia" value="'+peEsc(_pe.basic.anesthesia)+'" placeholder="예) 마취 없음" class="pmi"></div>'+
           '<div><label class="pml">회복기간</label><input id="peBasic_daily" value="'+peEsc(_pe.basic.daily)+'" placeholder="예) 일상생활 바로 가능" class="pmi"></div>'+
           '<div><label class="pml">유지기간</label><input id="peBasic_duration" value="'+peEsc(_pe.basic.duration)+'" placeholder="예) 6~12개월" class="pmi"></div>'+
-        '</div></div>'+
+        '</div>'+
+        '<div id="peList_qna" class="mt-6">'+
+          '<div class="flex items-center justify-between mb-3"><h3 class="text-[14.5px] font-bold">Q&amp;A</h3>'+
+          '<button onclick="peListAdd(\'qna\')" class="px-3 h-8 rounded-lg text-[12.5px] font-semibold" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)">+ Q&amp;A 추가</button></div>'+
+          (_pe.qna.length ? _pe.qna.map((v,i)=>
+            '<div data-pqa="'+i+'" class="peCard">'+
+              '<div class="flex gap-2 mb-2"><input data-pq value="'+peEsc(v.q)+'" placeholder="질문" class="pmi font-semibold">'+
+                '<button class="peIco" onclick="peListMove(\'qna\','+i+',-1)"><iconify-icon icon="solar:arrow-up-linear" width="14"></iconify-icon></button>'+
+                '<button class="peIco" onclick="peListMove(\'qna\','+i+',1)"><iconify-icon icon="solar:arrow-down-linear" width="14"></iconify-icon></button>'+
+                '<button class="peIco bad" onclick="peListDel(\'qna\','+i+')"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button></div>'+
+              '<textarea data-pa rows="2" placeholder="답변" class="pmi w-full">'+peEsc(v.a)+'</textarea>'+
+            '</div>').join('') : '<p class="text-center py-4 text-[12.5px]" style="color:var(--muted)">Q&amp;A가 없습니다.</p>')+
+        '</div>'+
+        '<div id="peList_cautions" class="mt-6">'+
+          '<div class="flex items-center justify-between mb-3"><h3 class="text-[14.5px] font-bold">시술 후 주의사항</h3>'+
+          '<button onclick="peListAdd(\'cautions\')" class="px-3 h-8 rounded-lg text-[12.5px] font-semibold" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)">+ 항목 추가</button></div>'+
+          (_pe.cautions.length ? _pe.cautions.map((v,i)=>
+            '<div class="flex gap-2 mb-2"><input data-pl="cautions" value="'+peEsc(v)+'" placeholder="주의사항" class="pmi">'+
+              '<button class="peIco" onclick="peListMove(\'cautions\','+i+',-1)"><iconify-icon icon="solar:arrow-up-linear" width="14"></iconify-icon></button>'+
+              '<button class="peIco" onclick="peListMove(\'cautions\','+i+',1)"><iconify-icon icon="solar:arrow-down-linear" width="14"></iconify-icon></button>'+
+              '<button class="peIco bad" onclick="peListDel(\'cautions\','+i+')"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button></div>').join('')
+            : '<p class="text-center py-4 text-[12.5px]" style="color:var(--muted)">주의사항이 없습니다.</p>')+
+        '</div>';
+    }
+    return '<div class="panel rounded-2xl p-6 mt-5">'+
+      '<h2 class="text-[16px] font-bold">④ 시술 기본정보 · Q&amp;A · 주의사항</h2>'+
+      '<p class="text-[12.5px] mt-1 mb-4" style="color:var(--muted)">대부분 시술에 똑같이 들어가는 고정 내용입니다. 공통으로 두면 매번 쓸 필요가 없어요.</p>'+
+      '<div class="flex flex-col sm:flex-row gap-2 mb-4">'+
+        tab(true,'공통 고정 내용 사용 (추천)','한 번 만들어 둔 내용이 자동으로 들어갑니다')+
+        tab(false,'이 시술만 따로 작성','이 시술에만 다른 내용을 보여줍니다')+
+      '</div>'+body+'</div>';
+  }
 
-      /* --- 추천 대상 --- */
-      peStrListHTML('points','추천 대상','항목 추가','예) 깊어진 팔자주름과 함께 얼굴의 처짐이 느껴지는 분에게 권장됩니다.','POINT')+
+  function buildProductEditor(){
+    peCss();
+    const old=document.getElementById('view-productedit');
+    if(old) old.remove();
+    const el=makeView('productedit');
+    const others=productsGet().filter(x=>x.id!==_pe.id);
+    const btnSoft='style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)"';
 
-      /* --- Q&A --- */
-      '<div class="panel rounded-2xl p-6 mt-5" id="peList_qna">'+
-        '<div class="flex items-center justify-between mb-4"><h2 class="text-[16px] font-bold">Q&amp;A</h2>'+
-        '<button onclick="peListAdd(\'qna\')" class="px-4 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)">+ Q&amp;A 추가</button></div>'+
-        (_pe.qna.length ? _pe.qna.map((v,i)=>
-          '<div data-pqa="'+i+'" class="peCard">'+
-            '<input data-pq value="'+peEsc(v.q)+'" placeholder="질문" class="pmi font-semibold mb-2">'+
-            '<textarea data-pa rows="2" placeholder="답변" class="pmi w-full">'+peEsc(v.a)+'</textarea>'+
-            '<div class="flex items-center gap-2 mt-2">'+
-              '<button class="peIco" onclick="peListMove(\'qna\','+i+',-1)"><iconify-icon icon="solar:arrow-up-linear" width="14"></iconify-icon></button>'+
-              '<button class="peIco" onclick="peListMove(\'qna\','+i+',1)"><iconify-icon icon="solar:arrow-down-linear" width="14"></iconify-icon></button>'+
-              '<button class="peIco bad ml-auto" onclick="peListDel(\'qna\','+i+')"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button>'+
+    el.innerHTML =
+      '<div class="flex items-center gap-3 mb-3 flex-wrap">'+
+        '<button onclick="peBack()" class="w-9 h-9 rounded-lg grid place-items-center" '+btnSoft+'><iconify-icon icon="solar:arrow-left-linear" width="18"></iconify-icon></button>'+
+        '<h1 class="text-xl font-extrabold tracking-tight">시술 상품 '+(_peIdx===null?'추가':'수정')+'</h1>'+
+      '</div>'+
+      '<p class="text-[13px] mb-5" style="color:var(--muted)">블로그 글 쓰듯 위에서부터 채우고 맨 아래 <b style="color:var(--text)">저장하기</b>를 누르면 홈페이지 「시술메뉴」에 바로 반영됩니다. <b style="color:var(--text)">*</b> 표시만 꼭 채우면 돼요.</p>'+
+
+      /* --- ① 기본 정보 --- */
+      '<div class="panel rounded-2xl p-6">'+
+        '<h2 class="text-[16px] font-bold mb-4">① 대표 사진 · 이름</h2>'+
+        '<div class="grid lg:grid-cols-[180px_1fr] gap-6">'+
+          '<div>'+
+            '<div id="peImgPrev" class="w-full rounded-xl overflow-hidden grid place-items-center cursor-pointer" onclick="document.getElementById(\'peImgFile\').click()" style="aspect-ratio:1/1;background:var(--panel-soft);border:1px dashed var(--border)">'+
+              (_pe.img?'<img src="'+peEsc(_pe.img)+'" style="width:100%;height:100%;object-fit:cover;display:block" alt="">':'<div class="text-center"><iconify-icon icon="solar:gallery-linear" width="26" style="color:var(--muted)"></iconify-icon><p class="text-[11.5px] mt-1" style="color:var(--muted)">눌러서 사진 올리기<br>정사각형 권장</p></div>')+
             '</div>'+
-          '</div>').join('') : '<p class="text-center py-6 text-[12.5px]" style="color:var(--muted)">Q&amp;A가 없습니다.</p>')+
+            '<button id="peImgBtn" onclick="document.getElementById(\'peImgFile\').click()" class="mt-2 w-full py-2 rounded-lg text-[12.5px] font-semibold btn-gold">'+(_pe.img?'사진 바꾸기':'대표 사진 올리기')+'</button>'+
+            (_pe.img?'<button onclick="peClearImg()" class="mt-1 w-full py-1.5 rounded-lg text-[11.5px]" style="background:var(--panel-soft);border:1px solid var(--border);color:var(--text-soft)">사진 빼기</button>':'')+
+            '<input id="peImgFile" type="file" accept="image/*" class="hidden" onchange="handlePeImage(this)">'+
+          '</div>'+
+          '<div class="space-y-3">'+
+            '<div class="grid sm:grid-cols-[1fr_220px] gap-3">'+
+              '<div><label class="pml">시술 이름 *</label><input id="peBig" value="'+peEsc(_pe.big)+'" placeholder="예) 온다 리프팅" class="pmi"></div>'+
+              '<div><label class="pml">카테고리 *</label><select id="peCat" class="pmi">'+('<option value="">카테고리 선택</option>'+productCats().map(c=>'<option value="'+peEsc(c)+'"'+(c===_pe.cat?' selected':'')+'>'+peEsc(c)+'</option>').join(''))+'</select></div>'+
+            '</div>'+
+            '<div><label class="pml">짧은 소개 (상세 페이지 맨 위)</label><textarea id="peDesc" rows="5" class="pmi" placeholder="예) 극초단파 에너지로 피부 깊은 층에 열을 전달해 탄력 개선을 돕습니다.&#10;*VAT 별도">'+peEsc(_pe.desc)+'</textarea></div>'+
+            '<label class="inline-flex items-center gap-2 text-[13.5px]" style="color:var(--text-soft)"><input id="peOn" type="checkbox" '+(_pe.on!==false?'checked':'')+' class="pSw"> 홈페이지에 공개</label>'+
+            '<input id="peTitle" type="hidden" value="'+peEsc(_pe.title)+'">'+
+          '</div>'+
+        '</div>'+
       '</div>'+
 
-      /* --- 주의사항 --- */
-      peStrListHTML('cautions','주의사항','항목 추가','예) 시술 후 약 일주일간은 음주나 흡연을 삼가고, 사우나나 격렬한 운동은 자제하는 것이 바람직합니다.','항목')+
+      /* --- ② 가격 --- */
+      '<div class="panel rounded-2xl p-6 mt-5">'+
+        '<div class="flex items-center justify-between mb-1 flex-wrap gap-2">'+
+          '<h2 class="text-[16px] font-bold">② 가격 ('+_pe.details.length+')</h2>'+
+          '<button onclick="peAddDetail()" class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold">+ 가격 추가</button>'+
+        '</div>'+
+        '<p class="text-[12.5px] mb-4" style="color:var(--muted)">한 줄 = 홈페이지 상세 페이지의 가격 한 칸. 판매가만 쓰면 되고, 정가를 쓰면 할인율이 자동으로 표시됩니다. 첫 줄이 목록 카드의 대표 가격이 돼요.</p>'+
+        '<div id="peDetails">'+(_pe.details.length ? _pe.details.map(peDetailHTML).join('') : '<p class="text-center py-8 text-[13px]" style="color:var(--muted)">가격이 없습니다. 「+ 가격 추가」를 눌러주세요.</p>')+'</div>'+
+      '</div>'+
 
-      /* --- 추천 시술 --- */
-      '<div class="panel rounded-2xl p-6 mt-5" id="peList_recs">'+
-        '<div class="flex items-center justify-between mb-4 flex-wrap gap-2"><h2 class="text-[16px] font-bold">추천 시술</h2>'+
-        '<span class="flex items-center gap-2">'+
-          '<select id="peRecSel" class="pmi" style="width:230px">'+others.map(x=>'<option value="'+peEsc(x.id)+'">'+peEsc(x.big||x.title||'(제목 없음)')+'</option>').join('')+'</select>'+
-          '<button onclick="peAddRec()" class="px-4 h-9 rounded-lg text-[13px] font-semibold" style="background:var(--panel);border:1px solid var(--border);color:var(--text-soft)">+ 추천 시술 추가</button>'+
-        '</span></div>'+
-        (_pe.recs.length
-          ? '<div class="grid gap-3" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr))">'+_pe.recs.map((r,i)=>{
-              const src=r.id?productById(r.id):null;
-              const nm=(src&&(src.big||src.title))||r.name||'(삭제된 상품)';
-              const im=src&&src.img
-                ? '<img src="'+peEsc(src.img)+'" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:9px;border:1px solid var(--border);flex:0 0 auto">'
-                : '<div style="width:44px;height:44px;border-radius:9px;border:1px solid var(--border);background:var(--panel);flex:0 0 auto" class="grid place-items-center"><iconify-icon icon="solar:gallery-linear" width="15" style="color:var(--muted)"></iconify-icon></div>';
-              return '<div class="peRecCard" data-prec="'+i+'">'+
-                '<div class="flex items-center gap-2.5 mb-2">'+im+
-                  '<div class="min-w-0 flex-1">'+
-                    '<p class="text-[13px] font-bold truncate">'+peEsc(nm)+'</p>'+
-                    '<p class="text-[11px] truncate" style="color:var(--muted)">ID: '+peEsc(r.id||'-')+(src?'':' · 연결 끊김')+'</p>'+
-                  '</div>'+
-                  '<button class="peIco" onclick="peMoveRec('+i+',-1)"><iconify-icon icon="solar:arrow-up-linear" width="14"></iconify-icon></button>'+
-                  '<button class="peIco" onclick="peMoveRec('+i+',1)"><iconify-icon icon="solar:arrow-down-linear" width="14"></iconify-icon></button>'+
-                  '<button class="peIco bad" onclick="peDelRec('+i+')"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button>'+
-                '</div>'+
-                '<label class="pml">안내 문구 (선택)</label>'+
-                '<textarea data-precnote rows="2" placeholder="예) 온다로 잡은 매끄러운 윤곽 위로 한 번 더 확실하게" class="pmi">'+peEsc(r.note)+'</textarea>'+
-              '</div>';
-            }).join('')+'</div>'
-          : '<p class="text-[12.5px]" style="color:var(--muted)">선택된 추천 시술이 없습니다. 상품 상세 페이지 하단에 연결 카드로 표시됩니다.</p>')+
+      /* --- ③ 상세 설명 --- */
+      '<div class="panel rounded-2xl p-6 mt-5">'+
+        '<div class="flex items-center justify-between mb-1 flex-wrap gap-2">'+
+          '<h2 class="text-[16px] font-bold">③ 상세 설명 (이미지·글)</h2>'+
+          '<button id="peBodyImgBtn" onclick="document.getElementById(\'peBodyImgFile\').click()" class="px-4 h-9 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 상세 이미지 올리기 (여러 장 가능)</button>'+
+          '<input id="peBodyImgFile" type="file" accept="image/*" multiple class="hidden" onchange="peAddBodyImages(this)">'+
+        '</div>'+
+        '<p class="text-[12.5px] mb-3" style="color:var(--muted)">상세페이지 이미지를 한 번에 여러 장 고르면 고른 순서대로 아래에 붙습니다. 글도 블로그처럼 자유롭게 쓸 수 있어요. (지우려면 이미지를 누르고 Delete)</p>'+
+        rteBar('peMainBody')+
+        '<div id="peMainBody" class="rteEd" contenteditable="true" onmouseup="rteSaveSel(\'peMainBody\')" onkeyup="rteSaveSel(\'peMainBody\')" onblur="rteSaveSel(\'peMainBody\')">'+(_pe.body||'')+'</div>'+
+      '</div>'+
+
+      /* --- ④ 고정 내용 --- */
+      peFixedHTML()+
+
+      /* --- 고급 설정 (선택) --- */
+      '<div class="panel rounded-2xl mt-5 overflow-hidden">'+
+        '<button onclick="peToggleAdv()" class="w-full flex items-center gap-2 px-6 py-4 text-left">'+
+          '<span id="peAdvArrow" style="display:inline-flex;transition:transform .2s;transform:rotate('+(_peAdv?90:0)+'deg);color:var(--muted)"><iconify-icon icon="solar:alt-arrow-right-linear" width="16"></iconify-icon></span>'+
+          '<span class="text-[15px] font-bold">고급 설정 (선택)</span>'+
+          '<span class="text-[12.5px]" style="color:var(--muted)">페이지 제목 · 유튜브 · 옵션 그룹 · 시술 과정 · 추천 대상 · 추천 시술</span>'+
+        '</button>'+
+        '<div id="peAdvBody" class="px-6 pb-6" style="'+(_peAdv?'':'display:none')+'">'+
+          '<div class="grid sm:grid-cols-2 gap-3">'+
+            '<div><label class="pml">페이지 타이틀 (비우면 시술 이름)</label><input id="pePageTitle" value="'+peEsc(_pe.pageTitle)+'" placeholder="예) [탄력은 더하고, 통증은 줄이고] 온다 리프팅" class="pmi"></div>'+
+            '<div><label class="pml">유튜브 링크</label><input id="peYoutube" value="'+peEsc(_pe.youtube)+'" placeholder="예) https://www.youtube.com/watch?v=..." class="pmi"></div>'+
+            '<div><label class="pml">짧은 카피 (카드 상단)</label><input id="peScript" value="'+peEsc(_pe.script)+'" placeholder="예) 마이크로웨이브로 비대칭까지" class="pmi"></div>'+
+            '<div><label class="pml">배너 형식 (사진 없을 때)</label><select id="peType" class="pmi">'+PRODUCT_TYPES.map(t=>'<option value="'+t.v+'"'+(t.v===(_pe.type||'promo')?' selected':'')+'>'+t.l+'</option>').join('')+'</select></div>'+
+          '</div>'+
+
+          /* 중분류(옵션 그룹) */
+          '<div class="panel rounded-2xl p-6 mt-5">'+
+            '<div class="flex items-center justify-between mb-2 flex-wrap gap-2">'+
+              '<h2 class="text-[15px] font-bold">옵션 그룹 ('+_pe.groups.length+')</h2>'+
+              '<button onclick="peAddGroup()" class="px-4 h-9 rounded-lg text-[13px] font-semibold" '+btnSoft+'>+ 그룹 추가</button>'+
+            '</div>'+
+            '<p class="text-[12px] mb-3" style="color:var(--muted)">가격이 많을 때 「얼굴 / 바디」처럼 묶는 용도입니다. 가격 줄의 ⚙에서 그룹을 고릅니다.</p>'+
+            (_pe.groups.length
+              ? _pe.groups.map((g,i)=>{
+                  const cnt=_pe.details.filter(d=>d.gid===g.id).length;
+                  return '<div class="peCard" data-pgrow="'+i+'">'+
+                    '<div class="flex items-center gap-2 flex-wrap">'+
+                      '<span class="w-7 h-7 rounded-full grid place-items-center text-[12px] font-bold" style="background:var(--accent-soft);color:var(--accent-strong)">'+(i+1)+'</span>'+
+                      '<input data-pg="name" value="'+peEsc(g.name)+'" placeholder="그룹 이름 예) 얼굴 / 바디 / 패키지" class="pmi flex-1" style="min-width:200px">'+
+                      '<span class="chip" style="background:var(--accent-soft);color:var(--accent-strong)">가격 '+cnt+'개</span>'+
+                      '<label class="flex items-center gap-2 text-[12.5px]" style="color:var(--text-soft)"><input type="checkbox" data-pg="on" '+(g.on!==false?'checked':'')+' class="pSw"> 공개</label>'+
+                      '<button class="peIco" onclick="peMoveGroup('+i+',-1)"><iconify-icon icon="solar:arrow-up-linear" width="14"></iconify-icon></button>'+
+                      '<button class="peIco" onclick="peMoveGroup('+i+',1)"><iconify-icon icon="solar:arrow-down-linear" width="14"></iconify-icon></button>'+
+                      '<button class="peIco bad" onclick="peDelGroup('+i+')"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button>'+
+                    '</div></div>';
+                }).join('')
+              : '<p class="text-[12.5px]" style="color:var(--muted)">그룹이 없습니다. (없어도 됩니다)</p>')+
+          '</div>'+
+
+          /* 시술 과정 */
+          '<div class="panel rounded-2xl p-6 mt-5" id="peList_steps">'+
+            '<div class="flex items-center justify-between mb-4"><h2 class="text-[15px] font-bold">시술 과정</h2>'+
+            '<button onclick="peListAdd(\'steps\')" class="px-4 h-9 rounded-lg text-[13px] font-semibold" '+btnSoft+'>+ 단계 추가</button></div>'+
+            '<input id="peStepsTitle" value="'+peEsc(_pe.stepsTitle)+'" placeholder="과정 제목 예) 시술 진행 단계" class="pmi mb-3" style="max-width:340px">'+
+            (_pe.steps.length ? _pe.steps.map((v,i)=>
+              '<div class="flex items-center gap-2 mb-2">'+
+                '<span class="shrink-0 text-[11px] font-bold px-2 py-1 rounded" style="background:var(--accent-soft);color:var(--accent-strong)">STEP '+(i+1)+'</span>'+
+                '<input data-pl="steps" value="'+peEsc(v)+'" placeholder="예) 개인별 세안 진행" class="pmi flex-1">'+
+                '<button class="peIco" onclick="peListMove(\'steps\','+i+',-1)"><iconify-icon icon="solar:arrow-up-linear" width="14"></iconify-icon></button>'+
+                '<button class="peIco" onclick="peListMove(\'steps\','+i+',1)"><iconify-icon icon="solar:arrow-down-linear" width="14"></iconify-icon></button>'+
+                '<button class="peIco bad" onclick="peListDel(\'steps\','+i+')"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button>'+
+              '</div>').join('') : '<p class="text-center py-4 text-[12.5px]" style="color:var(--muted)">단계가 없습니다.</p>')+
+          '</div>'+
+
+          /* 추천 대상 */
+          peStrListHTML('points','추천 대상','항목 추가','예) 깊어진 팔자주름과 함께 얼굴의 처짐이 느껴지는 분에게 권장됩니다.','POINT')+
+
+          /* 추천 시술 */
+          '<div class="panel rounded-2xl p-6 mt-5" id="peList_recs">'+
+            '<div class="flex items-center justify-between mb-4 flex-wrap gap-2"><h2 class="text-[15px] font-bold">추천 시술</h2>'+
+            '<span class="flex items-center gap-2">'+
+              '<select id="peRecSel" class="pmi" style="width:230px">'+others.map(x=>'<option value="'+peEsc(x.id)+'">'+peEsc(x.big||x.title||'(제목 없음)')+'</option>').join('')+'</select>'+
+              '<button onclick="peAddRec()" class="px-4 h-9 rounded-lg text-[13px] font-semibold" '+btnSoft+'>+ 추천 시술 추가</button>'+
+            '</span></div>'+
+            (_pe.recs.length
+              ? '<div class="grid gap-3" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr))">'+_pe.recs.map((r,i)=>{
+                  const src=r.id?productById(r.id):null;
+                  const nm=(src&&(src.big||src.title))||r.name||'(삭제된 상품)';
+                  const im=src&&src.img
+                    ? '<img src="'+peEsc(src.img)+'" alt="" style="width:44px;height:44px;object-fit:cover;border-radius:9px;border:1px solid var(--border);flex:0 0 auto">'
+                    : '<div style="width:44px;height:44px;border-radius:9px;border:1px solid var(--border);background:var(--panel);flex:0 0 auto" class="grid place-items-center"><iconify-icon icon="solar:gallery-linear" width="15" style="color:var(--muted)"></iconify-icon></div>';
+                  return '<div class="peRecCard" data-prec="'+i+'">'+
+                    '<div class="flex items-center gap-2.5 mb-2">'+im+
+                      '<div class="min-w-0 flex-1"><p class="text-[13px] font-bold truncate">'+peEsc(nm)+'</p>'+(src?'':'<p class="text-[11px]" style="color:var(--bad)">연결 끊김</p>')+'</div>'+
+                      '<button class="peIco" onclick="peMoveRec('+i+',-1)"><iconify-icon icon="solar:arrow-up-linear" width="14"></iconify-icon></button>'+
+                      '<button class="peIco" onclick="peMoveRec('+i+',1)"><iconify-icon icon="solar:arrow-down-linear" width="14"></iconify-icon></button>'+
+                      '<button class="peIco bad" onclick="peDelRec('+i+')"><iconify-icon icon="solar:trash-bin-trash-linear" width="14"></iconify-icon></button>'+
+                    '</div>'+
+                    '<label class="pml">안내 문구 (선택)</label>'+
+                    '<textarea data-precnote rows="2" placeholder="예) 온다로 잡은 윤곽 위로 한 번 더 확실하게" class="pmi">'+peEsc(r.note)+'</textarea>'+
+                  '</div>';
+                }).join('')+'</div>'
+              : '<p class="text-[12.5px]" style="color:var(--muted)">선택된 추천 시술이 없습니다. 상세 페이지 아래쪽에 연결 카드로 보여집니다.</p>')+
+          '</div>'+
+        '</div>'+
       '</div>'+
 
       /* --- 하단 고정 저장바 --- */
@@ -871,21 +1051,21 @@
         '<button onclick="peSave()" class="px-6 h-10 rounded-lg text-[13px] font-semibold btn-gold flex items-center gap-1.5"><iconify-icon icon="solar:upload-minimalistic-linear" width="15"></iconify-icon> 저장하기</button>'+
       '</div>';
 
-    /* 상세 상품 드래그 정렬 */
+    /* 가격 줄 드래그 정렬 (왼쪽 ⋮ 손잡이로만 — 입력칸 글자 선택과 겹치지 않게) */
     const box=document.getElementById('peDetails');
     if(box){
       let src=null;
-      box.querySelectorAll('.peAccHd[draggable="true"]').forEach(hd=>{
-        hd.addEventListener('dragstart', e=>{ src=hd.parentElement; hd.parentElement.classList.add('peDrag'); try{ e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain',''); }catch(err){} });
-        hd.addEventListener('dragend', ()=>{ if(src) src.classList.remove('peDrag'); box.querySelectorAll('.peOver').forEach(x=>x.classList.remove('peOver')); });
-        hd.addEventListener('dragover', e=>{ e.preventDefault(); if(hd.parentElement!==src) hd.classList.add('peOver'); });
+      box.querySelectorAll('.peDragH').forEach(h=>{
+        const row=h.closest('[data-pdrow]'), hd=row.querySelector('.peAccHd');
+        h.addEventListener('dragstart', e=>{ src=row; row.classList.add('peDrag'); try{ e.dataTransfer.effectAllowed='move'; e.dataTransfer.setData('text/plain',''); }catch(err){} });
+        h.addEventListener('dragend', ()=>{ if(src) src.classList.remove('peDrag'); box.querySelectorAll('.peOver').forEach(x=>x.classList.remove('peOver')); });
+        hd.addEventListener('dragover', e=>{ if(!src) return; e.preventDefault(); if(row!==src) hd.classList.add('peOver'); });
         hd.addEventListener('dragleave', ()=>hd.classList.remove('peOver'));
         hd.addEventListener('drop', e=>{
           e.preventDefault(); hd.classList.remove('peOver');
-          const tgt=hd.parentElement;
-          if(!src || src===tgt) return;
-          const from=parseInt(src.dataset.pdrow), to=parseInt(tgt.dataset.pdrow);
-          peStash();
+          if(!src || src===row) return;
+          const from=parseInt(src.dataset.pdrow), to=parseInt(row.dataset.pdrow);
+          src=null; peStash();
           const t=_pe.details.splice(from,1)[0]; _pe.details.splice(to,0,t);
           buildProductEditor();
         });
