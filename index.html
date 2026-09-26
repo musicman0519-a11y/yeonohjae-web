@@ -260,7 +260,7 @@
   <header id="hdr" class="hidden lg:block fixed top-0 left-0 right-0 z-40 transition-all duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 flex flex-col items-center gap-10">
       <a href="#home" onclick="showView('home');return false" class="flex items-center gap-3" aria-label="연오재한의원 홈">
-        <span class="marcellus text-[26px] tracking-[0.3em] text-pinkstrong leading-none text-center">XXI<span class="block krhead text-[12px] tracking-[0.2em] text-ink/75 mt-2 whitespace-nowrap" style="font-weight:500">연오재한의원</span><span class="block krhead text-[8px] tracking-[0.28em] text-pink/70 mt-1 whitespace-nowrap">PREMIUM MEDICAL SKIN NETWORK</span></span>
+        <span class="marcellus text-[26px] tracking-[0.3em] text-pinkstrong leading-none text-center">XXI<span class="block krhead text-[12px] tracking-[0.2em] text-ink/75 mt-2 whitespace-nowrap" style="font-weight:500">연오재한의원</span></span>
       </a>
       <nav class="krhead flex flex-wrap justify-center items-center gap-6 lg:gap-12 text-[15px] text-ink/75" style="font-weight:400">
         <a href="#category" data-key="menu" onclick="showView('category');return false" class="navlink hover:text-pinkstrong transition">시술메뉴/이벤트</a>
@@ -432,7 +432,7 @@
       <div class="text-center max-w-md">
         <div class="flex items-center justify-center gap-3 mb-12">
           <span class="marcellus text-4xl tracking-[0.3em] text-pinkstrong leading-none">XXI</span>
-          <span class="krhead text-[9px] tracking-[0.28em] text-pink/70 leading-tight text-left border-l border-pink/30 pl-3">PREMIUM MEDICAL<span class="block mt-0.5">SKIN NETWORK</span></span>
+          <span class="krhead text-[13px] text-ink/75 leading-tight text-left border-l border-pink/30 pl-3" style="font-weight:500">연오재한의원</span>
         </div>
         <div id="aboutBody">
         <p class="krhead text-ink/70 leading-loose break-keep text-lg" style="font-weight:300">피부는 기억합니다,<br>얼마나 섬세하게 다뤄졌는지를.</p>
@@ -890,17 +890,8 @@
     </section>
   </main>
 
-  <!-- ===== 지점 안내 (network) ===== -->
-  <main id="view-network" class="hidden">
-    <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-28">
-      <div class="text-center mb-16">
-        <h1 class="serif text-4xl sm:text-5xl tracking-[0.04em] text-ink/90">our network</h1>
-        <div class="flex items-center justify-center gap-3 my-3"><span class="h-px w-14 bg-ink/25"></span><span class="w-1.5 h-1.5 rotate-45 border border-ink/40"></span><span class="h-px w-14 bg-ink/25"></span></div>
-        <p class="krhead tracking-[0.3em] text-ink/65 text-sm" style="font-weight:400">지점 안내</p>
-      </div>
-      <div id="netList" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
-    </section>
-  </main>
+  <!-- 지점 안내 페이지: 지점이 1곳이라 사용 안 함 (들어오면 홈으로) -->
+  <main id="view-network" class="hidden"></main>
 
   <!-- ===== 개인정보처리방침 (본문은 아래 PRIVACY 스크립트가 채움 · 동의 팝업과 같은 내용) ===== -->
   <main id="view-privacy" class="hidden">
@@ -1105,7 +1096,7 @@
     <div class="max-w-3xl mx-auto px-6 text-center">
       <div class="flex items-center justify-center gap-3 mb-6">
         <span class="marcellus text-3xl tracking-[0.3em] text-white/85 leading-none">XXI</span>
-        <span class="krhead text-[15px] text-white/85 leading-tight text-left border-l border-white/25 pl-3" style="font-weight:500">연오재한의원<span class="block text-[9px] tracking-[0.28em] text-white/50 mt-1" style="font-weight:300">PREMIUM MEDICAL SKIN NETWORK</span></span>
+        <span class="krhead text-[15px] text-white/85 leading-tight text-left border-l border-white/25 pl-3" style="font-weight:500">연오재한의원</span>
       </div>
       <div class="krhead flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-white/55 mb-7" style="font-weight:300">
         <a href="#privacy" onclick="showView('privacy');return false" class="hover:text-white" style="font-weight:600">개인정보처리방침</a><span>|</span>
@@ -1117,7 +1108,7 @@
       <p id="ftBiz" class="krhead text-sm text-white/60 break-keep" style="font-weight:300">상호 : 연오재한의원 | 대표 : 김경민 | 사업자등록번호 : 779-09-03367</p>
       <p id="ftAddr" class="krhead text-sm text-white/60 break-keep mt-1.5" style="font-weight:300">주소 : 경기 고양시 덕양구 화중로 60, 화정빌딩 2층 205·206호</p>
       <p class="krhead text-sm text-white/60 mt-1.5" style="font-weight:300">대표전화 : <a id="ftTel" href="tel:0507-1485-2378" class="underline underline-offset-2 hover:text-white">0507-1485-2378</a></p>
-      <p class="krhead text-xs text-white/50 mt-6" style="font-weight:300">© 2026 연오재한의원 · XXI PREMIUM MEDICAL SKIN NETWORK. All Rights Reserved</p>
+      <p class="krhead text-xs text-white/50 mt-6" style="font-weight:300">© 2026 연오재한의원 · XXI. All Rights Reserved</p>
     </div>
   </footer>
 
@@ -1392,6 +1383,7 @@
     }
     /* hash: 주소에 남길 값(예: 'detail/3'). 생략하면 화면 이름 */
     window.showView=function(name, scrollSel, hash){
+      if(name==='network'){ name='home'; hash='home'; }   /* 지점 안내 페이지 사용 안 함 (지점 1곳) */
       ['home','category','ba','reserve','detail','badetail','manage','notes','notedetail','care','doctors','noninsured','network','privacy','cart'].forEach(function(v){
         document.getElementById('view-'+v).classList.toggle('hidden', v!==name);
       });
@@ -2863,7 +2855,7 @@
     }).join('');
 
     // doctors
-    var docs=(K?K.get('doctors',DEF_DOC):DEF_DOC);
+    var docs=(K?K.get('doctors',DEF_DOC):DEF_DOC).map(function(d){ var o={}; for(var k in d) o[k]=d[k]; o.desc=String(d.desc||'').replace(/더스물하나\s*네트워크\s*[·,\/]?\s*/g,''); return o; });
     var dl=document.getElementById('docList');
     if(dl) dl.innerHTML = docs.map(function(d){
       return '<div class="rounded-2xl border border-ink/10 bg-white overflow-hidden shadow-sm flex">'

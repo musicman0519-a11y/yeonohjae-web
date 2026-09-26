@@ -2,7 +2,7 @@
   const MENU_VIEWS = [
     ['category','시술메뉴/이벤트 페이지'], ['reserve','온라인예약 페이지'], ['manage','예약 변경/취소 페이지'],
     ['ba','시술전후 페이지'], ['notes','시술 노트 페이지'], ['care','시술 후 주의사항 페이지'],
-    ['doctors','의료진 소개 페이지'], ['noninsured','비급여 안내 페이지'], ['network','지점 안내 페이지'],
+    ['doctors','의료진 소개 페이지'], ['noninsured','비급여 안내 페이지'],
     ['about','병원 소개 (홈 소개 섹션)'], ['hairprice','제모 가격 안내 페이지'], ['home','홈 화면'], ['ext','외부 링크 (URL 직접 입력)'],
   ];
   const DEFAULT_MENUS = [
@@ -14,7 +14,6 @@
     {id:'m4',  label:'연오재한의원',   view:'about',    parent:'', on:true},
     {id:'m41', label:'병원 소개',      view:'about',    parent:'m4', on:true},
     {id:'m42', label:'의료진 소개',    view:'doctors',  parent:'m4', on:true},
-    {id:'m43', label:'지점 안내',      view:'network',  parent:'m4', on:true},
     {id:'m5',  label:'시술 노트',      view:'notes',    parent:'', on:true},
   ];
   function menusGet(){ return KK.get('menus', DEFAULT_MENUS); }
