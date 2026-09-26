@@ -1,0 +1,2490 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>연오재한의원 | 화정역 피부·체형 관리 한의원</title>
+  <meta name="description" content="경기 고양시 화정역 인근 연오재한의원. 한의사가 직접 상담하고 설계하는 레이저 제모·리프팅·미백·여드름 흉터 관리와 체질 맞춤 한약·다이어트 프로그램.">
+  <link rel="canonical" href="https://yeonohjae-web.vercel.app/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="연오재한의원">
+  <meta property="og:title" content="연오재한의원 | 화정역 피부·체형 관리 한의원">
+  <meta property="og:description" content="한의사가 직접 상담하고 설계하는 피부 시술과 체질 맞춤 한약. 경기 고양시 덕양구 화중로 60.">
+  <meta property="og:url" content="https://yeonohjae-web.vercel.app/">
+  <meta property="og:image" content="https://yeonohjae-web.vercel.app/img/kv-wide-travertine.jpg">
+  <meta name="theme-color" content="#4a5d4e">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%234a5d4e'/%3E%3Ctext x='32' y='42' font-family='Georgia,serif' font-size='24' fill='%23f4efe9' text-anchor='middle' letter-spacing='2'%3EXXI%3C/text%3E%3C/svg%3E">
+  <!-- 검색엔진용 병원 정보 (주소·전화·진료시간 변경 시 함께 수정) -->
+  <script type="application/ld+json">
+  {"@context":"https://schema.org","@type":"MedicalClinic","name":"연오재한의원","url":"https://yeonohjae-web.vercel.app/",
+   "telephone":"+82-507-1485-2378","image":"https://yeonohjae-web.vercel.app/img/kv-wide-travertine.jpg",
+   "address":{"@type":"PostalAddress","streetAddress":"화중로 60, 화정빌딩 2층 205·206호","addressLocality":"고양시 덕양구","addressRegion":"경기도","addressCountry":"KR"},
+   "openingHoursSpecification":[
+     {"@type":"OpeningHoursSpecification","dayOfWeek":["Monday","Tuesday","Wednesday","Thursday","Friday"],"opens":"09:00","closes":"18:00"},
+     {"@type":"OpeningHoursSpecification","dayOfWeek":["Saturday","Sunday"],"opens":"09:00","closes":"17:00"}]}
+  </script>
+  <!-- 광고 추적: GTM 컨테이너 ID를 받으면 아래 주석을 풀고 GTM-XXXXXXX를 교체.
+       전환 지점(상담·예약·전화·카톡·네이버예약 클릭)은 이미 dataLayer로 이벤트를 보내고 있음(track 함수).
+  <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-XXXXXXX');</script>
+  -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&family=Marcellus&family=Gothic+A1:wght@200;300;400;500;700;900&display=swap" rel="stylesheet">
+  <script src="https://code.iconify.design/iconify-icon/2.3.0/iconify-icon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1" defer></script>
+  <script src="yeonohjae-supabase.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.16/dist/purify.min.js"></script>
+  <script>
+    /* ===== SHARED STORE (front ↔ admin.html via localStorage) ===== */
+    window.KK = {
+      ns:'kkeut:',
+      get(k, def){ try{ const v=localStorage.getItem(this.ns+k); return v!==null? JSON.parse(v): def; }catch(e){ return def; } },
+      set(k, val){ try{ localStorage.setItem(this.ns+k, JSON.stringify(val)); return true; }catch(e){ return false; } },
+    };
+    /* ===== 보안: 저장 데이터(관리자 입력)를 화면에 넣을 때 반드시 거치는 함수 ===== */
+    window.esc = function(s){ return String(s==null?'':s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+    /* URL은 http(s)·상대경로·tel·mailto만 허용 (javascript: 등 차단) */
+    window.safeUrl = function(u){ u=String(u||'').trim(); return (/^(https?:|tel:|mailto:|#|\/|\.\/|img\/)/i.test(u) && !/^javascript:/i.test(u)) ? esc(u) : '#'; };
+    /* 관리자가 작성한 본문 HTML은 DOMPurify로 정화 (라이브러리 미로딩 시 태그 제거) */
+    window.cleanHtml = function(h){ h=String(h||''); return window.DOMPurify ? DOMPurify.sanitize(h) : esc(h).replace(/\n/g,'<br>'); };
+    /* ===== 기본 병원 정보 (관리자 '기본 설정' 값이 있으면 그걸 우선 사용) ===== */
+    window.SITE = Object.assign({ tel:'0507-1485-2378', naver:'https://booking.naver.com/booking/13/bizes/889', kakao:'', insta:'' }, KK.get('settings', {}) || {});
+    /* ===== 예약 공통 (관리자 「예약 목록」과 연결되는 Supabase reservations 테이블) =====
+       - 예약 가능 시간: 관리자 「예약 가능시간 수정」(resHours) · 「마감처리」(resClosed) 값을 사용
+       - 저장: 방문자는 추가만 가능 (다른 사람 예약은 읽을 수 없음 — SQL 파일의 보안 규칙 참고) */
+    window.RES = (function(){
+      function pad(n){ return String(n).padStart(2,'0'); }
+      function ymd(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+      function toMin(t){ var p=String(t||'').split(':'); return (+p[0])*60+(+p[1]||0); }
+      function toStr(m){ return pad(Math.floor(m/60))+':'+pad(m%60); }
+      function hours(){
+        var d=KK.get('resHours', null)||{};
+        return { open:d.open||'10:00', close:d.close||'18:00', interval:parseInt(d.interval)||30,
+                 lunchStart:d.lunchStart||'13:00', lunchEnd:d.lunchEnd||'14:00',
+                 offDows:Array.isArray(d.offDows)?d.offDows:[0], capacity:parseInt(d.capacity)||1 };
+      }
+      function closed(){ var c=KK.get('resClosed', []); return Array.isArray(c)?c:[]; }
+      /* 그 날짜에 고를 수 있는 시간 목록 (휴무 요일·마감일이면 빈 목록) */
+      function slots(date){
+        var c=hours(); if(c.offDows.indexOf(date.getDay())>=0 || closed().indexOf(ymd(date))>=0) return [];
+        var out=[], ls=toMin(c.lunchStart), le=toMin(c.lunchEnd);
+        var now=new Date(), isToday=ymd(date)===ymd(now), nowMin=now.getHours()*60+now.getMinutes()+30;   /* 오늘은 30분 뒤부터 */
+        for(var m=toMin(c.open); m<toMin(c.close); m+=c.interval){
+          if(ls<le && m>=ls && m<le) continue;           /* 점심시간 제외 */
+          if(isToday && m<nowMin) continue;              /* 이미 지난 시간 제외 */
+          out.push(toStr(m));
+        }
+        return out;
+      }
+      /* 그 날짜의 시간대별 예약 건수 {'14:00':1, ...} — 개인정보 없이 건수만 */
+      function booked(ds){
+        if(!window.__sb) return Promise.resolve({});
+        return window.__sb.rpc('reserved_slots', { d: ds }).then(function(r){
+          var o={}; (r.data||[]).forEach(function(x){ o[x.res_time]=x.cnt; }); return o;
+        }, function(){ return {}; });
+      }
+      /* 저장. 성공하면 resolve, 실패하면 reject (안내창은 부르는 쪽에서) */
+      function submit(row){
+        if(!window.__sb) return Promise.reject(new Error('offline'));
+        var data={ name:String(row.name||'').trim().slice(0,30), phone:String(row.phone||'').trim().slice(0,20),
+                   res_date:row.date||null, res_time:row.time||null, item:(row.item||'상담하기').slice(0,200),
+                   sms_agree:!!row.sms, source:row.source||'', status:'미확정' };
+        return window.__sb.from('reservations').insert(data).then(function(r){ if(r.error) throw r.error; });
+      }
+      function failMsg(){ return '죄송합니다. 지금은 온라인 접수가 원활하지 않습니다.\n전화 '+(SITE.tel||'')+' 로 연락 주시면 바로 도와드리겠습니다.'; }
+      return { ymd:ymd, hours:hours, closed:closed, slots:slots, booked:booked, submit:submit, failMsg:failMsg };
+    })();
+    /* ===== 광고 전환 추적: dataLayer 이벤트 (GTM 설치 시 그대로 수집됨) ===== */
+    window.dataLayer = window.dataLayer || [];
+    window.track = function(event, params){ try{ window.dataLayer.push(Object.assign({event:event}, params||{})); }catch(e){} };
+    /* 세로 스크롤 이동 공통 함수: 관성 스크롤(Lenis)이 켜져 있으면 그걸로, 아니면 기본 스크롤
+       target: 숫자(px) 또는 요소 / smooth: 부드럽게 이동 여부 / offset: 고정 헤더만큼 보정 */
+    window.scrollToY = function(target, smooth, offset){
+      offset = offset||0;
+      if(window.__lenis){ window.__lenis.scrollTo(target, { offset:offset, immediate:!smooth, duration:1.1 }); return; }
+      var y = typeof target==='number' ? target : (target.getBoundingClientRect().top + window.scrollY + offset);
+      try{ window.scrollTo({ top:y, behavior: smooth?'smooth':'auto' }); }catch(e){ window.scrollTo(0,y); }
+    };
+    tailwind.config = { theme: { extend: {
+      fontFamily: {
+        sans:['Pretendard','system-ui','sans-serif'],
+        serif:['"Cormorant Garamond"','serif'],
+        display:['Marcellus','serif'],
+        krhead:['"Gothic A1"','Pretendard','sans-serif'],
+      },
+      colors: {
+        pink:'#4a5d4e', pinkstrong:'#3d4e41', pinkneon:'#6e7f64', pinksoft:'#e6dcd2',
+        beige:'#e6dcd2', cream:'#f3eee8', bglight:'#f4efe9',
+        dark:'#2f343a', char2:'#3a4047', terra:'#4a5d4e',
+        ink:'#2f343a', muted:'#8a857e',
+      }
+    }}}
+  </script>
+  <style>
+    html{ scroll-behavior:smooth; }
+    body{ font-family:'Pretendard',system-ui,sans-serif; color:#2f343a; }
+    .break-keep{ word-break:keep-all; }
+    .serif{ font-family:'Cormorant Garamond',serif; }
+    .marcellus{ font-family:'Marcellus',serif; }
+    .krhead{ font-family:'Gothic A1','Pretendard',sans-serif; font-weight:300; letter-spacing:-0.01em; }
+    @keyframes marqueeX{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
+    .marquee{ animation:marqueeX 36s linear infinite; } .marquee:hover{ animation-play-state:paused; }
+    @keyframes fadeUp{ from{opacity:0;transform:translateY(24px);} to{opacity:1;transform:none;} }
+    .reveal{ opacity:0; } .reveal.in{ animation:fadeUp .9s cubic-bezier(.16,1,.3,1) forwards; }
+    /* 스크롤 반응: 하위 화면 상단 배너 사진이 살짝 확대 → 제자리 */
+    .rv-zoom{ transform:scale(1.08); transition:transform 1.8s cubic-bezier(.16,1,.3,1); } .rv-zoom.in{ transform:scale(1); }
+    /* 맨 위 스크롤 진행 막대 */
+    #scrollBar{ position:fixed; top:0; left:0; height:3px; width:100%; z-index:60; background:#4a5d4e; transform-origin:0 50%; transform:scaleX(0); pointer-events:none; }
+    /* 관성 스크롤(Lenis) 동작 시 필요한 기본 스타일 */
+    html.lenis, html.lenis body{ height:auto; }
+    .lenis.lenis-smooth{ scroll-behavior:auto !important; }
+    .lenis.lenis-smooth [data-lenis-prevent]{ overscroll-behavior:contain; }
+    .lenis.lenis-stopped{ overflow:hidden; }
+    /* 움직임 줄이기 설정 사용자: 애니메이션 없이 바로 표시 */
+    .no-motion .reveal{ opacity:1 !important; animation:none !important; } .no-motion .rv-zoom{ transform:none !important; transition:none !important; }
+    .no-scrollbar::-webkit-scrollbar{ display:none; } .no-scrollbar{ -ms-overflow-style:none; scrollbar-width:none; }
+    .snap-x{ scroll-snap-type:x mandatory; } .snap-start{ scroll-snap-align:start; }
+    .clip-l{ clip-path:polygon(0 0, 100% 0, 88% 100%, 0 100%); }
+    .clip-r{ clip-path:polygon(12% 0, 100% 0, 100% 100%, 0 100%); }
+    .olive-card{ box-shadow:0 0 0 1px rgba(74,93,78,.45), 0 10px 34px rgba(47,52,58,.22); }
+    .notice{ background:repeating-linear-gradient(135deg,#00000008,#00000008 8px,#00000003 8px,#00000003 16px); }
+    .promo-grad{ background:linear-gradient(135deg,#eef1ec 0%,#e1e7df 55%,#d3dcd0 100%); }
+    .promo-title{ font-family:'Gothic A1',sans-serif; font-weight:900; letter-spacing:-0.02em; }
+    .promo-script{ font-family:'Gothic A1',sans-serif; font-weight:700; letter-spacing:-0.02em; }
+    .card-hover{ transition:transform .35s cubic-bezier(.16,1,.3,1), box-shadow .35s; cursor:pointer; }
+    .card-hover:hover{ transform:translateY(-6px); box-shadow:0 18px 40px rgba(47,52,58,.16); }
+    .card-hover:hover .ba-title{ color:#3d4e41; }
+    .cat-active{ color:#3d4e41; font-weight:700; }
+    .uv{ filter:saturate(1.1) hue-rotate(165deg) brightness(.82) contrast(1.05); }
+    .navlink.active{ color:#3d4e41; border-bottom:1px solid #3d4e41; padding-bottom:2px; }
+    .note-body img{ max-width:100%; border-radius:14px; margin:16px 0; display:block; }
+    .note-body h3{ font-weight:700; font-size:1.2em; margin:26px 0 8px; color:#2f343a; }
+    .note-body p{ margin:10px 0; }
+    .note-body hr{ border:0; border-top:1px solid rgba(47,52,58,.12); margin:26px 0; }
+    .note-body b, .note-body strong{ font-weight:700; color:#2f343a; }
+  </style>
+</head>
+<body class="bg-bglight">
+
+  <div class="notice text-center text-[12px] tracking-wide text-ink/55 py-2 break-keep">
+    구조·디자인 템플릿입니다. 텍스트·이미지·영상은 모두 <b>샘플</b>이며 관리자에서 교체합니다.
+  </div>
+
+  <!-- 넓은 화면 전용 큰 헤더 (모바일은 아래 hdrBar를 처음부터 사용) -->
+  <header id="hdr" class="hidden lg:block fixed top-[29px] left-0 right-0 z-40 transition-all duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-9 flex flex-col items-center gap-7">
+      <a href="#home" onclick="showView('home');return false" class="flex items-center gap-3" aria-label="연오재한의원 홈">
+        <span class="marcellus text-[26px] tracking-[0.3em] text-pinkstrong leading-none text-center">XXI<span class="block krhead text-[12px] tracking-[0.2em] text-ink/75 mt-2 whitespace-nowrap" style="font-weight:500">연오재한의원</span><span class="block krhead text-[8px] tracking-[0.28em] text-pink/70 mt-1 whitespace-nowrap">PREMIUM MEDICAL SKIN NETWORK</span></span>
+      </a>
+      <nav class="krhead flex flex-wrap justify-center items-center gap-6 lg:gap-12 text-[15px] text-ink/75" style="font-weight:400">
+        <a href="#category" data-key="menu" onclick="showView('category');return false" class="navlink hover:text-pinkstrong transition">시술메뉴/이벤트</a>
+        <div class="relative group"><a href="#reserve" data-key="book" onclick="showView('reserve');return false" class="navlink hover:text-pinkstrong transition">온라인예약</a><div class="absolute left-1/2 -translate-x-1/2 top-full pt-3 hidden group-hover:block group-has-[:focus-visible]:block z-50"><div class="bg-white rounded-xl shadow-xl border border-ink/10 py-2 min-w-[160px]"><button onclick="showView('reserve')" class="krhead block w-full text-center px-5 py-2.5 text-sm text-ink/75 hover:text-pinkstrong hover:bg-bglight transition" style="font-weight:400">온라인예약</button><button onclick="showView('manage')" class="krhead block w-full text-center px-5 py-2.5 text-sm text-ink/75 hover:text-pinkstrong hover:bg-bglight transition" style="font-weight:400">예약 변경/취소</button></div></div></div>
+        <a href="#ba" data-key="ba" onclick="showView('ba');return false" class="navlink hover:text-pinkstrong transition">시술전후</a>
+        <a href="#about" onclick="showView('home','#about');return false" class="navlink hover:text-pinkstrong transition">병원소개</a>
+        <a href="#notes" data-key="notes" onclick="showView('notes');return false" class="navlink hover:text-pinkstrong transition">시술 노트</a>
+      </nav>
+    </div>
+  </header>
+
+  <div id="hdrBar" class="fixed top-0 left-0 right-0 z-40 bg-cream/95 backdrop-blur border-b border-pink/15 -translate-y-full transition-transform duration-300">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <a href="#home" onclick="showView('home');return false" class="flex items-center gap-2" aria-label="연오재한의원 홈">
+        <span class="marcellus text-xl tracking-[0.3em] text-pinkstrong leading-none">XXI</span>
+        <span class="krhead text-[13px] text-ink/80 leading-tight border-l border-pink/25 pl-2.5" style="font-weight:500">연오재한의원</span>
+      </a>
+      <nav class="krhead hidden lg:flex items-center gap-10 text-[15px] text-ink/75" style="font-weight:400">
+        <a href="#category" data-key="menu" onclick="showView('category');return false" class="navlink hover:text-pinkstrong">시술메뉴/이벤트</a>
+        <div class="relative group"><a href="#reserve" data-key="book" onclick="showView('reserve');return false" class="navlink hover:text-pinkstrong">온라인예약</a><div class="absolute left-1/2 -translate-x-1/2 top-full pt-3 hidden group-hover:block group-has-[:focus-visible]:block z-50"><div class="bg-white rounded-xl shadow-xl border border-ink/10 py-2 min-w-[160px]"><button onclick="showView('reserve')" class="krhead block w-full text-center px-5 py-2.5 text-sm text-ink/75 hover:text-pinkstrong hover:bg-bglight transition" style="font-weight:400">온라인예약</button><button onclick="showView('manage')" class="krhead block w-full text-center px-5 py-2.5 text-sm text-ink/75 hover:text-pinkstrong hover:bg-bglight transition" style="font-weight:400">예약 변경/취소</button></div></div></div>
+        <a href="#ba" data-key="ba" onclick="showView('ba');return false" class="navlink hover:text-pinkstrong">시술전후</a>
+        <a href="#about" onclick="showView('home','#about');return false" class="navlink hover:text-pinkstrong transition">병원소개</a>
+        <a href="#notes" data-key="notes" onclick="showView('notes');return false" class="navlink hover:text-pinkstrong">시술 노트</a>
+      </nav>
+      <div class="flex items-center gap-3 text-ink/65">
+        <a href="#reserve" onclick="showView('reserve');track('cta_click',{cta:'header_reserve'});return false" class="krhead hidden sm:inline-flex items-center gap-1.5 px-4 h-9 rounded-full bg-pink text-white text-[13px] hover:bg-pinkstrong transition" style="font-weight:500"><iconify-icon icon="solar:calendar-linear"></iconify-icon> 상담 예약</a>
+        <button class="lg:hidden w-10 h-10 grid place-items-center" aria-label="메뉴 열기" aria-controls="mnav" onclick="var m=document.getElementById('mnav');m.classList.toggle('hidden');this.setAttribute('aria-expanded',!m.classList.contains('hidden'))"><iconify-icon icon="solar:hamburger-menu-linear" width="26"></iconify-icon></button>
+      </div>
+    </div>
+    <div id="mnav" class="krhead hidden lg:hidden border-t border-pink/15 px-6 py-3 flex flex-col text-[15px] bg-cream [&>a]:py-2.5" style="font-weight:400">
+      <a href="#category" onclick="showView('category');document.getElementById('mnav').classList.add('hidden');return false">시술메뉴/이벤트</a>
+      <a href="#reserve" onclick="showView('reserve');document.getElementById('mnav').classList.add('hidden');return false">온라인예약</a>
+      <a href="#manage" onclick="showView('manage');document.getElementById('mnav').classList.add('hidden');return false" class="pl-3 text-ink/60">└ 예약 변경/취소</a>
+      <a href="#ba" onclick="showView('ba');document.getElementById('mnav').classList.add('hidden');return false">시술전후</a>
+      <a href="#home" onclick="showView('home','#about');document.getElementById('mnav').classList.add('hidden');return false">병원소개</a>
+      <a href="#notes" onclick="showView('notes');document.getElementById('mnav').classList.add('hidden');return false">시술 노트</a>
+    </div>
+  </div>
+
+  <main id="view-home">
+<!-- ===== HERO (영상 자리, 여백 넓힘) ===== -->
+  <!-- 비주얼 전체 화면 + 하단에 떠 있는 빠른 예약 카드 (모바일: 사진 아래로 카드가 살짝 겹쳐 올라옴) -->
+  <section id="top" class="relative bg-bglight overflow-hidden lg:min-h-[94dvh]">
+    <h1 class="sr-only">연오재한의원 — 화정역, 한의사가 직접 설계하는 피부·체형 관리</h1>
+    <picture class="block lg:contents">
+      <source media="(min-width:1024px)" srcset="img/kv-wide-travertine.jpg">
+      <img src="img/kv-portrait-bob.jpg" class="block w-full h-[60svh] object-cover object-top lg:absolute lg:inset-0 lg:h-full lg:object-center" alt="연오재한의원 대표 이미지" fetchpriority="high">
+    </picture>
+    <!-- 카드가 사진 위에서 자연스럽게 떠 보이도록 아래쪽만 살짝 어둡게 -->
+    <div class="hidden lg:block absolute inset-x-0 bottom-0 h-56 bg-gradient-to-t from-black/25 to-transparent"></div>
+
+    <div class="relative z-10 px-4 -mt-12 pb-10 lg:absolute lg:inset-x-0 lg:bottom-12 lg:mt-0 lg:pb-0">
+      <form id="quickBook" onsubmit="return quickBookSubmit(this)" class="krhead max-w-6xl mx-auto bg-white rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.18)] overflow-hidden flex flex-col lg:flex-row" style="font-weight:400">
+        <div class="flex-1 min-w-0 px-5 pt-6 pb-5 lg:px-9 lg:py-6">
+          <div class="grid sm:grid-cols-2 lg:grid-cols-[1.35fr_1fr_1.35fr_auto] gap-x-7 gap-y-5 items-end">
+            <div>
+              <label for="qbItem" class="flex items-center gap-2 text-[15px] text-ink mb-2" style="font-weight:700">시술선택 <span class="text-[11px] text-pinkstrong border border-pink/40 rounded-full px-1.5 leading-4" style="font-weight:500">필수</span></label>
+              <select id="qbItem" name="item" required class="w-full h-10 border-b border-ink/15 bg-transparent text-[14px] text-ink/80 focus:outline-none focus:border-pink">
+                <option value="">시술을 선택해 주세요</option>
+              </select>
+            </div>
+            <div>
+              <p class="text-[15px] text-ink mb-2" style="font-weight:700">예약날짜/시간</p>
+              <div class="flex gap-2">
+                <label class="sr-only" for="qbDate">예약 날짜</label>
+                <input id="qbDate" name="date" type="date" required class="flex-1 min-w-0 h-10 border-b border-ink/15 bg-transparent text-[14px] text-ink/80 focus:outline-none focus:border-pink">
+                <label class="sr-only" for="qbTime">예약 시간</label>
+                <select id="qbTime" name="time" required class="w-[88px] h-10 border-b border-ink/15 bg-transparent text-[14px] text-ink/80 focus:outline-none focus:border-pink">
+                  <option value="">시간</option><option>10:00</option><option>11:00</option><option>12:00</option><option>14:00</option><option>15:00</option><option>16:00</option><option>17:00</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <p class="text-[15px] text-ink mb-2" style="font-weight:700">고객정보 입력</p>
+              <div class="flex gap-2">
+                <label class="sr-only" for="qbName">이름</label>
+                <input id="qbName" name="name" type="text" required autocomplete="name" placeholder="이름" class="w-24 h-10 border-b border-ink/15 bg-transparent text-[14px] focus:outline-none focus:border-pink">
+                <label class="sr-only" for="qbTel">연락처</label>
+                <input id="qbTel" name="tel" type="tel" required autocomplete="tel" inputmode="tel" placeholder="010-0000-0000" class="flex-1 min-w-0 h-10 border-b border-ink/15 bg-transparent text-[14px] focus:outline-none focus:border-pink">
+              </div>
+            </div>
+            <div class="sm:text-right">
+              <p class="text-[15px] text-ink" style="font-weight:700">총 금액 <span class="text-[11px] text-ink/50" style="font-weight:400">(VAT 별도)</span></p>
+              <p class="mt-1 whitespace-nowrap"><span class="text-[11px] text-ink/45 mr-1">내원 후 결제</span><span id="qbPrice" class="text-[28px] text-pinkstrong leading-none" style="font-weight:800">0</span><span id="qbWon" class="text-[14px] text-ink ml-0.5" style="font-weight:700">원</span></p>
+            </div>
+          </div>
+          <div class="mt-5 pt-4 border-t border-ink/10 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-ink/70">
+            <span class="flex items-center gap-1.5"><iconify-icon icon="solar:clock-circle-linear" class="text-pinkstrong" width="16"></iconify-icon><span id="qbToday">오늘 진료시간은 18:00 까지입니다.</span></span>
+            <a href="#location" onclick="scrollToY(document.getElementById('location'),true,-70);return false" class="text-pinkstrong inline-flex items-center gap-0.5" style="font-weight:500">진료시간 및 위치 안내 <iconify-icon icon="solar:arrow-right-linear"></iconify-icon></a>
+            <label class="lg:ml-auto flex items-center gap-1.5 text-ink/60"><input name="agree" type="checkbox" required class="accent-pink w-4 h-4"> 개인정보 수집·이용 동의(필수)</label>
+          </div>
+        </div>
+        <button type="submit" class="shrink-0 lg:w-44 bg-pink hover:bg-pinkstrong text-white flex lg:flex-col items-center justify-center gap-2 lg:gap-3 h-14 lg:h-auto transition" style="font-weight:700"><iconify-icon icon="solar:check-circle-linear" width="30"></iconify-icon><span class="text-[16px]">상담 예약</span></button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===== 리뷰 마퀴 ===== -->
+  <section class="bg-dark text-white py-4 overflow-hidden">
+    <div id="reviewMarquee" class="flex w-max marquee"></div>
+  </section>
+
+  <!-- ===== 스페셜 프로그램 ===== -->
+  <section id="program" class="relative py-24 sm:py-32 bg-pink overflow-hidden">
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-end justify-between gap-4 mb-8 sm:mb-10 reveal">
+        <h2 class="krhead text-2xl sm:text-3xl text-white" style="font-weight:700">스페셜 프로그램</h2>
+        <button onclick="showView('category')" class="krhead text-[13px] text-white/80 hover:text-white transition flex items-center gap-1" style="font-weight:400">전체 시술 보러가기 <iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></button>
+      </div>
+      <!-- 카드 트랙 (가로 스크롤 + 스냅). 왼쪽은 본문 시작선, 오른쪽은 화면 끝까지 이어짐(margin-right).
+           gap 사이로 배경색이 비쳐 카드 경계선이 됨 -->
+      <div id="progTrack" class="flex gap-[2px] overflow-x-auto snap-x no-scrollbar reveal" style="margin-right:calc(50% - 50vw)"></div>
+      <div class="flex items-center gap-3 mt-8">
+        <button onclick="progSlide(-1)" aria-label="이전" class="w-9 h-9 rounded-full border border-white/60 text-white grid place-items-center hover:bg-white hover:text-pinkstrong transition"><iconify-icon icon="solar:alt-arrow-left-linear"></iconify-icon></button>
+        <div id="progDots" class="flex items-center gap-1.5"></div>
+        <button onclick="progSlide(1)" aria-label="다음" class="w-9 h-9 rounded-full border border-white/60 text-white grid place-items-center hover:bg-white hover:text-pinkstrong transition"><iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== STEADY SELLER ===== -->
+  <section id="steady" class="relative py-24 sm:py-32 bg-beige overflow-hidden">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+      <div class="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-4 mb-8 reveal">
+        <div class="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-6">
+          <h2 class="serif text-5xl sm:text-6xl text-ink tracking-[0.06em] leading-none">STEADY SELLER</h2>
+          <div class="krhead text-[14px] text-ink/70 break-keep sm:border-l sm:border-ink/20 sm:pl-6" style="font-weight:400">
+            <p>합리적인 가격과 진정성 있는 치료로 확실한 변화를 보여드리겠습니다. (샘플)</p>
+            <p class="text-[12px] text-ink/55 mt-1"><span class="text-red-600/80">※ VAT 별도</span> · 시술 효과와 부작용은 개인에 따라 다를 수 있습니다.</p>
+          </div>
+        </div>
+        <button onclick="showView('category')" class="krhead self-start lg:self-auto shrink-0 text-[14px] text-ink/60 underline underline-offset-4 hover:text-pinkstrong transition" style="font-weight:400">이벤트 전체보기 +</button>
+      </div>
+      <div id="ssTabs" class="krhead flex flex-wrap gap-2.5 mb-10 reveal" style="font-weight:500"></div>
+      <div class="relative">
+        <div id="ssGrid" class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6"></div>
+        <!-- 넓은 화면: 카드 바깥 양옆 큰 화살표 -->
+        <button onclick="ssPage(-1)" aria-label="이전" class="hidden min-[1440px]:grid absolute -left-16 top-1/2 -translate-y-1/2 w-10 h-20 place-items-center text-ink/35 hover:text-pinkstrong transition"><iconify-icon icon="solar:alt-arrow-left-linear" width="44"></iconify-icon></button>
+        <button onclick="ssPage(1)" aria-label="다음" class="hidden min-[1440px]:grid absolute -right-16 top-1/2 -translate-y-1/2 w-10 h-20 place-items-center text-ink/35 hover:text-pinkstrong transition"><iconify-icon icon="solar:alt-arrow-right-linear" width="44"></iconify-icon></button>
+      </div>
+      <div class="flex items-center justify-center gap-3 mt-10">
+        <button onclick="ssPage(-1)" aria-label="이전" class="min-[1440px]:hidden w-9 h-9 rounded-full border border-ink/20 text-ink/60 grid place-items-center hover:bg-pinkstrong hover:text-white hover:border-pinkstrong transition"><iconify-icon icon="solar:alt-arrow-left-linear"></iconify-icon></button>
+        <div id="ssDots" class="flex items-center gap-1.5"></div>
+        <button onclick="ssPage(1)" aria-label="다음" class="min-[1440px]:hidden w-9 h-9 rounded-full border border-ink/20 text-ink/60 grid place-items-center hover:bg-pinkstrong hover:text-white hover:border-pinkstrong transition"><iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ABOUT ===== -->
+  <section id="about" class="grid lg:grid-cols-2 min-h-[78vh]">
+    <div class="relative min-h-[380px] bg-beige">
+      <img id="aboutImg" src="img/kv-portrait-bob.jpg" class="absolute inset-0 w-full h-full object-cover" alt="" loading="lazy">
+    </div>
+    <div class="bg-bglight flex items-center justify-center px-8 py-24 reveal">
+      <div class="text-center max-w-md">
+        <div class="flex items-center justify-center gap-3 mb-12">
+          <span class="marcellus text-4xl tracking-[0.3em] text-pinkstrong leading-none">XXI</span>
+          <span class="krhead text-[9px] tracking-[0.28em] text-pink/70 leading-tight text-left border-l border-pink/30 pl-3">PREMIUM MEDICAL<span class="block mt-0.5">SKIN NETWORK</span></span>
+        </div>
+        <div id="aboutBody">
+        <p class="krhead text-ink/70 leading-loose break-keep text-lg" style="font-weight:300">피부는 기억합니다,<br>얼마나 섬세하게 다뤄졌는지를.</p>
+        <p class="krhead text-ink/85 leading-loose break-keep mt-5 text-lg" style="font-weight:500">자연스러움 위에 더한 한 끗,<br>오래도록 당신답게.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SNS CONTENTS ===== -->
+  <section id="sns" class="relative py-32 bg-dark text-white overflow-hidden">
+    <img src="img/space-oculus.jpg" class="absolute inset-0 w-full h-full object-cover opacity-15" alt="" loading="lazy">
+    <div class="relative max-w-5xl mx-auto px-6 text-center">
+      <p class="krhead text-white/70 text-sm mb-3 reveal" style="font-weight:400">연오재한의원 화정</p>
+      <h2 class="serif text-5xl sm:text-7xl font-normal tracking-[0.1em] reveal">SNS CONTENTS</h2>
+      <p class="krhead text-white/55 mt-4 mb-16 break-keep reveal" style="font-weight:300">유튜브 · 인스타그램에서 더 많은 리얼 콘텐츠를 만나보세요</p>
+      <div class="flex justify-center gap-5 sm:gap-12 reveal">
+        <div id="snsVideo" class="w-[42%] max-w-[260px] aspect-[9/19] rounded-[2rem] border-[6px] border-black/50 bg-black overflow-hidden relative shadow-2xl">
+          <img src="img/kv-body-sportswear.jpg" class="w-full h-full object-cover opacity-90" alt="" loading="lazy">
+          <div class="absolute inset-0 grid place-items-center"><span class="w-14 h-14 rounded-full bg-pink/90 grid place-items-center"><iconify-icon icon="solar:play-bold" width="26" class="text-white"></iconify-icon></span></div>
+        </div>
+        <div id="snsInsta" class="w-[42%] max-w-[260px] aspect-[9/19] rounded-[2rem] border-[6px] border-black/50 bg-black overflow-hidden relative shadow-2xl">
+          <div class="grid grid-cols-3 gap-0.5 h-full opacity-90">
+            <img src="img/tex-cream-beam.jpg" class="w-full h-full object-cover" alt="" loading="lazy"><img src="img/kv-portrait-bob.jpg" class="w-full h-full object-cover" alt="" loading="lazy"><img src="img/tex-water-ripple.jpg" class="w-full h-full object-cover" alt="" loading="lazy">
+            <img src="img/space-cove-wall.jpg" class="w-full h-full object-cover" alt="" loading="lazy"><img src="img/tex-gel-dome.jpg" class="w-full h-full object-cover" alt="" loading="lazy"><img src="img/kv-wide-shadow.jpg" class="w-full h-full object-cover object-right" alt="" loading="lazy">
+            <img src="img/tex-petal-water.jpg" class="w-full h-full object-cover" alt="" loading="lazy"><img src="img/space-oculus.jpg" class="w-full h-full object-cover" alt="" loading="lazy"><img src="img/tex-gel-glitter.jpg" class="w-full h-full object-cover" alt="" loading="lazy">
+          </div>
+          <div class="absolute inset-0 grid place-items-center"><span class="krhead flex items-center gap-2 px-4 py-2 rounded-full bg-black/50 backdrop-blur text-sm" style="font-weight:400"><iconify-icon icon="solar:gallery-bold"></iconify-icon> INSTAGRAM</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== LOCATION — 편집형 레이아웃: 왼쪽 글·얇은 선 정보 / 오른쪽 넓은 지도 (관리자 기본 설정 연동 id 유지) ===== -->
+  <section id="location" class="py-24 sm:py-36 bg-bglight scroll-mt-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-12 lg:gap-16 items-stretch">
+
+        <!-- 정보 -->
+        <div class="flex flex-col">
+          <p class="marcellus text-[12px] tracking-[0.35em] text-pinkstrong/80">LOCATION</p>
+          <h2 class="krhead text-[30px] sm:text-[36px] text-ink mt-3 leading-tight" style="font-weight:700">오시는 길</h2>
+          <p id="locAddr" class="krhead text-[17px] text-ink/85 mt-6 leading-relaxed break-keep" style="font-weight:500">경기 고양시 덕양구 화중로 60, 화정빌딩 2층 205·206호</p>
+          <p class="krhead text-[14px] text-ink/50 mt-1.5" style="font-weight:400">화정역 2번 출구 404m</p>
+
+          <dl class="krhead mt-10 border-t border-ink/15 text-[15px]" style="font-weight:400">
+            <div class="flex items-baseline justify-between gap-6 py-5 border-b border-ink/10">
+              <dt class="text-ink/50 shrink-0">대표전화</dt>
+              <dd><a id="locTel" href="tel:0507-1485-2378" onclick="track('call_click',{cta:'location'})" class="text-[20px] text-ink tracking-wide hover:text-pinkstrong transition" style="font-weight:600">0507-1485-2378</a></dd>
+            </div>
+            <div class="flex items-baseline justify-between gap-6 py-4 border-b border-ink/10">
+              <dt class="text-ink/50 shrink-0">평일</dt><dd id="locWeek" class="text-ink/85 tabular-nums">09:00 ~ 18:00</dd>
+            </div>
+            <div class="flex items-baseline justify-between gap-6 py-4 border-b border-ink/10">
+              <dt class="text-ink/50 shrink-0">토 · 일요일</dt><dd id="locWeekend" class="text-ink/85 tabular-nums">09:00 ~ 17:00</dd>
+            </div>
+            <div class="flex items-baseline justify-between gap-6 py-4 border-b border-ink/10">
+              <dt class="text-ink/50 shrink-0">공휴일 (명절 포함)</dt><dd id="locHoliday" class="text-ink/85">휴무</dd>
+            </div>
+          </dl>
+
+          <div class="krhead grid grid-cols-2 gap-3 mt-10 lg:mt-auto lg:pt-10 text-[14px]" style="font-weight:500">
+            <a id="locNaver" data-q="naver" href="#" target="_blank" rel="noopener" class="h-12 bg-pink text-white hover:bg-pinkstrong transition flex items-center justify-center gap-2"><iconify-icon icon="solar:calendar-linear" width="18"></iconify-icon> 네이버 예약</a>
+            <a id="locKakao" data-q="kakao" href="#" target="_blank" rel="noopener" class="h-12 border border-ink/20 text-ink/80 hover:border-pink hover:text-pinkstrong transition flex items-center justify-center gap-2"><iconify-icon icon="solar:chat-round-dots-linear" width="18"></iconify-icon> 카카오톡 문의</a>
+            <a href="https://map.naver.com/p/search/%EC%97%B0%EC%98%A4%EC%9E%AC%ED%95%9C%EC%9D%98%EC%9B%90" target="_blank" rel="noopener" onclick="track('map_click',{to:'naver'})" class="h-12 border border-ink/20 text-ink/80 hover:border-pink hover:text-pinkstrong transition flex items-center justify-center gap-2">네이버 지도 <iconify-icon icon="solar:arrow-right-up-linear" width="14"></iconify-icon></a>
+            <a href="https://www.google.com/maps/search/?api=1&query=%EC%97%B0%EC%98%A4%EC%9E%AC%ED%95%9C%EC%9D%98%EC%9B%90%20%EA%B2%BD%EA%B8%B0%20%EA%B3%A0%EC%96%91%EC%8B%9C%20%EB%8D%95%EC%96%91%EA%B5%AC%20%ED%99%94%EC%A4%91%EB%A1%9C%2060" target="_blank" rel="noopener" onclick="track('map_click',{to:'google'})" class="h-12 border border-ink/20 text-ink/80 hover:border-pink hover:text-pinkstrong transition flex items-center justify-center gap-2">구글 지도 <iconify-icon icon="solar:arrow-right-up-linear" width="14"></iconify-icon></a>
+          </div>
+        </div>
+
+        <!-- 지도: 액자 없이 넓게, 사이트 톤에 맞게 채도를 낮추고 마우스를 올리면 원래 색 -->
+        <div class="group/map relative min-h-[380px] lg:min-h-[600px] overflow-hidden bg-beige">
+          <iframe title="연오재한의원 위치 지도" class="absolute inset-0 w-full h-full border-0 [filter:grayscale(.45)_sepia(.14)_contrast(.95)] group-hover/map:[filter:none] transition-[filter] duration-700"
+            src="https://maps.google.com/maps?q=%EC%97%B0%EC%98%A4%EC%9E%AC%ED%95%9C%EC%9D%98%EC%9B%90%20%EA%B2%BD%EA%B8%B0%20%EA%B3%A0%EC%96%91%EC%8B%9C%20%EB%8D%95%EC%96%91%EA%B5%AC%20%ED%99%94%EC%A4%91%EB%A1%9C%2060&z=17&hl=ko&output=embed"
+            loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>
+          <div class="pointer-events-none absolute inset-0 ring-1 ring-inset ring-ink/10"></div>
+          <!-- 병원명 라벨 (구글 지도 조작 버튼·장소 카드와 겹치지 않는 오른쪽 위) -->
+          <div class="pointer-events-none absolute right-4 top-4 bg-white/95 px-5 py-3.5 shadow-[0_10px_30px_rgba(47,52,58,0.15)]">
+            <p class="marcellus text-[11px] tracking-[0.3em] text-pinkstrong/80">XXI</p>
+            <p class="krhead text-[15px] text-ink mt-0.5" style="font-weight:700">연오재한의원</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  
+  </main>
+
+  <main id="view-category" class="hidden">
+<!-- ===== HERO 배너 (이미지1: 타이틀 + 서브) ===== -->
+  <section class="relative flex items-end justify-center overflow-hidden pt-28 pb-12 lg:pt-56 lg:pb-16 min-h-[280px] lg:min-h-[420px]">
+    <img src="img/kv-wide-shadow.jpg" class="absolute inset-0 w-full h-full object-cover object-right" alt="" loading="lazy">
+    <div class="absolute inset-0 bg-gradient-to-b from-black/25 via-black/15 to-black/30"></div>
+    <div class="relative text-center text-white select-none">
+      <p class="marcellus text-[13px] sm:text-sm tracking-[0.3em] text-white/85">XXI · 연오재한의원</p>
+      <div class="flex items-center justify-center gap-3 my-4">
+        <span class="h-px w-12 bg-white/60"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-white/70"></span>
+        <span class="h-px w-12 bg-white/60"></span>
+      </div>
+      <h1 class="krhead text-[26px] sm:text-[34px] text-white" style="font-weight:700">시술안내 / 이벤트</h1>
+    </div>
+  </section>
+
+  <!-- ===== LIST — 시술전후 화면과 같은 구성: 위쪽 분류 탭(모바일 가로 스크롤) + 전체 너비 카드 ===== -->
+  <section id="list" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+    <!-- 분류 탭 (관리자 '카테고리 관리' 연동) -->
+    <nav id="catNav" aria-label="시술 분류" class="krhead flex flex-nowrap sm:flex-wrap items-center gap-2.5 mb-8 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 [&>button]:shrink-0" style="font-weight:500"></nav>
+
+    <!-- 개수 · 정렬 · 검색 -->
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+      <div class="flex flex-wrap items-center gap-x-5 gap-y-3">
+        <p id="catResultMeta" class="krhead text-xs text-muted" style="font-weight:300"></p>
+        <div id="catSortTabs" class="krhead flex items-center gap-2 text-sm" style="font-weight:500"></div>
+      </div>
+      <div class="relative w-full lg:w-72">
+        <label for="catSearch" class="sr-only">시술 검색</label>
+        <input id="catSearch" type="text" placeholder="검색어를 입력해주세요." class="krhead w-full pl-4 pr-10 py-2.5 rounded-full border border-ink/15 text-sm focus:outline-none focus:border-pink bg-white" style="font-weight:300">
+        <iconify-icon icon="solar:magnifer-linear" class="absolute right-4 top-1/2 -translate-y-1/2 text-ink/40"></iconify-icon>
+      </div>
+    </div>
+
+    <!-- 상품 그리드 -->
+    <div id="catGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+
+    <!-- 빈 상태 -->
+    <div id="catEmpty" class="hidden text-center py-24">
+      <iconify-icon icon="solar:magnifer-zoom-out-linear" width="40" class="text-ink/20"></iconify-icon>
+      <p class="krhead text-muted mt-4 break-keep" style="font-weight:300">조건에 맞는 시술이 없어요. 다른 분류나 검색어로 찾아보세요.</p>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <div id="catPager" class="flex items-center justify-center gap-1.5 mt-16"></div>
+  </section>
+
+  
+  </main>
+
+  <main id="view-ba" class="hidden">
+<!-- ===== HERO 배너 ===== -->
+  <section class="relative flex items-end justify-center overflow-hidden pt-28 pb-12 lg:pt-56 lg:pb-16 min-h-[280px] lg:min-h-[420px]">
+    <img src="img/kv-wide-water.jpg" class="absolute inset-0 w-full h-full object-cover" alt="" loading="lazy">
+    <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/15 to-black/35"></div>
+    <div class="relative text-center text-white select-none">
+      <p class="marcellus text-[13px] sm:text-sm tracking-[0.3em] text-white/85">BEFORE &amp; AFTER</p>
+      <div class="flex items-center justify-center gap-3 my-4">
+        <span class="h-px w-12 bg-white/60"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-white/70"></span>
+        <span class="h-px w-12 bg-white/60"></span>
+      </div>
+      <h1 class="krhead text-[26px] sm:text-[34px] text-white" style="font-weight:700">시술 전후 사례</h1>
+    </div>
+  </section>
+
+  <!-- ===== B&A 본문 ===== -->
+  <section id="ba-list" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+
+    <!-- 필터탭 -->
+    <!-- 모바일: 한 줄 가로 스크롤 / 넓은 화면: 여러 줄 -->
+    <div id="baFilterTabs" class="krhead flex flex-nowrap sm:flex-wrap items-center gap-2.5 mb-8 sm:mb-10 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0 [&>button]:shrink-0" style="font-weight:500"></div>
+
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
+      <p id="baResultMeta" class="krhead text-xs text-muted" style="font-weight:300"></p>
+      <p class="krhead text-[12px] text-ink/50 break-keep" style="font-weight:400">※ 동일인·동일 조건 촬영 사진이며, 시술 결과와 부작용은 개인에 따라 다를 수 있습니다.</p>
+    </div>
+
+    <!-- 카드 그리드 -->
+    <div id="baGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+
+    <!-- 빈 상태 -->
+    <div id="baEmpty" class="hidden text-center py-24">
+      <iconify-icon icon="solar:gallery-remove-linear" width="40" class="text-ink/20"></iconify-icon>
+      <p class="krhead text-muted mt-4 break-keep" style="font-weight:300">해당 분류의 전후사진이 아직 없어요. 다른 시술을 선택해 보세요.</p>
+    </div>
+
+    <!-- 페이지네이션 -->
+    <div id="baPager" class="flex items-center justify-center gap-1.5 mt-16"></div>
+  </section>
+
+  
+  </main>
+
+  <main id="view-reserve" class="hidden">
+  <!-- ===== HERO 배너 ===== -->
+  <section class="relative flex items-end justify-center overflow-hidden pt-28 pb-12 lg:pt-56 lg:pb-16 min-h-[280px] lg:min-h-[420px]">
+    <img src="img/space-oculus.jpg" class="absolute inset-0 w-full h-full object-cover" alt="" loading="lazy">
+    <div class="absolute inset-0 bg-gradient-to-b from-black/25 via-black/10 to-black/35"></div>
+    <div class="relative text-center text-white select-none">
+      <p class="marcellus text-[13px] sm:text-sm tracking-[0.3em] text-white/85">ONLINE BOOKING</p>
+      <div class="flex items-center justify-center gap-3 my-4">
+        <span class="h-px w-12 bg-white/60"></span>
+        <span class="w-1.5 h-1.5 rounded-full bg-white/70"></span>
+        <span class="h-px w-12 bg-white/60"></span>
+      </div>
+      <h1 class="krhead text-[26px] sm:text-[34px] text-white" style="font-weight:700">온라인예약</h1>
+    </div>
+  </section>
+
+  <!-- ===== 예약 본문 ===== -->
+  <section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+
+    <!-- 본인 인증 -->
+    <h2 class="krhead text-xl text-ink mb-2" style="font-weight:700">예약 시작하기</h2>
+    <p class="krhead text-[15px] text-ink/60 mb-5" style="font-weight:400">처음 오시는 분은 인증 없이 바로 신청할 수 있습니다.</p>
+
+    <div id="resAuthBox" class="mb-10">
+      <button id="resKakaoBtn" type="button" class="block w-full rounded-2xl border border-ink/12 p-7 sm:p-9 hover:border-pink/40 hover:bg-ink/[0.015] transition">
+        <span class="max-w-md mx-auto flex flex-col items-center gap-3">
+          <span class="w-16 h-16 rounded-full bg-[#FEE500] grid place-items-center shadow-sm">
+            <svg viewBox="0 0 36 36" width="32" height="32" xmlns="http://www.w3.org/2000/svg" aria-label="카카오톡">
+              <path fill="#3A1D1D" d="M18 7C11.4 7 6 11.2 6 16.4c0 3.3 2.2 6.2 5.5 7.9-.2.9-.9 3.2-1 3.7-.1.5.2.6.5.4.3-.2 3.5-2.4 4.9-3.3.7.1 1.4.1 2.1.1 6.6 0 12-4.2 12-9.4S24.6 7 18 7Z"/>
+            </svg>
+          </span>
+          <span class="krhead text-[15px] text-ink/70" style="font-weight:500">카카오 인증하기</span>
+          <span class="krhead text-[13px] text-ink/50" style="font-weight:400">재방문 고객은 인증하면 남은 시술권을 불러옵니다</span>
+        </span>
+      </button>
+      <!-- 처음 오시는 분은 인증 없이 바로 신청 -->
+      <button id="resGuestBtn" type="button" class="krhead mt-3 w-full h-12 rounded-xl border border-pink/30 text-pinkstrong text-[15px] hover:bg-pink hover:text-white transition" style="font-weight:500">처음이신가요? 인증 없이 바로 예약 신청하기</button>
+    </div>
+
+    <!-- 인증 후 영역 -->
+    <div id="resAfter" class="hidden space-y-10">
+
+      <!-- 예약자 정보 입력 -->
+      <div class="rounded-2xl border border-ink/12 p-6 sm:p-8">
+        <h3 class="krhead text-lg text-ink mb-6" style="font-weight:700">예약자 정보 입력</h3>
+        <div class="space-y-4">
+          <div class="flex items-center gap-4">
+            <label class="krhead text-sm text-ink/60 w-16 shrink-0" style="font-weight:500">이름</label>
+            <input id="resName" type="text" class="krhead flex-1 px-4 py-3 rounded-lg border border-ink/12 bg-ink/[0.02] text-sm focus:outline-none focus:border-pink" style="font-weight:400">
+          </div>
+          <div class="flex items-center gap-4">
+            <label class="krhead text-sm text-ink/60 w-16 shrink-0" style="font-weight:500">연락처</label>
+            <input id="resPhone" type="tel" class="krhead flex-1 px-4 py-3 rounded-lg border border-ink/12 bg-ink/[0.02] text-sm focus:outline-none focus:border-pink" style="font-weight:400">
+          </div>
+        </div>
+      </div>
+
+      <!-- 남은 시술권으로 예약 -->
+      <div class="rounded-2xl border border-ink/12 p-6 sm:p-8">
+        <h3 class="krhead text-lg text-ink mb-5" style="font-weight:700">남은 시술권으로 예약</h3>
+        <p class="krhead text-sm text-muted break-keep" style="font-weight:300">조회된 시술권이 없습니다. 아래에서 새로 시술을 선택해 예약해주세요.</p>
+      </div>
+
+      <!-- 예약일 및 시간 선택 -->
+      <div class="rounded-2xl border border-ink/12 p-6 sm:p-8">
+        <h3 class="krhead text-lg text-ink mb-6" style="font-weight:700">예약일 및 시간 선택</h3>
+        <div class="grid md:grid-cols-[1fr_220px] gap-6 md:gap-8">
+          <!-- 캘린더 -->
+          <div>
+            <div class="flex items-center justify-center gap-6 mb-4">
+              <button id="resCalPrev" class="w-8 h-8 rounded-full grid place-items-center text-ink/50 hover:bg-ink/5 transition"><iconify-icon icon="solar:alt-arrow-left-linear"></iconify-icon></button>
+              <span id="resCalTitle" class="krhead text-[15px] text-ink" style="font-weight:700"></span>
+              <button id="resCalNext" class="w-8 h-8 rounded-full grid place-items-center text-ink/50 hover:bg-ink/5 transition"><iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></button>
+            </div>
+            <div class="krhead grid grid-cols-7 text-center text-[12px] mb-2" style="font-weight:500">
+              <span class="text-red-400/80">일</span><span class="text-ink/55">월</span><span class="text-ink/55">화</span><span class="text-ink/55">수</span><span class="text-ink/55">목</span><span class="text-ink/55">금</span><span class="text-blue-400/80">토</span>
+            </div>
+            <div id="resCalDays" class="grid grid-cols-7 gap-y-2 text-center"></div>
+          </div>
+          <!-- 예약 시간 -->
+          <div class="md:border-l md:border-ink/10 md:pl-6">
+            <p class="krhead text-sm text-ink mb-4" style="font-weight:700">예약 시간</p>
+            <div id="resTimeWrap" class="krhead text-sm text-muted" style="font-weight:300">날짜를 먼저 선택해주세요.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 동의 -->
+      <div class="krhead space-y-2.5 text-sm text-ink/70" style="font-weight:300">
+        <label class="flex items-start gap-2 break-keep"><input type="checkbox" class="accent-pink mt-0.5" checked> ○○ 클리닉에서 발송하는 시술안내, 공지 등 문자 수신에 동의합니다. <span class="text-muted">(선택)</span></label>
+        <label class="flex items-start gap-2 break-keep"><input id="resAgreeReq" type="checkbox" class="accent-pink mt-0.5" checked> 개인정보 취급방침에 동의합니다. <span class="text-muted">(필수)</span> <a href="#" class="underline ml-1">전체보기</a></label>
+      </div>
+
+      <!-- 안내 -->
+      <div class="rounded-xl bg-pinksoft/45 border border-pink/15 px-5 py-3.5">
+        <p class="krhead text-[13px] text-pinkstrong break-keep" style="font-weight:400">제모 시술 예약 시에는 미리 해당 부위 쉐이빙 후 내원 해주시면 원활한 진행이 가능합니다 :)</p>
+      </div>
+
+      <!-- 예약 버튼 -->
+      <button id="resReserveBtn" class="krhead w-full py-4 rounded-xl bg-ink text-white hover:bg-pinkstrong transition" style="font-weight:700">시술 예약하기</button>
+    </div>
+  </section>
+
+  </main>
+
+  <main id="view-detail" class="hidden">
+  <!-- ===== HERO 배너 ===== -->
+  <section class="relative flex items-end justify-center overflow-hidden pt-28 pb-12 lg:pt-56 lg:pb-16 min-h-[280px] lg:min-h-[420px]">
+    <img src="img/space-cove-wall.jpg" class="absolute inset-0 w-full h-full object-cover" alt="" loading="lazy">
+    <div class="absolute inset-0 bg-gradient-to-b from-black/25 via-black/10 to-black/35"></div>
+    <div class="relative text-center text-white select-none">
+      <p class="marcellus text-[13px] sm:text-sm tracking-[0.3em] text-white/85">XXI · 연오재한의원</p>
+      <div class="flex items-center justify-center gap-3 my-4">
+        <span class="h-px w-12 bg-white/60"></span><span class="w-1.5 h-1.5 rounded-full bg-white/70"></span><span class="h-px w-12 bg-white/60"></span>
+      </div>
+      <p class="krhead text-[26px] sm:text-[34px] text-white" style="font-weight:700">시술안내 / 이벤트</p>
+    </div>
+  </section>
+
+  <!-- ===== 상세 본문 ===== -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-40">
+    <div id="detailBody"></div>
+  </div>
+
+  <!-- ===== 하단 고정: 시술 선택 바 (상세 전용) ===== -->
+  <div class="fixed bottom-0 left-0 right-0 z-40 px-2 sm:px-4 pb-2">
+    <div class="max-w-7xl mx-auto bg-white rounded-2xl shadow-[0_-4px_30px_rgba(0,0,0,0.12)] px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+      <span id="detailBarTitle" class="krhead text-sm sm:text-base text-ink truncate" style="font-weight:700"></span>
+      <div class="flex items-center gap-2 shrink-0">
+        <a data-q="tel" href="#" aria-label="전화 상담" class="w-11 h-11 rounded-full border border-pink/30 text-pinkstrong grid place-items-center hover:bg-bglight transition"><iconify-icon icon="solar:phone-calling-linear" width="20"></iconify-icon></a>
+        <a data-q="kakao" href="#" target="_blank" rel="noopener" aria-label="카카오톡 상담" class="w-11 h-11 rounded-full bg-[#FEE500] grid place-items-center hover:brightness-95 transition">
+          <svg viewBox="0 0 36 36" width="22" height="22" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path fill="#3A1D1D" d="M18 7C11.4 7 6 11.2 6 16.4c0 3.3 2.2 6.2 5.5 7.9-.2.9-.9 3.2-1 3.7-.1.5.2.6.5.4.3-.2 3.5-2.4 4.9-3.3.7.1 1.4.1 2.1.1 6.6 0 12-4.2 12-9.4S24.6 7 18 7Z"/></svg>
+        </a>
+        <a href="#reserve" onclick="track('cta_click',{cta:'detail_bar'});showView('reserve');return false" class="krhead px-6 sm:px-8 py-3 rounded-xl bg-pink text-white hover:bg-pinkstrong transition" style="font-weight:700">상담 예약</a>
+      </div>
+    </div>
+  </div>
+
+  </main>
+
+  <main id="view-badetail" class="hidden">
+  <!-- ===== HERO 배너 ===== -->
+  <section class="relative flex items-end justify-center overflow-hidden pt-28 pb-12 lg:pt-56 lg:pb-16 min-h-[280px] lg:min-h-[420px]">
+    <img src="img/kv-wide-water.jpg" class="absolute inset-0 w-full h-full object-cover" alt="" loading="lazy">
+    <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-black/15 to-black/35"></div>
+    <div class="relative text-center text-white select-none">
+      <p class="marcellus text-[13px] sm:text-sm tracking-[0.3em] text-white/85">XXI · 연오재한의원</p>
+      <div class="flex items-center justify-center gap-3 my-4">
+        <span class="h-px w-12 bg-white/60"></span><span class="w-1.5 h-1.5 rounded-full bg-white/70"></span><span class="h-px w-12 bg-white/60"></span>
+      </div>
+      <p class="krhead text-[26px] sm:text-[34px] text-white" style="font-weight:700">전후사진</p>
+    </div>
+  </section>
+
+  <!-- ===== 전후 상세 본문 ===== -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-28">
+    <div id="baDetailBody"></div>
+  </div>
+
+  </main>
+
+  <main id="view-manage" class="hidden">
+  <!-- ===== HERO 배너 ===== -->
+  <section class="relative flex items-end justify-center overflow-hidden pt-28 pb-12 lg:pt-56 lg:pb-16 min-h-[280px] lg:min-h-[420px]">
+    <img src="img/space-cove-wall.jpg" class="absolute inset-0 w-full h-full object-cover" alt="" loading="lazy">
+    <div class="absolute inset-0 bg-gradient-to-b from-black/25 via-black/10 to-black/35"></div>
+    <div class="relative text-center text-white select-none">
+      <p class="marcellus text-[13px] sm:text-sm tracking-[0.3em] text-white/85">MY BOOKING</p>
+      <div class="flex items-center justify-center gap-3 my-4">
+        <span class="h-px w-12 bg-white/60"></span><span class="w-1.5 h-1.5 rounded-full bg-white/70"></span><span class="h-px w-12 bg-white/60"></span>
+      </div>
+      <h1 class="krhead text-[26px] sm:text-[34px] text-white" style="font-weight:700">예약 변경 / 취소</h1>
+    </div>
+  </section>
+
+  <!-- ===== 본문 ===== -->
+  <section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+    <h2 class="krhead text-xl text-ink mb-2" style="font-weight:700">예약 변경 / 취소</h2>
+    <p class="krhead text-sm text-muted mb-5" style="font-weight:300">예약 내역 조회를 위해 본인 인증을 진행합니다.</p>
+
+    <div id="mngAuthBox" class="mb-10">
+      <button id="mngKakaoBtn" type="button" class="block w-full rounded-2xl border border-ink/12 p-7 sm:p-9 hover:border-pink/40 hover:bg-ink/[0.015] transition">
+        <span class="max-w-md mx-auto flex flex-col items-center gap-3">
+          <span class="w-16 h-16 rounded-full bg-[#FEE500] grid place-items-center shadow-sm">
+            <svg viewBox="0 0 36 36" width="32" height="32" xmlns="http://www.w3.org/2000/svg" aria-label="카카오톡"><path fill="#3A1D1D" d="M18 7C11.4 7 6 11.2 6 16.4c0 3.3 2.2 6.2 5.5 7.9-.2.9-.9 3.2-1 3.7-.1.5.2.6.5.4.3-.2 3.5-2.4 4.9-3.3.7.1 1.4.1 2.1.1 6.6 0 12-4.2 12-9.4S24.6 7 18 7Z"/></svg>
+          </span>
+          <span class="krhead text-[15px] text-ink/70" style="font-weight:500">카카오 인증하기</span>
+        </span>
+      </button>
+    </div>
+
+    <div id="mngAfter" class="hidden">
+      <div class="rounded-2xl border border-ink/12 p-6 sm:p-8 text-center">
+        <h3 class="krhead text-lg text-ink mb-4" style="font-weight:700">예약 내역</h3>
+        <p class="krhead text-sm text-muted break-keep mb-6" style="font-weight:300">조회된 예약 내역이 없습니다. 예약 후 이용해 주세요.</p>
+        <button onclick="showView('reserve')" class="krhead px-6 py-3 rounded-xl bg-ink text-white hover:bg-pinkstrong transition" style="font-weight:700">온라인예약 하러 가기</button>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+  <!-- ===== 시술 노트 (procedure notes) ===== -->
+  <main id="view-notes" class="hidden">
+    <!-- 상단 배너: 다른 하위 화면(시술메뉴·시술전후)과 같은 구성 -->
+    <section class="relative flex items-end justify-center overflow-hidden pt-28 pb-12 lg:pt-56 lg:pb-16 min-h-[280px] lg:min-h-[420px]">
+      <img src="img/tex-petal-water.jpg" class="absolute inset-0 w-full h-full object-cover" alt="" loading="lazy">
+      <div class="absolute inset-0 bg-gradient-to-b from-black/25 via-black/15 to-black/35"></div>
+      <div class="relative text-center text-white select-none">
+        <p class="marcellus text-[13px] sm:text-sm tracking-[0.3em] text-white/85">PROCEDURE NOTES</p>
+        <div class="flex items-center justify-center gap-3 my-4">
+          <span class="h-px w-12 bg-white/60"></span><span class="w-1.5 h-1.5 rounded-full bg-white/70"></span><span class="h-px w-12 bg-white/60"></span>
+        </div>
+        <h1 class="krhead text-[26px] sm:text-[34px] text-white" style="font-weight:700">시술 노트</h1>
+      </div>
+    </section>
+
+    <!-- 노트 목록 (전체 너비 3열) + 블로그 최신 글 -->
+    <section class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+      <p id="noteMeta" class="krhead text-xs text-muted mb-6" style="font-weight:300"></p>
+      <div id="noteGrid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+      <div id="notePager" class="flex items-center justify-center gap-2 mt-16"></div>
+      <div id="blogWidget" class="mt-20"></div>
+    </section>
+  </main>
+
+  <!-- ===== 시술 노트 상세 (글 + 사진) ===== -->
+  <main id="view-notedetail" class="hidden">
+    <!-- 상단 배너 (PC 큰 헤더가 본문 제목과 겹치지 않도록, 다른 상세 화면과 같은 구성) -->
+    <section class="relative flex items-end justify-center overflow-hidden pt-28 pb-12 lg:pt-56 lg:pb-16 min-h-[280px] lg:min-h-[420px]">
+      <img src="img/tex-petal-water.jpg" class="absolute inset-0 w-full h-full object-cover" alt="" loading="lazy">
+      <div class="absolute inset-0 bg-gradient-to-b from-black/25 via-black/15 to-black/35"></div>
+      <div class="relative text-center text-white select-none">
+        <p class="marcellus text-[13px] sm:text-sm tracking-[0.3em] text-white/85">PROCEDURE NOTES</p>
+        <div class="flex items-center justify-center gap-3 my-4">
+          <span class="h-px w-12 bg-white/60"></span><span class="w-1.5 h-1.5 rounded-full bg-white/70"></span><span class="h-px w-12 bg-white/60"></span>
+        </div>
+        <p class="krhead text-[26px] sm:text-[34px] text-white" style="font-weight:700">시술 노트</p>
+      </div>
+    </section>
+    <section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-28">
+      <div id="noteDetailBody"></div>
+    </section>
+  </main>
+
+  <!-- ===== 시술 후 주의사항 (admin care 연동) ===== -->
+  <main id="view-care" class="hidden">
+    <section class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-28">
+      <div class="text-center mb-16">
+        <h1 class="serif text-4xl sm:text-5xl tracking-[0.04em] text-ink/90">after care</h1>
+        <div class="flex items-center justify-center gap-3 my-3"><span class="h-px w-14 bg-ink/25"></span><span class="w-1.5 h-1.5 rotate-45 border border-ink/40"></span><span class="h-px w-14 bg-ink/25"></span></div>
+        <p class="krhead tracking-[0.3em] text-ink/65 text-sm" style="font-weight:400">시술 후 주의사항</p>
+      </div>
+      <div id="careList" class="space-y-4"></div>
+    </section>
+  </main>
+
+  <!-- ===== 의료진 소개 (admin doctors 연동) ===== -->
+  <main id="view-doctors" class="hidden">
+    <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-28">
+      <div class="text-center mb-16">
+        <h1 class="serif text-4xl sm:text-5xl tracking-[0.04em] text-ink/90">our doctors</h1>
+        <div class="flex items-center justify-center gap-3 my-3"><span class="h-px w-14 bg-ink/25"></span><span class="w-1.5 h-1.5 rotate-45 border border-ink/40"></span><span class="h-px w-14 bg-ink/25"></span></div>
+        <p class="krhead tracking-[0.3em] text-ink/65 text-sm" style="font-weight:400">의료진 소개</p>
+      </div>
+      <div id="docList" class="grid sm:grid-cols-2 gap-8"></div>
+    </section>
+  </main>
+
+  <!-- ===== 비급여 안내 (admin noninsured 연동) ===== -->
+  <main id="view-noninsured" class="hidden">
+    <section class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-28">
+      <div class="text-center mb-12">
+        <h1 class="serif text-4xl sm:text-5xl tracking-[0.04em] text-ink/90">price notice</h1>
+        <div class="flex items-center justify-center gap-3 my-3"><span class="h-px w-14 bg-ink/25"></span><span class="w-1.5 h-1.5 rotate-45 border border-ink/40"></span><span class="h-px w-14 bg-ink/25"></span></div>
+        <p class="krhead tracking-[0.3em] text-ink/65 text-sm" style="font-weight:400">비급여 진료비용 안내</p>
+      </div>
+      <div class="rounded-2xl border border-ink/10 overflow-hidden bg-white shadow-sm">
+        <table class="w-full text-sm">
+          <thead><tr class="krhead bg-cream text-ink/60" style="font-weight:500"><th class="text-left px-6 py-4">항목명</th><th class="text-left px-4 py-4">기준</th><th class="text-right px-6 py-4">비용</th></tr></thead>
+          <tbody id="niList" class="krhead" style="font-weight:300"></tbody>
+        </table>
+      </div>
+      <p class="krhead text-xs text-ink/40 text-center mt-5 break-keep" style="font-weight:300">※ 「의료법」 제45조 및 동법 시행규칙에 따른 비급여 진료비용 고지입니다. 실제 비용은 환자 상태에 따라 달라질 수 있습니다.</p>
+    </section>
+  </main>
+
+  <!-- ===== 지점 안내 (network) ===== -->
+  <main id="view-network" class="hidden">
+    <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-28">
+      <div class="text-center mb-16">
+        <h1 class="serif text-4xl sm:text-5xl tracking-[0.04em] text-ink/90">our network</h1>
+        <div class="flex items-center justify-center gap-3 my-3"><span class="h-px w-14 bg-ink/25"></span><span class="w-1.5 h-1.5 rotate-45 border border-ink/40"></span><span class="h-px w-14 bg-ink/25"></span></div>
+        <p class="krhead tracking-[0.3em] text-ink/65 text-sm" style="font-weight:400">지점 안내</p>
+      </div>
+      <div id="netList" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    </section>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="bg-dark text-white pt-24 pb-28 sm:pb-24">
+    <div class="max-w-3xl mx-auto px-6 text-center">
+      <div class="flex items-center justify-center gap-3 mb-6">
+        <span class="marcellus text-3xl tracking-[0.3em] text-white/85 leading-none">XXI</span>
+        <span class="krhead text-[15px] text-white/85 leading-tight text-left border-l border-white/25 pl-3" style="font-weight:500">연오재한의원<span class="block text-[9px] tracking-[0.28em] text-white/50 mt-1" style="font-weight:300">PREMIUM MEDICAL SKIN NETWORK</span></span>
+      </div>
+      <div class="krhead flex flex-wrap justify-center gap-x-4 gap-y-2 text-sm text-white/55 mb-7" style="font-weight:300">
+        <a href="#" class="hover:text-white">개인정보처리방침</a><span>|</span>
+        <a href="#" class="hover:text-white">이용약관</a><span>|</span>
+        <a href="#notes" onclick="showView('notes');return false" class="hover:text-white">시술 노트</a><span>|</span>
+        <a href="#care" onclick="showView('care');return false" class="hover:text-white">시술 후 주의사항</a><span>|</span>
+        <a href="#noninsured" onclick="showView('noninsured');return false" class="hover:text-white">비급여 안내</a><span>|</span>
+        <a href="#doctors" onclick="showView('doctors');return false" class="hover:text-white">의료진 소개</a><span>|</span>
+        <a href="#network" onclick="showView('network');return false" class="hover:text-white">지점 안내</a>
+      </div>
+      <p id="ftBiz" class="krhead text-sm text-white/60 break-keep" style="font-weight:300">상호 : 연오재한의원 | 대표 : 김경민 | 사업자등록번호 : 779-09-03367</p>
+      <p id="ftAddr" class="krhead text-sm text-white/60 break-keep mt-1.5" style="font-weight:300">주소 : 경기 고양시 덕양구 화중로 60, 화정빌딩 2층 205·206호</p>
+      <p class="krhead text-sm text-white/60 mt-1.5" style="font-weight:300">대표전화 : <a href="tel:0507-1485-2378" class="underline underline-offset-2 hover:text-white">0507-1485-2378</a></p>
+      <p class="krhead text-xs text-white/50 mt-6" style="font-weight:300">© 2026 연오재한의원 · XXI PREMIUM MEDICAL SKIN NETWORK. All Rights Reserved</p>
+    </div>
+  </footer>
+
+  <!-- ===== PC 오른쪽 빠른 연락 버튼 (href는 아래 스크립트가 관리자 '기본 설정' 값으로 채움) ===== -->
+  <div id="quickDock" class="hidden lg:flex fixed right-5 bottom-28 z-30 flex-col gap-2.5">
+    <a data-q="naver" href="#" target="_blank" rel="noopener" aria-label="네이버 예약" class="group relative w-12 h-12 rounded-full bg-pink text-white grid place-items-center shadow-lg hover:bg-pinkstrong transition"><iconify-icon icon="solar:calendar-linear" width="22"></iconify-icon><span class="krhead pointer-events-none absolute right-14 whitespace-nowrap px-3 py-1.5 rounded-lg bg-ink text-white text-[13px] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition" style="font-weight:500">네이버 예약</span></a>
+    <a data-q="kakao" href="#" target="_blank" rel="noopener" aria-label="카카오톡 상담" class="group relative w-12 h-12 rounded-full bg-pink text-white grid place-items-center shadow-lg hover:bg-pinkstrong transition"><iconify-icon icon="solar:chat-round-dots-linear" width="22"></iconify-icon><span class="krhead pointer-events-none absolute right-14 whitespace-nowrap px-3 py-1.5 rounded-lg bg-ink text-white text-[13px] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition" style="font-weight:500">카카오톡 상담</span></a>
+    <a data-q="tel" href="#" aria-label="전화 상담" class="group relative w-12 h-12 rounded-full bg-pink text-white grid place-items-center shadow-lg hover:bg-pinkstrong transition"><iconify-icon icon="solar:phone-calling-linear" width="22"></iconify-icon><span data-q-label class="krhead pointer-events-none absolute right-14 whitespace-nowrap px-3 py-1.5 rounded-lg bg-ink text-white text-[13px] opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition" style="font-weight:500">전화 상담</span></a>
+    <button onclick="scrollToY(0,true)" aria-label="맨 위로" class="w-12 h-12 rounded-full bg-white text-pinkstrong border border-pink/20 grid place-items-center shadow-lg hover:bg-bglight transition"><iconify-icon icon="solar:alt-arrow-up-linear" width="22"></iconify-icon></button>
+  </div>
+
+  <!-- ===== PC 하단 빠른 상담신청 바 (예약·상세 화면에서는 숨김: showView 참고) ===== -->
+  <div id="consult" class="hidden lg:block fixed bottom-0 left-0 right-0 z-40 px-4 pb-2">
+    <div class="max-w-7xl mx-auto bg-white rounded-2xl shadow-[0_-4px_30px_rgba(0,0,0,0.12)] px-6 py-3">
+      <form onsubmit="return consultSubmit(this, 'pc_bar')" class="krhead flex items-center gap-3" style="font-weight:400">
+        <span class="shrink-0 text-ink border-l-4 border-pink pl-2 text-base" style="font-weight:500">빠른 상담신청</span>
+        <label class="sr-only" for="cName">이름</label>
+        <input id="cName" name="name" type="text" required autocomplete="name" placeholder="이름" class="w-36 px-3 py-2.5 rounded-lg border border-ink/15 text-sm focus:outline-none focus:border-pink">
+        <label class="sr-only" for="cTel">전화번호</label>
+        <input id="cTel" name="tel" type="tel" required autocomplete="tel" inputmode="tel" placeholder="전화번호 010-1234-5678" class="w-52 px-3 py-2.5 rounded-lg border border-ink/15 text-sm focus:outline-none focus:border-pink">
+        <label class="sr-only" for="cDate">희망 날짜</label>
+        <input id="cDate" name="date" type="date" class="px-3 py-2.5 rounded-lg border border-ink/15 text-sm text-ink/70 focus:outline-none focus:border-pink">
+        <label class="sr-only" for="cTime">희망 시간</label>
+        <select id="cTime" name="time" class="px-3 py-2.5 rounded-lg border border-ink/15 text-sm text-ink/70 focus:outline-none focus:border-pink">
+          <option value="">시간 선택</option><option>오전 10:00</option><option>오전 11:00</option><option>오후 02:00</option><option>오후 05:00</option>
+        </select>
+        <label class="flex items-center gap-1.5 text-[13px] text-ink/65 whitespace-nowrap"><input name="agree" type="checkbox" required class="accent-pink w-4 h-4"> 개인정보 수집·이용 동의(필수)</label>
+        <button type="submit" class="ml-auto shrink-0 px-8 py-2.5 rounded-lg bg-pink hover:bg-pinkstrong text-white text-sm transition" style="font-weight:500">상담신청</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== 모바일 하단 3칸 바: 전화 / 네이버 예약 / 상담 신청 ===== -->
+  <nav id="mobileBar" aria-label="빠른 연락" class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-ink/10 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] grid grid-cols-3 pb-[env(safe-area-inset-bottom)]">
+    <a data-q="tel" href="#" class="krhead h-16 flex flex-col items-center justify-center gap-0.5 text-[13px] text-ink/80" style="font-weight:500"><iconify-icon icon="solar:phone-calling-linear" width="22" class="text-pinkstrong"></iconify-icon>전화 상담</a>
+    <a data-q="naver" href="#" target="_blank" rel="noopener" class="krhead h-16 flex flex-col items-center justify-center gap-0.5 text-[13px] text-ink/80 border-x border-ink/10" style="font-weight:500"><iconify-icon icon="solar:calendar-linear" width="22" class="text-pinkstrong"></iconify-icon>네이버 예약</a>
+    <button type="button" onclick="openSheet()" class="krhead h-16 flex flex-col items-center justify-center gap-0.5 text-[13px] bg-pink text-white" style="font-weight:500"><iconify-icon icon="solar:chat-round-dots-linear" width="22"></iconify-icon>상담 신청</button>
+  </nav>
+
+  <!-- 모바일 상담 신청 바텀시트 -->
+  <div id="sheet" class="lg:hidden fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+    <div class="absolute inset-0 bg-black/40" onclick="closeSheet()"></div>
+    <form onsubmit="return consultSubmit(this, 'mobile_sheet')" class="krhead absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl px-6 pt-4 pb-[calc(1.5rem+env(safe-area-inset-bottom))]" style="font-weight:400">
+      <div class="w-10 h-1.5 rounded-full bg-ink/15 mx-auto mb-5"></div>
+      <div class="flex items-center justify-between mb-5">
+        <h2 id="sheetTitle" class="text-[20px] text-ink" style="font-weight:700">빠른 상담 신청</h2>
+        <button type="button" onclick="closeSheet()" aria-label="닫기" class="w-10 h-10 grid place-items-center text-ink/50"><iconify-icon icon="solar:close-circle-linear" width="26"></iconify-icon></button>
+      </div>
+      <label class="block text-[14px] text-ink/70 mb-1.5" for="sName">이름</label>
+      <input id="sName" name="name" type="text" required autocomplete="name" class="w-full h-12 px-4 rounded-xl border border-ink/15 text-[16px] focus:outline-none focus:border-pink">
+      <label class="block text-[14px] text-ink/70 mb-1.5 mt-4" for="sTel">전화번호</label>
+      <input id="sTel" name="tel" type="tel" required autocomplete="tel" inputmode="tel" placeholder="010-1234-5678" class="w-full h-12 px-4 rounded-xl border border-ink/15 text-[16px] focus:outline-none focus:border-pink">
+      <label class="flex items-start gap-2 mt-5 text-[14px] text-ink/70 break-keep"><input name="agree" type="checkbox" required class="accent-pink w-5 h-5 mt-0.5 shrink-0"> 상담을 위한 개인정보(이름·전화번호) 수집·이용에 동의합니다. (필수)</label>
+      <button type="submit" class="w-full h-14 mt-6 rounded-xl bg-pink text-white text-[16px]" style="font-weight:700">상담 신청하기</button>
+      <p class="text-[13px] text-ink/50 text-center mt-3">급하신 경우 <a data-q="tel" href="#" class="underline text-pinkstrong">전화 상담</a>이 가장 빠릅니다.</p>
+    </form>
+  </div>
+
+  <script>
+    /* ===== 빠른 연락 버튼 연결 (관리자 '기본 설정'의 전화·네이버·카카오 값 사용) ===== */
+    (function(){
+      var tel=(SITE.tel||'').replace(/[^0-9+\-]/g,'');
+      document.querySelectorAll('[data-q]').forEach(function(a){
+        var k=a.getAttribute('data-q');
+        if(k==='tel'){ if(tel){ a.href='tel:'+tel; a.addEventListener('click',function(){ track('call_click',{cta:a.closest('#mobileBar')?'mobile_bar':'dock'}); }); } else a.remove(); }
+        if(k==='naver'){ if(SITE.naver){ a.href=SITE.naver; a.addEventListener('click',function(){ track('naver_booking_click'); }); } else a.remove(); }
+        if(k==='kakao'){ if(SITE.kakao){ a.href=SITE.kakao; a.addEventListener('click',function(){ track('kakao_click'); }); } else a.remove(); }
+      });
+      var lbl=document.querySelector('#quickDock [data-q-label]'); if(lbl && SITE.tel) lbl.textContent='전화 '+SITE.tel;
+      /* 위치 안내: 카카오톡 주소가 없어 버튼이 빠지면 네이버 예약 버튼을 한 줄 전체로 */
+      var ln=document.getElementById('locNaver'); if(ln && !document.getElementById('locKakao')) ln.classList.add('col-span-2');
+    })();
+    /* ===== 첫 화면 빠른 예약 카드 ===== */
+    /* 첫 화면 예약 카드 — 관리자 「예약 목록」에 '미확정'으로 저장 */
+    function quickBookSubmit(form){
+      var tel=form.tel.value.trim();
+      if(!/^0\d{1,2}-?\d{3,4}-?\d{4}$/.test(tel)){ alert('연락처를 정확히 입력해주세요. (예: 010-1234-5678)'); form.tel.focus(); return false; }
+      var opt=form.item.options[form.item.selectedIndex], item=opt?opt.text:'상담 후 결정';
+      var ds=form.date.value, t=form.time.value, btn=form.querySelector('button[type=submit]');
+      btn.disabled=true;
+      RES.booked(ds).then(function(o){
+        if((o[t]||0)>=RES.hours().capacity) throw {full:true};
+        return RES.submit({ name:form.name.value, phone:tel, date:ds, time:t, item:item, source:'hero' });
+      }).then(function(){
+        track('reserve_submit',{form:'hero_quickbook', item:item, date:ds, time:t});
+        alert('예약 신청이 접수되었습니다.\n\n'+form.name.value.trim()+' 님 · '+ds+' '+t+'\n'+item+'\n\n병원에서 확인 후 확정 연락을 드립니다.');
+        form.reset(); document.getElementById('qbPrice').textContent='0'; document.getElementById('qbWon').hidden=false; qbTimes();
+      }).catch(function(e){
+        if(e && e.full){ alert('방금 다른 분이 이 시간을 예약했습니다. 다른 시간을 선택해주세요.'); qbTimes(); }
+        else alert(RES.failMsg());
+      }).then(function(){ btn.disabled=false; });
+      return false;
+    }
+    /* 예약 카드 시간 목록: 고른 날짜의 예약 가능 시간(관리자 설정)만, 찬 시간은 '마감' */
+    function qbTimes(){
+      var f=document.getElementById('quickBook'); if(!f) return;
+      var sel=f.time, v=f.date.value;
+      if(!v){ sel.innerHTML='<option value="">시간</option>'; return; }
+      var p=v.split('-'), date=new Date(+p[0], +p[1]-1, +p[2]), slots=RES.slots(date);
+      if(!slots.length){ sel.innerHTML='<option value="">휴진일</option>'; return; }
+      sel.innerHTML='<option value="">시간</option>'+slots.map(function(t){ return '<option>'+t+'</option>'; }).join('');
+      RES.booked(v).then(function(o){
+        if(f.date.value!==v) return;
+        var cap=RES.hours().capacity;
+        Array.prototype.forEach.call(sel.options, function(op){ if(op.value && (o[op.value]||0)>=cap){ op.disabled=true; op.textContent=op.value+' (마감)'; } });
+      });
+    }
+    (function(){
+      var form=document.getElementById('quickBook'); if(!form) return;
+      var sel=document.getElementById('qbItem'), price=document.getElementById('qbPrice');
+      /* 날짜: 오늘 이전은 선택 불가 */
+      var d=new Date(), pad=function(n){ return String(n).padStart(2,'0'); };
+      document.getElementById('qbDate').min=d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+      document.getElementById('qbDate').addEventListener('change', qbTimes);
+      /* 오늘 진료시간 안내 (관리자 기본 설정의 평일/주말 시간 사용) */
+      var dow=d.getDay(), hrs=(dow===0||dow===6)?(SITE.hWeekend||'09:00 ~ 17:00'):(SITE.hWeek||'09:00 ~ 18:00');
+      var end=(String(hrs).match(/(\d{1,2}:\d{2})\s*$/)||String(hrs).match(/~\s*(\d{1,2}:\d{2})/)||[])[1];
+      document.getElementById('qbToday').innerHTML = (/휴무/.test(hrs)||!end) ? '오늘은 <b class="text-ink">휴진</b>입니다.' : '오늘 진료시간은 <b class="text-pinkstrong">'+esc(end)+'</b> 까지입니다.';
+      /* 시술 목록: 시술메뉴 데이터(관리자 '시술 상품 관리')를 사용 — 스크립트 순서상 페이지 로드 후 채움 */
+      function fill(){
+        var list=(window.__products||[]);
+        var groups={};
+        list.forEach(function(p){ (groups[p.cat]=groups[p.cat]||[]).push(p); });
+        sel.innerHTML='<option value="">시술을 선택해 주세요</option>'+Object.keys(groups).map(function(cat){
+          return '<optgroup label="'+esc(cat)+'">'+groups[cat].map(function(p){ return '<option value="'+p._seed+'">'+esc(p.big||p.title)+'</option>'; }).join('')+'</optgroup>';
+        }).join('');
+      }
+      sel.addEventListener('change',function(){
+        var p=(window.__products||[])[+sel.value];
+        price.textContent = !p ? '0' : (p.price ? Number(p.price).toLocaleString('ko-KR') : '상담 후 안내');
+        document.getElementById('qbWon').hidden = !!(p && !p.price);
+        if(p) track('select_item',{item:p.title});
+      });
+      if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',fill); else fill();
+      /* PC: 예약 카드가 화면에 보이는 동안에는 하단 상담 바를 내려서 겹치지 않게 */
+      var bar=document.getElementById('consult');
+      if(bar && window.IntersectionObserver){
+        bar.style.transition='transform .35s ease';
+        new IntersectionObserver(function(es){ bar.style.transform = es[0].isIntersecting ? 'translateY(130%)' : ''; },{threshold:0.1}).observe(form);
+      }
+    })();
+    /* ===== 상단 메뉴 (admin 「상단 메뉴」 연동) — 저장된 설정이 없으면 기본 메뉴 그대로 =====
+       항목: {id, label, view, parent, on, url} / view: category·reserve·manage·ba·about·notes·doctors·network·care·noninsured·ext(외부링크) */
+    (function(){
+      var menus=KK.get('menus', null);
+      if(!Array.isArray(menus) || !menus.length) return;
+      function ok(m){
+        if(m.on===false) return false;
+        if(m.view==='ext') return safeUrl(m.url)!=='#';
+        if(m.view==='about') return true;
+        return !!document.getElementById('view-'+m.view);   /* 홈페이지에 없는 화면은 건너뜀 */
+      }
+      function act(m){
+        if(m.view==='ext') return { href:safeUrl(m.url), click:"window.open(this.href,'_blank','noopener');return false" };
+        if(m.view==='about') return { href:'#about', click:"showView('home','#about');return false" };
+        return { href:'#'+m.view, click:"showView('"+m.view+"');return false" };
+      }
+      function key(m){ return ({category:'menu', ba:'ba', notes:'notes', reserve:'book', manage:'book'})[m.view]||''; }
+      var tops=menus.filter(function(m){ return !m.parent && ok(m); });
+      function kids(id){ return menus.filter(function(m){ return m.parent===id && ok(m); }); }
+      if(!tops.length) return;
+      function item(m){
+        var a=act(m), k=key(m);
+        var link='<a href="'+a.href+'"'+(k?' data-key="'+k+'"':'')+' onclick="'+a.click+'" class="navlink hover:text-pinkstrong transition">'+esc(m.label)+'</a>';
+        var ks=kids(m.id); if(!ks.length) return link;
+        return '<div class="relative group">'+link+'<div class="absolute left-1/2 -translate-x-1/2 top-full pt-3 hidden group-hover:block group-has-[:focus-visible]:block z-50"><div class="bg-white rounded-xl shadow-xl border border-ink/10 py-2 min-w-[160px]">'+
+          ks.map(function(c){ var ca=act(c); return '<a href="'+ca.href+'" onclick="'+ca.click+'" class="krhead block w-full text-center px-5 py-2.5 text-sm text-ink/75 hover:text-pinkstrong hover:bg-bglight transition" style="font-weight:400">'+esc(c.label)+'</a>'; }).join('')+
+          '</div></div></div>';
+      }
+      var html=tops.map(item).join('');
+      var n1=document.querySelector('#hdr nav'); if(n1) n1.innerHTML=html;
+      var n2=document.querySelector('#hdrBar nav'); if(n2) n2.innerHTML=html;
+      var mn=document.getElementById('mnav');
+      if(mn) mn.innerHTML=tops.map(function(m){
+        var close=";document.getElementById('mnav').classList.add('hidden');";
+        var a=act(m), out='<a href="'+a.href+'" onclick="'+a.click.replace(';return false', close+'return false')+'">'+esc(m.label)+'</a>';
+        kids(m.id).forEach(function(c){ var ca=act(c); out+='<a href="'+ca.href+'" onclick="'+ca.click.replace(';return false', close+'return false')+'" class="pl-3 text-ink/60">└ '+esc(c.label)+'</a>'; });
+        return out;
+      }).join('');
+    })();
+
+    function openSheet(){ var s=document.getElementById('sheet'); s.classList.remove('hidden'); document.body.style.overflow='hidden'; setTimeout(function(){ document.getElementById('sName').focus(); },50); track('cta_click',{cta:'mobile_consult'}); }
+    function closeSheet(){ document.getElementById('sheet').classList.add('hidden'); document.body.style.overflow=''; }
+    document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeSheet(); });
+    /* 상담 신청: 접수 저장소(전용 테이블)가 준비되기 전까지는 안내만 표시.
+       ※ 개인정보가 담기므로 site_kv(공개 테이블)에는 절대 저장하지 말 것 */
+    /* 빠른 상담 신청 (PC 하단 바·모바일 시트) — 관리자 「예약 목록」에 '빠른 상담 신청'으로 저장 */
+    function consultSubmit(form, where){
+      var tel=form.tel.value.trim();
+      if(!/^0\d{1,2}-?\d{3,4}-?\d{4}$/.test(tel)){ alert('연락처를 정확히 입력해주세요. (예: 010-1234-5678)'); form.tel.focus(); return false; }
+      var btn=form.querySelector('button[type=submit]'); btn.disabled=true;
+      var time=form.time ? String(form.time.value||'').replace(/^오전\s*|^오후\s*/,'') : '';
+      if(form.time && /^오후/.test(form.time.value)){ var hm=time.split(':'); if(+hm[0]<12) time=(+hm[0]+12)+':'+hm[1]; }
+      RES.submit({ name:form.name.value, phone:tel, date:(form.date&&form.date.value)||null, time:time||null, item:'빠른 상담 신청', source:where })
+        .then(function(){
+          track('lead_submit',{form:where});
+          alert('상담 신청이 접수되었습니다.\n병원에서 확인 후 '+tel+' 로 연락드리겠습니다.');
+          form.reset(); closeSheet();
+        }, function(){ alert(RES.failMsg()); })
+        .then(function(){ btn.disabled=false; });
+      return false;
+    }
+  </script>
+
+  <script>
+    /* ===== 뷰 전환 (메뉴 클릭 → 페이지 이동 없이 화면만 전환) ===== */
+    /* 화면 전환마다 브라우저 기록을 남김 → 휴대폰 뒤로가기로 이전 화면 복귀 (route()가 되돌리는 중이면 기록 추가 안 함) */
+    function setHash(n){
+      if(window.__routing || location.hash==='#'+n) return;
+      /* ?utm_... 같은 광고 파라미터는 유지 */
+      try{ history.pushState(null,'',location.pathname+location.search+'#'+n); }catch(e){ try{ location.hash=n; }catch(_){} }
+    }
+    /* hash: 주소에 남길 값(예: 'detail/3'). 생략하면 화면 이름 */
+    window.showView=function(name, scrollSel, hash){
+      ['home','category','ba','reserve','detail','badetail','manage','notes','notedetail','care','doctors','noninsured','network'].forEach(function(v){
+        document.getElementById('view-'+v).classList.toggle('hidden', v!==name);
+      });
+      /* 등장 애니메이션은 스크롤 반응 스크립트(맨 아래)가 화면에 들어올 때 처리 */
+      document.querySelectorAll('.navlink').forEach(function(a){ a.classList.remove('active'); });
+      if(name==='category') document.querySelectorAll('.navlink[data-key="menu"]').forEach(function(a){a.classList.add('active');});
+      if(name==='ba')       document.querySelectorAll('.navlink[data-key="ba"]').forEach(function(a){a.classList.add('active');});
+      if(name==='notes')    document.querySelectorAll('.navlink[data-key="notes"]').forEach(function(a){a.classList.add('active');});
+      if(name==='reserve'||name==='manage') document.querySelectorAll('.navlink[data-key="book"]').forEach(function(a){a.classList.add('active');});
+      if(name==='detail')   document.querySelectorAll('.navlink[data-key="menu"]').forEach(function(a){a.classList.add('active');});
+      if(name==='badetail') document.querySelectorAll('.navlink[data-key="ba"]').forEach(function(a){a.classList.add('active');});
+      /* 폼이 따로 있는 화면(예약·예약변경)과 자체 하단 바가 있는 상세 화면에서는 상담 바를 숨김 */
+      var hideBar=['detail','badetail','reserve','manage'].indexOf(name)>=0;
+      var cb=document.getElementById('consult'); if(cb) cb.style.display=hideBar?'none':'';
+      var mb=document.getElementById('mobileBar'); if(mb) mb.style.display=(name==='detail')?'none':'';
+      setHash(hash||name);
+      if(scrollSel){ var el=document.querySelector(scrollSel); if(el){ setTimeout(function(){ try{ scrollToY(el,true,-70); }catch(e){} },60); return; } }
+      try{ scrollToY(0,false); }catch(e){}
+    };
+  </script>
+
+  <script>
+/* ===== HOME 스크립트 ===== */
+
+    const hdr=document.getElementById('hdr'), hdrBar=document.getElementById('hdrBar');
+    function onScroll(){
+      /* 모바일(1024px 미만): 큰 헤더는 숨김(hidden lg:block) → 얇은 헤더를 항상 표시 */
+      if(window.innerWidth<1024 || window.scrollY>120){ hdr.style.opacity='0'; hdr.style.pointerEvents='none'; hdrBar.style.transform='translateY(0)'; }
+      else { hdr.style.opacity='1'; hdr.style.pointerEvents='auto'; hdrBar.style.transform='translateY(-100%)'; }
+    }
+    window.addEventListener('scroll', onScroll); window.addEventListener('resize', onScroll); onScroll();
+
+    /* 진료 원칙 흐름 띠 — 별점 후기(치료경험담)는 의료광고 규정 확인 전까지 노출하지 않음 */
+    const principles=['한의사 직접 상담·진료','정품 장비·정량 사용 원칙','체질과 피부 상태를 함께 진단','시술 후 1:1 경과 확인','화정역 인근 · 주말 진료'];
+    document.getElementById('reviewMarquee').innerHTML=[...principles,...principles,...principles,...principles].map(t=> /* 짝수 반복이어야 -50% 이동 시 이음매가 없음 */
+      `<div class="krhead flex items-center gap-2.5 px-7 shrink-0 text-sm text-white/80" style="font-weight:400"><iconify-icon icon="solar:check-circle-linear" class="text-pinkneon"></iconify-icon>${esc(t)}</div>`).join('');
+
+    const PROG_IMG={
+      hair:'img/kv-wide-shadow.jpg',        diet:'img/kv-body-sportswear.jpg',
+      contour:'img/kv-wide-travertine.jpg', whitening:'img/kv-wide-water.jpg',
+      lifting:'img/tex-gel-dome.jpg',       acne:'img/tex-cream-gel.jpg',
+      booster:'img/tex-gel-glitter.jpg',    immune:'img/tex-petal-water.jpg',
+    };
+    /* en: 카드 이미지 위 영문 문구 (줄바꿈은 \n) */
+    const programs=[
+      {t:'제모', s:'hair', en:'SMOOTH\nSKIN', b:['남성 제모','여성 제모','매끄러운 피부'], d:['악센토']},
+      {t:'다이어트', s:'diet', en:'SLIM\nBALANCE', b:['한의사 밀착관리 린다이어트','다이어트 환약, 체질 개선 한약','맞춤 관리'], d:['린다이어트 프로그램']},
+      {t:'윤곽 리프팅', s:'contour', en:'SHARP\nV-LINE', b:['아름다운 얼굴 형태','주름 개선','자연스러운 볼륨감'], d:['슈링크','엑쏘웨이브(케이온다)']},
+      {t:'미백/색소/기미', s:'whitening', en:'CLEAR\nTONE', b:['진단 장비와 섬세한 손길','다양한 깊이의 색소를','다양한 레이저 파장으로 정밀하게'], d:['큐 마스터 플러스','피코하이','바이오쎌']},
+      {t:'탄력 리프팅', s:'lifting', en:'FIRM\nLIFT', b:['초음파','고주파','극초단파','RF 니들 방식'], d:['볼뉴머','시크릿']},
+      {t:'여드름/모공/흉터', s:'acne', en:'CLEAN\nPORES', b:['모공축소·주름감소','피부톤·탄력 개선','염증성 여드름 진정'], d:['피코프락셀','시크릿']},
+      {t:'스킨부스터', s:'booster', en:'DEEP\nGLOW', b:['피부 영양공급','미백, 색소 완화효과'], d:['퓨라셀 MTS']},
+      {t:'맞춤한약', s:'immune', en:'INNER\nBALANCE', b:['피부 면역력 강화','피로 회복','혈액순환 개선'], d:[]},
+    ];
+    const progTrack=document.getElementById('progTrack'), progDots=document.getElementById('progDots');
+    progTrack.innerHTML=programs.map((p,i)=>`
+      <a href="#category" onclick="showView('category');return false" class="snap-start shrink-0 w-[80vw] sm:w-[340px] lg:w-[390px] bg-white block group">
+        <div class="relative aspect-square overflow-hidden">
+          <img src="${PROG_IMG[p.s]||'img/kv-wide-travertine.jpg'}" class="absolute inset-0 w-full h-full object-cover object-right transition duration-700 group-hover:scale-105" alt="${p.t}" loading="lazy">
+          <div class="absolute inset-0 bg-gradient-to-b from-black/30 via-transparent to-black/30"></div>
+          <p class="absolute top-7 left-7 right-7 lg:top-9 lg:left-9 marcellus text-white text-[28px] sm:text-[32px] lg:text-[38px] leading-[1.12] tracking-[0.06em]">${p.en.replace('\n','<br>')}</p>
+          <p class="absolute bottom-7 left-7 lg:bottom-9 lg:left-9 marcellus text-white/85 text-[13px] lg:text-[14px] tracking-[0.3em]">PROGRAM ${String(i+1).padStart(2,'0')}</p>
+        </div>
+        <div class="p-6 lg:p-8 min-h-[190px] lg:min-h-[210px] flex flex-col">
+          <h3 class="krhead text-[18px] lg:text-[21px] text-ink group-hover:text-pinkstrong transition-colors" style="font-weight:700">${p.t}</h3>
+          <p class="krhead text-[14px] lg:text-[15px] text-ink/60 mt-2.5 leading-relaxed break-keep" style="font-weight:300">${p.b.join(' · ')}</p>
+          <div class="mt-auto pt-5 flex items-end justify-between gap-2">
+            <div class="flex flex-wrap gap-1.5">${p.d.map(x=>`<span class="krhead text-[12px] text-pinkstrong/80 bg-pinksoft/50 rounded-full px-3 py-1 break-keep" style="font-weight:400">${x}</span>`).join('')}</div>
+            <span class="krhead shrink-0 text-[13px] text-pinkstrong flex items-center gap-0.5" style="font-weight:500">자세히 <iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></span>
+          </div>
+        </div>
+      </a>`).join('');
+
+    /* 카드 1장 단위로 이동. 점 개수 = 끝까지 스크롤하는 데 필요한 칸 수 + 1 */
+    function progStep(){ const c=progTrack.firstElementChild; return c? c.offsetWidth+2 : 1; }
+    function progMax(){ return Math.max(0, progTrack.scrollWidth - progTrack.clientWidth); }
+    function progPages(){ return Math.ceil(progMax()/progStep() - 0.05) + 1; }
+    function progCur(){ const m=progMax(); return progTrack.scrollLeft >= m-2 ? progPages()-1 : Math.round(progTrack.scrollLeft/progStep()); }
+    function renderProgDots(){
+      const n=progPages(), cur=progCur();
+      progDots.innerHTML=Array.from({length:n},(_,i)=>
+        `<button onclick="progGo(${i})" aria-label="${i+1}번째" class="h-1.5 rounded-full transition-all ${i===cur?'w-6 bg-white':'w-1.5 bg-white/50 hover:bg-white/80'}"></button>`).join('');
+    }
+    function progGo(i){ progTrack.scrollTo({left:i*progStep(), behavior:'smooth'}); }
+    function progSlide(d){ const n=progPages(); progGo((progCur()+d+n)%n); }
+    let progRaf=0;
+    progTrack.addEventListener('scroll',()=>{ cancelAnimationFrame(progRaf); progRaf=requestAnimationFrame(renderProgDots); });
+    /* 화면 크기 변경·다른 화면에서 홈으로 돌아올 때(숨김→표시) 점 개수 다시 계산 */
+    if(window.ResizeObserver) new ResizeObserver(()=>{ if(progTrack.clientWidth) renderProgDots(); }).observe(progTrack);
+    else window.addEventListener('resize', renderProgDots);
+    renderProgDots();
+
+    /* ===== STEADY SELLER (샘플 가격) — 카드 1개 = 시술 1개, opts = 가격 옵션(앞 2개 노출, 나머지는 '더보기'로 펼침) ===== */
+    const SS_TABS=['전체보기','[정밀분석] 미백/기미/홍조/잡티','[탄력up!] 리프팅/탄력/비대칭','[또렷슬림] 윤곽/지방제거'];
+    const ssData=[
+      {cat:1, n:'레이저 토닝', img:'img/tex-cream-beam.jpg', opts:[
+        {d:'[첫 시술 EVENT] 토닝 2000샷 1회', o:18900, p:9900}, {d:'토닝 2000샷 5회 패키지', o:94500, p:45000}, {d:'토닝 2000샷 10회 패키지', o:189000, p:84000}]},
+      {cat:1, n:'색소 레이저', img:'img/tex-water-ripple.jpg', opts:[
+        {d:'[EVENT] 색소 레이저 1개 + 모델링팩', o:19000, p:10000}, {d:'색소 레이저 5개 + 모델링팩', o:95000, p:45000}]},
+      {cat:1, n:'듀얼 토닝', img:'img/tex-gel-dome.jpg', opts:[
+        {d:'[첫 시술 EVENT] 듀얼 토닝 3000샷 1회', o:75000, p:36000}, {d:'듀얼 토닝 3000샷 5회 패키지', o:375000, p:169000}, {d:'듀얼 토닝 + 재생 관리 5회', o:450000, p:219000}]},
+      {cat:1, n:'원데이 화이트닝', img:'img/tex-gel-glitter.jpg', opts:[
+        {d:'[EVENT] 원데이 화이트닝 1회', o:110000, p:58000}, {d:'원데이 화이트닝 3회 패키지', o:330000, p:159000}]},
+      {cat:2, n:'볼뉴머 리프팅', img:'img/kv-wide-water.jpg', opts:[
+        {d:'[첫 시술 EVENT] 정품팁 볼뉴머 100샷', o:150000, p:89000}, {d:'정품팁 볼뉴머 300샷', o:420000, p:249000}, {d:'정품팁 볼뉴머 600샷', o:800000, p:459000}]},
+      {cat:2, n:'시크릿 RF 리프팅', img:'img/tex-cream-gel.jpg', opts:[
+        {d:'[첫 시술 EVENT] 시크릿 RF 1부위', o:180000, p:99000}, {d:'시크릿 RF 얼굴 전체', o:450000, p:249000}]},
+      {cat:3, n:'슈링크 리프팅', img:'img/kv-wide-travertine.jpg', opts:[
+        {d:'[첫 시술 EVENT] 정품팁 슈링크 100샷', o:15000, p:7900}, {d:'정품팁 슈링크 300샷', o:45000, p:22000}, {d:'정품팁 슈링크 600샷', o:90000, p:42000}]},
+      {cat:3, n:'엑쏘웨이브 리프팅', img:'img/kv-wide-shadow.jpg', opts:[
+        {d:'[첫 시술 EVENT] 엑쏘웨이브 10kj(1만줄)', o:90000, p:45000}, {d:'엑쏘웨이브 30kj(3만줄)', o:250000, p:129000}]},
+      {cat:3, n:'윤곽 주사', img:'img/kv-body-sportswear.jpg', opts:[
+        {d:'[EVENT] 윤곽 주사 1회 (턱선)', o:60000, p:29000}, {d:'윤곽 주사 5회 패키지', o:300000, p:129000}]},
+      {cat:2, n:'피코프락셀', img:'img/tex-petal-water.jpg', opts:[
+        {d:'[첫 시술 EVENT] 피코프락셀 1부위', o:180000, p:99000}, {d:'피코프락셀 얼굴 전체 3회', o:900000, p:490000}]},
+    ];
+    const ssWon=n=>n.toLocaleString('ko-KR');
+    let ssTab=0, ssPg=0;
+    const ssGrid=document.getElementById('ssGrid'), ssTabsEl=document.getElementById('ssTabs'), ssDotsEl=document.getElementById('ssDots');
+    function ssPer(){ return matchMedia('(min-width:1024px)').matches? 8 : matchMedia('(min-width:640px)').matches? 4 : 3; }
+    function ssList(){ return ssData.filter(c=>ssTab===0||c.cat===ssTab); }
+    function ssOptRow(c,o,more){
+      return `<div class="py-4 border-b border-ink/10 ${more?'ssMore hidden':''}">
+        <div class="flex items-start justify-between gap-3">
+          <p class="krhead text-[15px] text-ink pt-3 break-keep" style="font-weight:500">${c.n}</p>
+          <div class="text-right shrink-0">
+            <p class="text-[12px] text-ink/40 line-through">${ssWon(o.o)}원</p>
+            <p class="krhead text-[21px] text-pinkstrong leading-tight" style="font-weight:700">${ssWon(o.p)}원</p>
+          </div>
+        </div>
+        <p class="krhead text-[12.5px] text-ink/55 mt-2 break-keep" style="font-weight:300">${o.d}</p>
+      </div>`;
+    }
+    function ssCard(c){
+      const more=c.opts.length>2;
+      return `<div class="bg-white shadow-[0_2px_14px_rgba(47,52,58,0.08)] flex flex-col">
+        <div class="aspect-[2/1] overflow-hidden"><img src="${c.img}" class="w-full h-full object-cover object-right" alt="${c.n}" loading="lazy"></div>
+        <div class="ssBody px-5 pb-5 flex-1 flex flex-col">
+          ${c.opts.map((o,i)=>ssOptRow(c,o,i>=2)).join('')}
+          <div class="mt-auto pt-5">
+            <button onclick="${more?'ssToggle(this)':"showView('category')"}" class="krhead w-full h-11 rounded-full bg-ink/[0.04] hover:bg-ink/[0.08] text-[14px] text-ink/60 flex items-center justify-center gap-1 transition" style="font-weight:400">
+              <span>${more?'더보기':'자세히 보기'}</span><iconify-icon icon="${more?'solar:alt-arrow-down-linear':'solar:alt-arrow-right-linear'}" class="text-pinkstrong transition-transform"></iconify-icon>
+            </button>
+          </div>
+        </div>
+      </div>`;
+    }
+    function ssToggle(btn){
+      const card=btn.closest('.ssBody'), open=card.dataset.open==='1';
+      card.querySelectorAll('.ssMore').forEach(r=>r.classList.toggle('hidden', open));
+      card.dataset.open=open?'0':'1';
+      btn.querySelector('span').textContent=open?'더보기':'접기';
+      btn.querySelector('iconify-icon').style.transform=open?'':'rotate(180deg)';
+    }
+    function renderSS(){
+      const list=ssList(), per=ssPer(), pages=Math.max(1,Math.ceil(list.length/per));
+      if(ssPg>=pages) ssPg=0;
+      ssTabsEl.innerHTML=SS_TABS.map((t,i)=>`<button onclick="ssSetTab(${i})" class="px-5 py-2.5 rounded-full text-[14px] border transition ${i===ssTab?'bg-white border-pinkstrong text-pinkstrong':'bg-ink/[0.04] border-transparent text-ink/70 hover:text-ink'}">${t}</button>`).join('');
+      ssGrid.innerHTML=list.slice(ssPg*per,(ssPg+1)*per).map(ssCard).join('');
+      ssDotsEl.innerHTML=pages>1? Array.from({length:pages},(_,i)=>`<button onclick="ssGo(${i})" aria-label="${i+1}페이지" class="h-1.5 rounded-full transition-all ${i===ssPg?'w-6 bg-pinkstrong':'w-1.5 bg-ink/20 hover:bg-ink/40'}"></button>`).join('') : '';
+    }
+    function ssSetTab(i){ ssTab=i; ssPg=0; renderSS(); }
+    function ssGo(i){ ssPg=i; renderSS(); }
+    function ssPage(d){ const pages=Math.max(1,Math.ceil(ssList().length/ssPer())); ssPg=(ssPg+d+pages)%pages; renderSS(); }
+    let ssLastPer=ssPer();
+    window.addEventListener('resize',()=>{ const p=ssPer(); if(p!==ssLastPer){ ssLastPer=p; ssPg=0; renderSS(); } });
+    renderSS();
+
+    const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.12});
+    document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+  
+  </script>
+
+  <script>
+/* ===== 시술메뉴/이벤트(카테고리) 스크립트 — 독립 범위 ===== */
+(function(){
+
+    /* ===== compact header (index 와 동일 동작) ===== */
+    
+    /* ===== 카테고리 (이미지 좌측 사이드바 그대로) ===== */
+    const categories=KK.get('categories', [
+      '전체보기',
+      '[안꿋나는] 레이저 제모',
+      '[갸름하게] 윤곽 리프팅',
+      '[탄력UP!] 탄력 리프팅',
+      '[투명하게] 미백/색소/기미',
+      '여드름/모공/흉터',
+      '[피부영양제] 스킨부스터',
+      '[고농도, 개인 맞춤] 다이어트',
+      '[체질부터] 맞춤 한약',
+      '패키지시술',
+      '상담 후 결정하기',
+      '[이것도 치료되나?] 잘 모르는 피부 고민/질환',
+    ]);
+
+    /* ===== 상품 데이터 (이미지의 실제 문구/가격 + 카테고리 채움용 샘플) ===== */
+    /* type: 'promo' = 장비 프로모 배너 / 'ba' = 전후사진 / 'photo' = 모델·제품 사진 */
+    const products=KK.get('products', [
+      /* ── 레이저 제모 : 악센토 ── */
+      {cat:'[안꿋나는] 레이저 제모', type:'photo', script:'OK할 때까지 안 꿋나요', big:'남자 레이저 제모',
+       title:'[OK 할 때까지 꿋!] 남성 레이저 제모', event:'[첫 시술 EVENT] 남자 인중 or 앞턱 제모 1회', price:100},
+      {cat:'[안꿋나는] 레이저 제모', type:'photo', script:'여성 원장님 상주', big:'여자 레이저 제모',
+       title:'[털 고민 이제 꿋!] 여성 레이저 제모 (여성 원장님 진료)', event:'[첫 시술 EVENT] 여자 인중 or 겨드랑이 제모 1회', price:100},
+
+      /* ── 윤곽 리프팅 : 슈링크 / 엑쏘웨이브(케이온다) ── */
+      {cat:'[갸름하게] 윤곽 리프팅', type:'promo', script:'높은 에너지로 강하고 오래가는', big:'슈링크 리프팅',
+       title:'[턱선까지 또렷하게] 슈링크 집속초음파 리프팅', event:'[첫 시술 EVENT] 정품팁 슈링크 100샷', price:7900},
+      {cat:'[갸름하게] 윤곽 리프팅', type:'promo', script:'극초단파로 비대칭까지 바로잡는', big:'엑쏘웨이브 리프팅',
+       title:'[탄력은 더하고, 통증은 줄이고] 엑쏘웨이브(케이온다) 리프팅', event:'[첫 시술 EVENT] 엑쏘웨이브 리프팅 10kj(1만줄)', price:45000},
+
+      /* ── 탄력 리프팅 : 볼뉴머 / 시크릿 ── */
+      {cat:'[탄력UP!] 탄력 리프팅', type:'promo', script:'고출력, 열제어시스템 온도상승 디테일차이', big:'볼뉴머 리프팅',
+       title:'[볼륨과 탄력을 한번에] 볼뉴머 고주파 리프팅', event:'[첫 시술 EVENT] 정품팁 볼뉴머 100샷', price:89000},
+      {cat:'[탄력UP!] 탄력 리프팅', type:'promo', script:'진피층에 직접 열을 전달하는 RF 니들', big:'시크릿 리프팅',
+       title:'[속부터 차오르는 탄력] 시크릿 RF 니들 리프팅', event:'[첫 시술 EVENT] 시크릿 RF 1부위', price:99000},
+
+      /* ── 미백/색소/기미 : 큐 마스터 플러스 / 피코하이 / 바이오쎌 ── */
+      {cat:'[투명하게] 미백/색소/기미', type:'promo', script:'고민마다 다른설계 1:1 프리미엄 맞춤', big:'듀얼 토닝',
+       title:'큐 마스터 플러스 듀얼 토닝, 한 단계 더 섬세하게', event:'[첫 시술 EVENT] 듀얼 토닝 (맞춤 모드 2000샷)', price:36000},
+      {cat:'[투명하게] 미백/색소/기미', type:'promo', script:'한 끗 차이 결과', big:'레이저 토닝',
+       title:'큐 마스터 플러스 레이저 토닝, 맑아지는 피부톤', event:'[첫 시술 EVENT] 레이저 토닝 (1000샷)', price:100},
+      {cat:'[투명하게] 미백/색소/기미', type:'promo', script:'피코초 파장으로 잡티만 정밀하게', big:'피코하이 레이저',
+       title:'[잡티·기미 한 번에] 피코하이 피코 토닝', event:'[첫 시술 EVENT] 피코 토닝 2000샷', price:9900},
+      {cat:'[투명하게] 미백/색소/기미', type:'promo', script:'피부 재생과 색소 완화를 동시에', big:'바이오쎌 관리',
+       title:'[속부터 맑게] 바이오쎌 피부 재생 관리', event:'[EVENT] 바이오쎌 1회', price:30000},
+
+      /* ── 여드름/모공/흉터 : 피코프락셀 / 시크릿 ── */
+      {cat:'여드름/모공/흉터', type:'promo', script:'모공·흉터 동시 케어', big:'피코프락셀',
+       title:'[모공·흉터 리셋] 피코프락셀', event:'[첫 시술 EVENT] 피코프락셀 1부위', price:99000},
+      {cat:'여드름/모공/흉터', type:'ba', script:'진피까지 닿는 RF 니들로 흉터 재생', big:'시크릿 흉터 케어',
+       title:'[패인 흉터까지] 시크릿 RF 니들 흉터·모공 케어', event:'[첫 시술 EVENT] 시크릿 RF 여드름·흉터 1부위', price:99000},
+
+      /* ── 스킨부스터 : 퓨라셀 MTS ── */
+      {cat:'[피부영양제] 스킨부스터', type:'photo', script:'MTS 방식으로 흡수율을 끌어올린', big:'퓨라셀 스킨부스터',
+       title:'퓨라셀 MTS 스킨부스터, 피부 속 영양 공급', event:'[EVENT] 퓨라셀 MTS 스킨부스터 1회 + 모델링팩', price:20000},
+
+      /* ── 다이어트 : 린다이어트 프로그램 ── */
+      {cat:'[고농도, 개인 맞춤] 다이어트', type:'photo', script:'한의사가 끝까지 밀착 관리하는', big:'린다이어트',
+       title:'[한의사 1:1 밀착관리] 린다이어트 프로그램', event:'[첫 상담 EVENT] 린다이어트 1개월 프로그램', price:0},
+      {cat:'[고농도, 개인 맞춤] 다이어트', type:'photo', script:'체질에 맞춰 조제하는', big:'다이어트 환약',
+       title:'[체질 맞춤 조제] 다이어트 환약', event:'[EVENT] 다이어트 환약 1개월분', price:0},
+
+      /* ── 맞춤 한약 ── */
+      {cat:'[체질부터] 맞춤 한약', type:'photo', script:'피부 면역력부터 다시 세우는', big:'피부 맞춤 한약',
+       title:'[속부터 바꾸는] 피부 면역 맞춤 한약', event:'[EVENT] 맞춤 한약 1개월분', price:0},
+    ]).filter(function(p){ return p.on!==false; });
+
+    const TEX=['img/tex-water-ripple.jpg','img/tex-gel-glitter.jpg','img/tex-cream-beam.jpg',
+               'img/tex-gel-dome.jpg','img/tex-cream-gel.jpg','img/tex-petal-water.jpg'];
+    const won = n => n.toLocaleString('ko-KR');
+    /* 관리자 「시술 상품 관리」의 상세 옵션(details)이 있으면: 공개·기간 유효한 옵션만 골라
+       목록 카드의 대표 이벤트 문구와 가격을 첫 번째 옵션으로 표시 */
+    products.forEach(function(p){
+      if(!(p.details && p.details.length)) return;
+      var now=Date.now();
+      p._vis=p.details.filter(function(dt){
+        if(dt.on===false) return false;
+        if(!String(dt.t||'').trim() && !parseInt(dt.sale) && !parseInt(dt.price)) return false;   /* 이름·가격 없는 빈 옵션은 숨김 */
+        if(dt.gid && p.groups && p.groups.length){
+          var gg=p.groups.find(function(x){ return x.id===dt.gid; });
+          if(gg && gg.on===false) return false;          /* 비공개 중분류 그룹의 옵션은 숨김 */
+        }
+        if(dt.perType==='range'){
+          try{
+            if(dt.start && now<new Date(dt.start+'T00:00').getTime()) return false;
+            if(dt.end && now>new Date(dt.end+'T23:59').getTime()) return false;
+          }catch(e){}
+        }
+        return true;
+      });
+      if(p._vis.length){ p.event=p._vis[0].t||p.event; p.price=parseInt(p._vis[0].sale)||parseInt(p._vis[0].price)||p.price; }
+    });
+    products.forEach(function(p,i){ p._seed=i; });
+    window.__products = products;   /* 라우팅(#detail/번호)에서 사용 */
+
+    /* ===== 상태 ===== */
+    let curCat='전체보기', curSort='recent', curQuery='', curPage=1;
+    const PER_PAGE=12;  /* 3열 × 4행 */
+
+    /* ===== 카테고리 렌더 ===== */
+    const catNav=document.getElementById('catNav');
+    /* 분류 탭 — 시술전후 화면과 같은 알약 모양 버튼. "[안꿋나는] 레이저 제모" → 탭에는 "레이저 제모"만 표시 */
+    function renderCats(){
+      catNav.innerHTML=categories.map((c)=>{
+        const label = c==='전체보기' ? '전체 시술' : (String(c).replace(/^\[[^\]]*\]\s*/,'') || c);
+        return `<button data-cat="${esc(c)}" title="${esc(c)}" aria-pressed="${c===curCat}" class="catItem px-5 py-2.5 rounded-full border text-sm transition break-keep
+          ${c===curCat?'bg-ink text-white border-ink':'bg-white border-ink/15 text-ink/65 hover:border-ink/40'}">${esc(label)}</button>`;
+      }).join('');
+      catNav.querySelectorAll('.catItem').forEach(b=>b.addEventListener('click',()=>{
+        curCat=b.dataset.cat; curPage=1;
+        renderCats(); render();
+        b.scrollIntoView && catNav.querySelector('[aria-pressed="true"]').scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+      }));
+    }
+
+    /* ===== 정렬탭 렌더 ===== */
+    const sorts=[{k:'recent',l:'최근등록순'},{k:'high',l:'높은가격순'},{k:'low',l:'낮은가격순'}];
+    const sortTabs=document.getElementById('catSortTabs');
+    function renderSorts(){
+      /* 정렬은 분류 탭(알약)과 구분되도록 가벼운 글자 탭 */
+      sortTabs.innerHTML=sorts.map(s=>`
+        <button data-sort="${s.k}" aria-pressed="${s.k===curSort}" class="sortItem px-1 py-1 border-b-2 transition
+          ${s.k===curSort?'border-pinkstrong text-ink':'border-transparent text-ink/50 hover:text-ink'}">${s.l}</button>`).join('<span class="text-ink/20">·</span>');
+      sortTabs.querySelectorAll('.sortItem').forEach(b=>b.addEventListener('click',()=>{
+        curSort=b.dataset.sort; curPage=1; renderSorts(); render();
+      }));
+    }
+
+    /* ===== 카드 상단 이미지 — 메인 '스페셜 프로그램' 카드와 같은 스타일 (정사각형·각진 모서리·흰 글씨) =====
+       관리자에서 올린 이미지(p.img)가 있으면 사용하고, 없으면 사이트 이미지를 돌려가며 사용 */
+    const CARD_IMG=['img/kv-wide-shadow.jpg','img/tex-water-ripple.jpg','img/kv-wide-water.jpg','img/tex-gel-dome.jpg','img/kv-body-sportswear.jpg',
+                    'img/tex-cream-gel.jpg','img/kv-wide-travertine.jpg','img/tex-petal-water.jpg','img/tex-gel-glitter.jpg','img/tex-cream-beam.jpg'];
+    const shortCat = c => String(c||'').replace(/^\[[^\]]*\]\s*/,'');   /* "[안꿋나는] 레이저 제모" → "레이저 제모" */
+    function bannerHTML(p,idx){ if(idx===undefined) idx=p._seed;
+      const img = p.img ? safeUrl(p.img) : CARD_IMG[(idx||0)%CARD_IMG.length];
+      return `
+      <div class="relative aspect-square overflow-hidden bg-beige">
+        <img src="${img}" class="absolute inset-0 w-full h-full object-cover object-right transition duration-700 group-hover:scale-105" alt="${esc(p.big||p.title)}" loading="lazy">
+        <div class="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/35"></div>
+        <div class="absolute top-6 left-6 right-6 lg:top-7 lg:left-7 text-white">
+          ${p.script?`<p class="krhead text-[13px] text-white/85 mb-2 leading-snug break-keep" style="font-weight:500">${esc(p.script)}</p>`:''}
+          <p class="krhead text-[24px] lg:text-[26px] leading-[1.2] break-keep" style="font-weight:700">${esc(p.big||p.title)}</p>
+        </div>
+        <p class="absolute bottom-6 left-6 right-6 lg:bottom-7 lg:left-7 marcellus text-white/85 text-[12px] tracking-[0.25em] truncate">XXI · ${esc(shortCat(p.cat))}</p>
+      </div>`;
+    }
+
+    /* ===== 카드 ===== */
+    function cardHTML(p,idx){
+      return `
+      <a href="#" data-pid="${p._seed}" class="group block bg-white border border-ink/10 hover:shadow-[0_18px_40px_rgba(47,52,58,0.12)] transition-shadow">
+        ${bannerHTML(p,idx)}
+        <div class="p-6 min-h-[188px] flex flex-col">
+          <h3 class="krhead text-[17px] leading-snug text-ink break-keep line-clamp-2 group-hover:text-pinkstrong transition-colors" style="font-weight:700">${esc(p.title)}</h3>
+          <p class="krhead text-[13px] text-ink/60 mt-2 leading-relaxed break-keep line-clamp-2" style="font-weight:400">${esc(p.event)}</p>
+          <div class="mt-auto pt-4 flex items-end justify-between gap-2">
+            <p class="whitespace-nowrap"><span class="krhead text-[22px] text-ink" style="font-weight:800">${p.price?won(p.price)+'원':'상담 후 안내'}</span>${p.price?'<span class="text-[13px] text-ink/45 ml-0.5">~</span>':''}</p>
+            <span class="krhead shrink-0 text-[13px] text-pinkstrong flex items-center gap-0.5" style="font-weight:500">자세히 <iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></span>
+          </div>
+        </div>
+      </a>`;
+    }
+    /* ===== 필터·정렬·렌더 ===== */
+    function getFiltered(){
+      let list=products.filter(p=>curCat==='전체보기'||p.cat===curCat);
+      if(curQuery.trim()){
+        const q=curQuery.trim().toLowerCase();
+        list=list.filter(p=>(p.title+p.event+p.cat+p.big).toLowerCase().includes(q));
+      }
+      if(curSort==='high') list=[...list].sort((a,b)=>b.price-a.price);
+      else if(curSort==='low') list=[...list].sort((a,b)=>a.price-b.price);
+      return list;
+    }
+
+    const grid=document.getElementById('catGrid');
+    const empty=document.getElementById('catEmpty');
+    const pager=document.getElementById('catPager');
+    const resultMeta=document.getElementById('catResultMeta');
+
+    function render(){
+      const list=getFiltered();
+      resultMeta.textContent=`총 ${list.length}개의 시술·이벤트`;
+      const pages=Math.max(1,Math.ceil(list.length/PER_PAGE));
+      if(curPage>pages) curPage=1;
+      const pageItems=list.slice((curPage-1)*PER_PAGE, curPage*PER_PAGE);
+
+      if(pageItems.length===0){ grid.innerHTML=''; empty.classList.remove('hidden'); }
+      else { empty.classList.add('hidden'); grid.innerHTML=pageItems.map((p,i)=>cardHTML(p,(curPage-1)*PER_PAGE+i)).join('');
+        grid.querySelectorAll('a[data-pid]').forEach(function(el){ el.addEventListener('click',function(e){ e.preventDefault(); var pid=+el.getAttribute('data-pid'); var pp=products.find(function(x){return x._seed===pid;}); if(window.openDetail) window.openDetail(pp); }); });
+      }
+
+      /* 페이지네이션 — 실제 페이지 수만 표시, 1페이지면 숨김 */
+      const shown=pages; pager.style.display = pages>1 ? '' : 'none';
+      let html=`<button class="pgArrow w-9 h-9 rounded-full border border-ink/15 grid place-items-center text-ink/50 hover:border-pink hover:text-pinkstrong transition" data-go="prev"><iconify-icon icon="solar:alt-arrow-left-linear"></iconify-icon></button>`;
+      for(let i=1;i<=shown;i++){
+        html+=`<button class="pgNum w-9 h-9 rounded-full text-sm transition ${i===curPage?'bg-pinkstrong text-white':'text-ink/60 hover:text-pinkstrong'}" data-page="${i}">${i}</button>`;
+      }
+      html+=`<button class="pgArrow w-9 h-9 rounded-full border border-ink/15 grid place-items-center text-ink/50 hover:border-pink hover:text-pinkstrong transition" data-go="next"><iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></button>`;
+      pager.innerHTML=html;
+      pager.querySelectorAll('.pgNum').forEach(b=>b.addEventListener('click',()=>{ curPage=+b.dataset.page; render(); scrollToY(document.getElementById('list'),true,-80); }));
+      pager.querySelectorAll('.pgArrow').forEach(b=>b.addEventListener('click',()=>{
+        if(b.dataset.go==='prev'&&curPage>1) curPage--;
+        if(b.dataset.go==='next'&&curPage<shown) curPage++;
+        render(); scrollToY(document.getElementById('list'),true,-80);
+      }));
+    }
+
+    /* 검색 */
+    document.getElementById('catSearch').addEventListener('input',e=>{ curQuery=e.target.value; curPage=1; render(); });
+    /* 모바일 카테고리 토글 */
+
+    window.__catBanner = bannerHTML;
+    renderCats(); renderSorts(); render();
+  
+})();
+  </script>
+
+  <script>
+/* ===== 시술전후 스크립트 — 독립 범위 ===== */
+(function(){
+
+    /* ===== compact header ===== */
+    
+    /* ===== 필터 (이미지 상단 탭) ===== */
+    const filters=['전체 시술','다이어트','리프팅/탄력/윤곽','미백/기미/색소','여드름/모공/흉터','제모/문신제거','코/윤곽/실리프팅','콜라겐 볼륨침 CoVA'];
+
+    /* ===== 전후 데이터 (이미지의 지점/분류/제목 그대로) =====
+       layout: 'v'(상하) | 'h'(좌우)
+       opts: uv(블루광 촬영) · circle('white'|'red') · arrow · privacy(눈가 가림) · after(배지) · chart(피지 분석 그래프) · dates[] */
+    const items=[
+      {loc:'연오재', cat:'미백/기미/색소',        title:['홍조개선 전후','볼 및 나비존 붉은 기 진정','화정'],            layout:'v', circle:'white', after:true,  dates:['26.02.06']},
+      {loc:'연오재', cat:'여드름/모공/흉터',       title:['모공 개선 전후','코 모공 축소 개선','화정'],                    layout:'v', circle:'white', after:true,  dates:['26.02.06']},
+      {loc:'연오재', cat:'미백/기미/색소',        title:['홍조개선 전후','안면홍조 얼굴 붉은기 피부 재생','고양 화정'], layout:'v', uv:true, circle:'white', after:true, dates:['26.02.06']},
+      {loc:'연오재', cat:'여드름/모공/흉터',       title:['피지 감소 및 여드름 개선 전후','PTT와 제네시스 토닝을 활용한 모공·피지 관리','화정'], layout:'v', uv:true, circle:'white', chart:true, dates:['BEFORE : 26.01.28']},
+      {loc:'연오재', cat:'여드름/모공/흉터',       title:['리프팅 시술 전후','엘리시스 엑소좀 모공 및 피지 개선','고양 화정'], layout:'v', circle:'white', privacy:true, chart:true, dates:['BEFORE : 26.01.28']},
+      {loc:'연오재', cat:'리프팅/탄력/윤곽',       title:['이중턱 지방','윤곽 꿋 이펙터 전후 사진','고양 화정'],     layout:'h', circle:'red', arrow:true, privacy:true},
+      {loc:'연오재', cat:'여드름/모공/흉터',       title:['새살침 전후','패인 흉터 치료','화정'],                          layout:'h', circle:'red', arrow:true, dates:['25.08.03 시술 전','26.05.30 10회 시술 후']},
+      {loc:'부산 서면',  cat:'콜라겐 볼륨침 CoVA',     title:['콜라겐 볼륨침 전후','필러 없는 콜라겐 볼륨침으로 팔자주름 개선','부산 서면'], layout:'v', after:true, arrow:true, dates:['26.04.28']},
+      {loc:'연오재', cat:'미백/기미/색소',        title:['색소 레이저 토닝 전후','흑자 · 잡티 병행 치료','화정'],          layout:'h', uv:true, circle:'white'},
+    ];
+
+    /* 관리자 등록 전후사진이 있으면 그것만 사용 (없으면 샘플 유지) */
+    var stored=(window.KK? KK.get('ba', []): []).filter(function(x){return x.on!==false;});
+    var BLUR = window.KK ? !!KK.get('baBlur', false) : false;
+    if(stored.length){
+      items.length=0;
+      stored.forEach(function(s){
+        items.push({loc:s.loc||'연오재', cat:s.cat||'기타', title:[s.title||'', s.sub||'', s.loc||'화정'].filter(Boolean), layout:'v', imgB:s.imgB||'', imgA:s.imgA||'', dates:s.date?[s.date]:[]});
+      });
+      filters.splice(1);
+      stored.forEach(function(s){ if(s.cat && filters.indexOf(s.cat)<0) filters.push(s.cat); });
+    }
+
+    items.forEach(function(c,i){ c._seed=i; });
+    window.__baItems = items;   /* 라우팅(#badetail/번호)에서 사용 */
+
+    /* ===== 상태 ===== */
+    let curFilter='전체 시술', curPage=1;
+    const PER_PAGE=9;
+
+    /* ===== 필터탭 렌더 ===== */
+    const filterTabs=document.getElementById('baFilterTabs');
+    function renderFilters(){
+      filterTabs.innerHTML=filters.map(f=>`
+        <button data-f="${esc(f)}" class="filterItem px-5 py-2.5 rounded-full border text-sm transition break-keep
+          ${f===curFilter?'bg-ink text-white border-ink':'bg-white border-ink/15 text-ink/65 hover:border-ink/40'}">${esc(f)}</button>`).join('');
+      filterTabs.querySelectorAll('.filterItem').forEach(b=>b.addEventListener('click',()=>{
+        curFilter=b.dataset.f; curPage=1; renderFilters(); render();
+      }));
+    }
+
+    /* ===== 작은 피지 분석 그래프 ===== */
+    function chartStrip(label){
+      const bars=[17,18,11,19,8].map((v,i)=>{
+        const h=10+v; const x=58+i*46;
+        return `<rect x="${x}" y="${64-h}" width="14" height="${h}" rx="2" fill="#9bbf3a"/><rect x="${x+16}" y="${64-h*0.55}" width="14" height="${h*0.55}" rx="2" fill="#d9e8a8"/><text x="${x+15}" y="${60-h}" font-size="9" fill="#7a7a7a" text-anchor="middle">${v}</text>`;
+      }).join('');
+      return `
+      <div class="bg-white px-3 pt-2 pb-1.5 border-t border-ink/5">
+        <svg viewBox="0 0 320 66" class="w-full h-[52px]">
+          <circle cx="26" cy="33" r="20" fill="#f1ede7"/><text x="26" y="37" font-size="11" fill="#b6ada3" text-anchor="middle">피지</text>
+          ${bars}
+          <text x="318" y="60" font-size="9" fill="#8a857e" text-anchor="end">${label||''}</text>
+        </svg>
+      </div>`;
+    }
+
+    /* ===== 전후 이미지 영역 — 시술메뉴 카드와 같은 각진 스타일
+       관리자에서 올린 실제 사진만 표시. 사진이 없으면 "사진 준비 중" 빈 칸 (무관한 샘플 사진을 전후사진처럼 보이지 않게) ===== */
+    function baImage(c){
+      var blurCss = BLUR ? 'filter:blur(14px);transform:scale(1.08);' : '';
+      function half(src, label){
+        if(src) return '<div class="relative overflow-hidden bg-beige"><img src="'+safeUrl(src)+'" class="absolute inset-0 w-full h-full object-cover transition duration-700 group-hover:scale-105" style="'+blurCss+'" alt="'+label+'" loading="lazy">'
+          +'<div class="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/45 to-transparent"></div>'
+          +'<span class="absolute bottom-4 left-4 marcellus text-white text-[12px] tracking-[0.3em]">'+label+'</span></div>';
+        return '<div class="relative bg-beige/70 grid place-items-center text-center">'
+          +'<div><p class="marcellus text-ink/35 text-[13px] tracking-[0.3em]">'+label+'</p><p class="krhead text-[11px] text-ink/35 mt-1.5" style="font-weight:400">사진 준비 중</p></div></div>';
+      }
+      var date = (c.dates&&c.dates[0]) ? '<span class="absolute top-4 left-4 krhead text-[11px] text-white bg-black/35 px-2 py-0.5 z-10" style="font-weight:500">'+esc(c.dates[0])+'</span>' : '';
+      return '<div class="relative aspect-[4/3] overflow-hidden">'
+        +'<div class="grid grid-cols-2 gap-px bg-white h-full">'+half(c.imgB,'BEFORE')+half(c.imgA,'AFTER')+'</div>'
+        +((c.imgB||c.imgA)?date:'')
+      +'</div>';
+    }
+
+    /* ===== 카드 ===== */
+    function cardHTML(c){
+      var main=c.title[0]||'', sub=c.title[1]||'';
+      return '<a href="#" data-bid="'+c._seed+'" class="group block bg-white border border-ink/10 hover:shadow-[0_18px_40px_rgba(47,52,58,0.12)] transition-shadow">'
+        + baImage(c)
+        +'<div class="p-6 min-h-[168px] flex flex-col">'
+          +'<p class="marcellus text-[11px] tracking-[0.25em] text-pinkstrong/80 truncate">XXI · '+esc(c.cat)+'</p>'
+          +'<h3 class="krhead text-[17px] text-ink leading-snug mt-2.5 break-keep line-clamp-2 group-hover:text-pinkstrong transition-colors" style="font-weight:700">'+esc(main)+'</h3>'
+          +(sub?'<p class="krhead text-[13px] text-ink/60 mt-1.5 leading-relaxed break-keep line-clamp-2" style="font-weight:400">'+esc(sub)+'</p>':'')
+          +'<div class="mt-auto pt-4 flex items-center justify-between gap-2">'
+            +'<span class="krhead text-[12px] text-ink/50 flex items-center gap-1" style="font-weight:400"><iconify-icon icon="solar:map-point-linear"></iconify-icon>'+esc(c.loc)+'</span>'
+            +'<span class="krhead shrink-0 text-[13px] text-pinkstrong flex items-center gap-0.5" style="font-weight:500">자세히 <iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></span>'
+          +'</div>'
+        +'</div>'
+      +'</a>';
+    }
+
+    /* ===== 렌더 ===== */
+    const grid=document.getElementById('baGrid');
+    const empty=document.getElementById('baEmpty');
+    const pager=document.getElementById('baPager');
+    const resultMeta=document.getElementById('baResultMeta');
+
+    function getFiltered(){
+      return items.filter(c=>curFilter==='전체 시술'||c.cat===curFilter);
+    }
+
+    function render(){
+      const list=getFiltered();
+      resultMeta.textContent=`총 ${list.length}개의 전후사례`;
+      const pages=Math.max(1,Math.ceil(list.length/PER_PAGE));
+      if(curPage>pages) curPage=1;
+      const pageItems=list.slice((curPage-1)*PER_PAGE, curPage*PER_PAGE);
+
+      if(pageItems.length===0){ grid.innerHTML=''; empty.classList.remove('hidden'); }
+      else { empty.classList.add('hidden'); grid.innerHTML=pageItems.map((c,i)=>cardHTML(c,(curPage-1)*PER_PAGE+i)).join('');
+        grid.querySelectorAll('a[data-bid]').forEach(function(el){ el.addEventListener('click',function(e){ e.preventDefault(); var bid=+el.getAttribute('data-bid'); openBADetail(items.find(function(x){return x._seed===bid;})); }); });
+      }
+
+      /* 페이지네이션 — 실제 페이지 수만 표시, 1페이지면 숨김 */
+      const shown=pages; pager.style.display = pages>1 ? '' : 'none';
+      let html=`<button class="pgArrow w-9 h-9 rounded-full border border-ink/15 grid place-items-center text-ink/50 hover:border-pink hover:text-pinkstrong transition" data-go="prev"><iconify-icon icon="solar:alt-arrow-left-linear"></iconify-icon></button>`;
+      for(let i=1;i<=shown;i++){
+        html+=`<button class="pgNum w-9 h-9 rounded-full text-sm transition ${i===curPage?'bg-pinkstrong text-white':'text-ink/60 hover:text-pinkstrong'}" data-page="${i}">${i}</button>`;
+      }
+      html+=`<button class="pgArrow w-9 h-9 rounded-full border border-ink/15 grid place-items-center text-ink/50 hover:border-pink hover:text-pinkstrong transition" data-go="next"><iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></button>`;
+      pager.innerHTML=html;
+      pager.querySelectorAll('.pgNum').forEach(b=>b.addEventListener('click',()=>{ curPage=+b.dataset.page; render(); scrollToY(document.getElementById('ba-list'),true,-80); }));
+      pager.querySelectorAll('.pgArrow').forEach(b=>b.addEventListener('click',()=>{
+        if(b.dataset.go==='prev'&&curPage>1) curPage--;
+        if(b.dataset.go==='next'&&curPage<shown) curPage++;
+        render(); scrollToY(document.getElementById('ba-list'),true,-80);
+      }));
+    }
+
+
+    /* ===== 전후 상세 ===== */
+    var BA_DISCLAIMERS=[
+      '해당 전후사진은 동일 인물의 촬영 결과이며, 보정 없이 제공되었습니다.',
+      '시술 결과는 개인에 따라 차이가 있을 수 있으며, 홍조, 멍, 붓기 등의 부작용이 발생할 수 있습니다.',
+      '숙련된 의료진에 의해 시술받을 것을 권장합니다.'
+    ];
+    var BA_DETAILS={
+      '홍조개선 전후|볼 및 나비존 붉은 기 진정|화정':{
+        sections:[
+          {n:'1) 안면홍조의 발생 원인', body:'안면홍조는 피부 장벽이 무너지면서 진피층의 미세혈관이 확장된 후 제때 수축하지 못해 발생하는 만성 질환입니다.\n한의학에서는 이를 체내 기혈 순환의 불균형으로 인해 상체와 얼굴로 열이 쏠리는 상열 현상으로 진단합니다.'},
+          {n:'2) 치료 전 피부 상태', body:'내원 당시 환자는 양측 볼과 코 주변 나비존을 중심으로 광범위한 홍반과 붉은 기가 관찰되었습니다.\n표피가 얇아져 작은 자극에도 쉽게 열감이 오르고 따가움을 느끼는 전형적인 민감성 피부 상태였습니다.'},
+          {n:'3) 한방 맞춤 치료 전략', body:'저희 클리닉에서는 진피층의 염증과 혈관 확장을 가라앉히는 소염 약침을 환부에 직접 시술하였습니다.\n이와 함께 피부 세포 재생을 촉진하는 침 치료를 병행하여 무너진 피부 장벽을 탄탄하게 재건하는 데 집중했습니다.'},
+          {n:'4) 치료 후 변화 결과', body:'치료 후 볼과 나비존의 붉은 기가 확연히 진정되면서 얼룩덜룩했던 피부 톤이 맑고 균일해졌습니다.\n만성적으로 겪던 안면 열감과 당김 증상이 소실되었으며, 피부 장벽이 회복되면서 자극에 쉽게 붉어지지 않는 홍조 개선 전후 결과를 확인했습니다.'},
+          {n:'5) 시술 정보', body:'시술명 : 한방 안면홍조 치료 (피부 재생 침 및 약침 치료)\n시술부위 : 양측 볼 및 코 주변 나비존 피부 전반'}
+        ]
+      }
+    };
+    function genericBADetail(c){
+      var topic=(c.title[0]||'').replace(' 전후','').replace(' 전/후','');
+      var area=c.title[2]||'해당 부위';
+      return { sections:[
+        {n:'1) 고민의 원인', body:topic+'은(는) 피부 상태와 생활 습관 등 복합적인 요인으로 나타날 수 있습니다.\n정확한 진단을 통해 원인을 파악하고 그에 맞는 치료 계획을 수립합니다.'},
+        {n:'2) 치료 전 피부 상태', body:'내원 당시 '+area+'를 중심으로 개선이 필요한 상태가 관찰되었습니다.\n개인의 피부 특성과 민감도를 고려해 시술 강도를 설계했습니다.'},
+        {n:'3) 맞춤 치료 전략', body:'저희 클리닉에서는 '+c.cat+' 관점에서 환부에 맞춘 시술을 진행했습니다.\n자극을 최소화하면서 효과를 높이는 단계별 프로토콜을 적용했습니다.'},
+        {n:'4) 치료 후 변화 결과', body:'시술 후 '+area+'의 상태가 눈에 띄게 개선되었습니다.\n전후 사진을 통해 변화 결과를 확인했습니다.'},
+        {n:'5) 시술 정보', body:'시술명 : '+(c.title[1]||c.title[0])+'\n시술부위 : '+area}
+      ]};
+    }
+    function baDetailOf(c){ return BA_DETAILS[c.title.join('|')] || genericBADetail(c); }
+
+    window.openBADetail=function(c){
+      var d=baDetailOf(c);
+      var caption=esc(c.title[0]);
+      var titleHTML=c.title.map(function(t,i){ return i===0 ? '<span>'+esc(t)+'</span>' : '<span class="text-ink/30 mx-1.5">|</span><span>'+esc(t)+'</span>'; }).join('');
+      var img='<p class="krhead text-xl text-ink mb-2" style="font-weight:900">'+caption+'</p><div class="overflow-hidden border border-ink/10 bg-white">'+baImage(c)+'</div>';
+      var html=''+
+        '<div class="krhead flex items-center gap-2 text-sm text-muted mb-4" style="font-weight:400">'+
+          '<button onclick="showView(\'home\')" class="hover:text-pinkstrong">홈</button><span>/</span>'+
+          '<button onclick="showView(\'ba\')" class="hover:text-pinkstrong">전후사진</button><span>/</span>'+
+          '<span class="text-ink/70">'+esc(c.loc)+'</span>'+
+        '</div>'+
+        '<h1 class="krhead text-2xl text-ink break-keep" style="font-weight:700">'+titleHTML+'</h1>'+
+        '<div class="flex items-center gap-2 mt-3 mb-7">'+
+          '<span class="krhead text-[11px] text-ink/60 bg-ink/5 px-2.5 py-1 rounded-full" style="font-weight:500">'+esc(c.loc)+'</span>'+
+          '<span class="krhead text-[11px] text-pinkstrong bg-pinksoft/55 px-2.5 py-1 rounded-full" style="font-weight:500">'+esc(c.cat)+'</span>'+
+        '</div>'+
+        '<div class="max-w-3xl">'+img+'</div>'+
+        '<div class="max-w-3xl bg-white border border-ink/10 p-5 my-8">'+
+          BA_DISCLAIMERS.map(function(t){ return '<p class="krhead text-[13px] text-ink/60 break-keep leading-relaxed" style="font-weight:300">※ '+t+'</p>'; }).join('')+
+        '</div>'+
+        '<div class="max-w-3xl space-y-8">'+
+          d.sections.map(function(sec){ return '<div><p class="krhead text-ink mb-2" style="font-weight:700">'+esc(sec.n)+'</p><p class="krhead text-[14px] text-ink/70 leading-relaxed whitespace-pre-line break-keep" style="font-weight:300">'+esc(sec.body)+'</p></div>'; }).join('')+
+        '</div>'+
+        '<div class="max-w-3xl mt-12">'+img+'</div>'+
+        '<div class="max-w-3xl mt-10"><button onclick="showView(\'ba\')" class="krhead px-6 py-3 rounded-full border border-ink/15 text-sm hover:bg-ink hover:text-white transition flex items-center gap-2" style="font-weight:400"><iconify-icon icon="solar:alt-arrow-left-linear"></iconify-icon> 전후사진 목록으로</button></div>';
+      document.getElementById('baDetailBody').innerHTML=html;
+      showView('badetail', null, 'badetail/'+c._seed);
+    };
+
+    renderFilters(); render();
+  
+})();
+  </script>
+
+  <script>
+/* ===== 온라인예약 스크립트 — 독립 범위 ===== */
+(function(){
+    /* ===== 온라인예약 — 관리자 「예약 가능시간·마감처리」 반영, 접수 시 관리자 「예약 목록」에 저장 ===== */
+    var resState={ y:0, m:0, date:null, time:null, booked:{} };
+    var today=new Date(); today.setHours(0,0,0,0);
+
+    /* 「남은 시술권으로 예약」 자리를 시술 선택으로 교체 (관리자 「시술 상품 관리」 목록 사용) */
+    function buildItemPicker(){
+      if(document.getElementById('resItem')) return;
+      var target=null;
+      document.querySelectorAll('#resAfter .rounded-2xl').forEach(function(pn){ var h=pn.querySelector('h3'); if(h && h.textContent.indexOf('시술권')>=0) target=pn; });
+      if(!target) return;
+      var opts=['<option value="상담 후 결정">상담 후 결정하기</option>'];
+      (window.__products||[]).forEach(function(p){
+        var vis=p._vis||[];
+        if(vis.length) vis.forEach(function(d){ var nm=(p.big||p.title||'')+' · '+(d.t||''); opts.push('<option value="'+esc(nm)+'">'+esc(nm)+'</option>'); });
+        else if(p.big||p.title) opts.push('<option value="'+esc(p.big||p.title)+'">'+esc(p.big||p.title)+'</option>');
+      });
+      target.innerHTML='<h3 class="krhead text-lg text-ink mb-5" style="font-weight:700"><label for="resItem">예약할 시술 선택</label></h3>'+
+        '<select id="resItem" class="krhead w-full px-4 py-3 rounded-lg border border-ink/12 bg-ink/[0.02] text-sm focus:outline-none focus:border-pink" style="font-weight:400">'+opts.join('')+'</select>'+
+        '<p class="krhead text-[13px] text-ink/55 mt-3 break-keep" style="font-weight:400">정하지 못하셨다면 「상담 후 결정하기」를 선택해 주세요. 내원 시 상담해 드립니다.</p>';
+    }
+
+    /* 예약 입력 영역 열기 (카카오 인증 또는 비회원 공통) */
+    function openResForm(label){
+      document.getElementById('resAuthBox').innerHTML =
+        '<div class="rounded-2xl border border-ink/12 p-6 flex items-center justify-center gap-2">'+
+        '<svg viewBox="0 0 24 24" width="26" height="26"><circle cx="12" cy="12" r="11" fill="#4a5d4e"/><path d="M7 12.4l3.2 3.2L17 9" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>'+
+        '<p class="krhead text-pinkstrong" style="font-weight:700">'+label+'</p></div>';
+      var after=document.getElementById('resAfter');
+      after.classList.remove('hidden');
+      buildItemPicker();
+      resState.y=today.getFullYear(); resState.m=today.getMonth();
+      renderCal();
+      setTimeout(function(){ try{ scrollToY(after,true,-90); document.getElementById('resName').focus({preventScroll:true}); }catch(e){} }, 60);
+    }
+    document.getElementById('resKakaoBtn').addEventListener('click', function(){ track('reserve_auth',{type:'kakao'}); openResForm('인증 완료 · 예약 정보를 입력해 주세요'); });
+    document.getElementById('resGuestBtn').addEventListener('click', function(){ track('reserve_auth',{type:'guest'}); openResForm('비회원 예약 · 예약 정보를 입력해 주세요'); });
+
+    /* 시간 선택 — 이미 찬 시간대(관리자 「동시 예약 수」 기준)는 선택 불가 */
+    function renderTimes(){
+      var wrap=document.getElementById('resTimeWrap');
+      if(!resState.date){ wrap.className='krhead text-sm text-muted'; wrap.style.fontWeight='300'; wrap.textContent='날짜를 먼저 선택해주세요.'; return; }
+      var slots=RES.slots(resState.date), cap=RES.hours().capacity;
+      if(!slots.length){ wrap.className='krhead text-sm text-muted'; wrap.style.fontWeight='300'; wrap.textContent='이 날짜는 예약을 받지 않습니다. 다른 날짜를 선택해주세요.'; return; }
+      wrap.className='krhead grid grid-cols-2 md:grid-cols-1 gap-2';
+      wrap.style.fontWeight='400';
+      wrap.innerHTML=slots.map(function(t){
+        if((resState.booked[t]||0)>=cap) return '<button disabled class="px-3 py-2 rounded-lg border text-sm border-ink/10 text-ink/25 cursor-not-allowed line-through" title="예약 마감">'+t+'</button>';
+        var on=resState.time===t;
+        return '<button data-t="'+t+'" class="resTime px-3 py-2 rounded-lg border text-sm transition '+
+          (on?'bg-pinkstrong text-white border-pinkstrong':'border-ink/15 text-ink/70 hover:border-pink')+'">'+t+'</button>';
+      }).join('');
+      wrap.querySelectorAll('.resTime').forEach(function(b){ b.addEventListener('click',function(){ resState.time=b.dataset.t; renderTimes(); }); });
+    }
+
+    /* 달력 — 지난 날짜·휴무 요일·마감일은 선택 불가 */
+    function renderCal(){
+      var y=resState.y, m=resState.m;
+      document.getElementById('resCalTitle').textContent=y+'년 '+(m+1)+'월';
+      var first=new Date(y,m,1).getDay(), dim=new Date(y,m+1,0).getDate(), cells='';
+      for(var i=0;i<first;i++){ cells+='<span></span>'; }
+      for(var d=1; d<=dim; d++){
+        var dateObj=new Date(y,m,d); dateObj.setHours(0,0,0,0);
+        var dow=dateObj.getDay(), past=dateObj<today, off=!past && RES.slots(dateObj).length===0;
+        var sel=resState.date && resState.date.getTime()===dateObj.getTime();
+        var base='krhead mx-auto w-9 h-9 grid place-items-center rounded-full text-sm transition ', cls;
+        if(past||off){ cls='text-ink/20 cursor-not-allowed'; }
+        else if(sel){ cls='bg-pinkstrong text-white'; }
+        else { cls=(dow===0?'text-red-400':(dow===6?'text-blue-400':'text-ink/80'))+' hover:bg-pink hover:text-white cursor-pointer'; }
+        cells+='<button data-d="'+d+'" '+((past||off)?'disabled':'')+' title="'+(off?'휴진 · 예약 불가':'')+'" class="resDay '+base+cls+'" style="font-weight:400">'+d+'</button>';
+      }
+      var days=document.getElementById('resCalDays');
+      days.innerHTML=cells;
+      days.querySelectorAll('.resDay:not([disabled])').forEach(function(b){
+        b.addEventListener('click',function(){
+          resState.date=new Date(resState.y,resState.m,+b.dataset.d); resState.date.setHours(0,0,0,0);
+          resState.time=null; resState.booked={}; renderCal();
+          var ds=RES.ymd(resState.date);
+          RES.booked(ds).then(function(o){ if(resState.date && RES.ymd(resState.date)===ds){ resState.booked=o; renderTimes(); } });
+        });
+      });
+      renderTimes();
+    }
+
+    document.getElementById('resCalPrev').addEventListener('click',function(){
+      var cur=new Date(resState.y,resState.m,1), curMonth=new Date(today.getFullYear(),today.getMonth(),1);
+      if(cur<=curMonth) return;                      // 이전 달(과거) 막기
+      resState.m--; if(resState.m<0){ resState.m=11; resState.y--; } renderCal();
+    });
+    document.getElementById('resCalNext').addEventListener('click',function(){
+      resState.m++; if(resState.m>11){ resState.m=0; resState.y++; } renderCal();
+    });
+
+    /* 예약하기 — 관리자 「예약 목록」에 '미확정'으로 저장 */
+    var btn=document.getElementById('resReserveBtn');
+    btn.addEventListener('click',function(){
+      var nm=document.getElementById('resName'), ph=document.getElementById('resPhone');
+      if(!nm.value.trim()){ alert('이름을 입력해주세요.'); nm.focus(); return; }
+      if(!/^0\d{1,2}-?\d{3,4}-?\d{4}$/.test(ph.value.trim())){ alert('연락처를 정확히 입력해주세요. (예: 010-1234-5678)'); ph.focus(); return; }
+      if(!document.getElementById('resAgreeReq').checked){ alert('개인정보 취급방침 동의(필수)를 체크해주세요.'); return; }
+      if(!resState.date){ alert('예약 날짜를 선택해주세요.'); return; }
+      if(!resState.time){ alert('예약 시간을 선택해주세요.'); return; }
+      var d=resState.date, ds=RES.ymd(d), t=resState.time;
+      var sms=document.querySelectorAll('#resAfter input[type="checkbox"]')[0];
+      var item=(document.getElementById('resItem')||{}).value||'상담 후 결정';
+      btn.disabled=true; var label=btn.textContent; btn.textContent='접수 중...';
+      /* 저장 직전에 한 번 더 자리 확인 (동시에 예약하는 경우 대비) */
+      RES.booked(ds).then(function(o){
+        if((o[t]||0)>=RES.hours().capacity){ resState.booked=o; resState.time=null; renderTimes(); throw {full:true}; }
+        return RES.submit({ name:nm.value, phone:ph.value, date:ds, time:t, item:item, sms:sms&&sms.checked, source:'reserve' });
+      }).then(function(){
+        track('reserve_submit',{form:'reserve', date:ds, time:t});
+        alert('예약 신청이 접수되었습니다.\n\n'+nm.value.trim()+' 님 · '+(d.getMonth()+1)+'월 '+d.getDate()+'일 '+t+'\n'+item+
+              '\n\n병원에서 확인 후 확정 연락을 드립니다.');
+        resState.time=null; resState.booked[t]=(resState.booked[t]||0)+1; renderTimes();
+      }).catch(function(e){
+        if(e && e.full) alert('방금 다른 분이 이 시간을 예약했습니다. 다른 시간을 선택해주세요.');
+        else alert(RES.failMsg());
+      }).then(function(){ btn.disabled=false; btn.textContent=label; });
+    });
+
+})();
+  </script>
+
+  <script>
+/* ===== 시술 상세 스크립트 — 독립 범위 ===== */
+(function(){
+    /* ===== 시술 상세 ===== */
+    var DETAIL_PARTS=['전체','얼굴/목','상체','하체','기타'];
+    function dwon(n){ return n.toLocaleString('ko-KR'); }
+
+    /* 제모 등 일부 시술은 레퍼런스 그대로의 상세 콘텐츠 */
+    var DETAILS={
+      '[OK 할 때까지 꿋!] 남성 레이저 제모':{
+        desc:'아침에 면도해도 저녁이면 다시 올라오는 수염이 고민이신가요?\n\n남성 레이저 제모는 반복적인 면도 부담을 줄이고 보다 깔끔한 피부 관리를 원하는 분들을 위한 시술입니다.\n수염뿐 아니라 다양한 부위의 체모 관리가 가능하며, 개인의 털 상태와 피부 특성을 고려해 진행합니다.\n\n모든 제모 시술은 5회 패키지를 기준으로 운영되며, 1회 시술 비용은 5회 패키지 가격의 약 34.5%로 책정됩니다.\n*VAT 별도',
+        options:[
+          {name:'[첫 시술 EVENT] 남자 인중 or 앞턱 제모 1회', sub:'정품 악센토 사용, 냉각 장치로 통증 부담을 줄였습니다. 쿨러 O 마취X', price:100, orig:199, off:'49%', part:'얼굴/목'},
+          {name:'[EVENT] 남자 겨드랑이 제모 1년 무제한', sub:'시술 주기 3주 간격이라면 최대 17번, 4주 간격이라면 12번 받을 수 있는 1년권. 제모는 최소 주기 21일로, 안전상 하루도 당겨 받을 수 없습니다.', price:59000, orig:100000, off:'41%', part:'상체'},
+          {name:'[EVENT] 남자 앞턱 or 인중 1년 무제한', price:89000, orig:150000, off:'40%', part:'얼굴/목'},
+          {name:'[EVENT] 남자 앞턱 + 인중 제모 1년 무제한', price:159000, orig:310000, off:'48%', part:'얼굴/목'},
+          {name:'[EVENT] 남자 얼굴전체(볼+구렛+인중+앞턱+앞목+턱라인 / 이마 제외) 제모 1년 무제한', sub:'*남성 쉐이빙 라인 전체 (눈 아래) 입니다.', price:269000, orig:530000, off:'49%', part:'얼굴/목'},
+          {name:'[EVENT] 남자 브라질리언 + 항문 제모 1년 무제한', price:419000, orig:809000, off:'48%', part:'기타'},
+          {name:'[EVENT] 남자 다리전체 제모 1년 무제한', sub:'허벅지 + 무릎 + 종아리 + 발등 + 발가락 포함', price:939000, orig:1850000, off:'49%', part:'하체'}
+        ],
+        introTitle:'제모',
+        question:'10회 넘게 제모를 받았지만 효과가 없었거나\n통증, 피부 자극 때문에 제모 시술을 망설였던 경험 있으신가요?',
+        emphasis:'저희 클리닉은 정확한 분석, 맞춤 시술을 진행하며\n고객이 시술 부위를 확인하고\nOK! 해야 시술이 종료됩니다.',
+        features:['신경쓰이는 부위 확인 후 시술','고객과 소통하며 실시간으로 조율','굵은 털, 가는 털, 밝은 털 맞춤 시술','매회 출력·쿨링·파장을 세심하게 조정','제모에 특화된 악센토'],
+        precisionPhoto:true,
+        precisionIntro:'털의 굵기·색·밀도, 피부톤, 민감도까지 레이저의 작용 원리를 기반으로 정밀하게 계산하고 적용합니다.',
+        precision:[
+          {label:'굵은 털', problem:'짧은 펄스로 시술 시, 에너지가 급격히 흡수돼 표피 손상 위험', solution:'긴 펄스를 적용, 천천히 깊게 열 전달'},
+          {label:'가는 털, 밝은 털', problem:'멜라닌 함량이 적어 레이저 반응이 약함', solution:'반복 조사 or 고출력 세팅'},
+          {label:'털이 빽빽한 부위', problem:'열이 과하게 축적되기 쉬운 부위', solution:'분산 조사로 과열 방지'},
+          {label:'민감성 피부', problem:'피부 자체의 멜라닌까지 빛을 받아 색소침착 위험', solution:'저자극 모드·충분한 쿨링으로 보호'}
+        ],
+        aftercare:[
+          '시술을 받는 당일 또는 하루 전, 시술할 부위의 털을 면도해 주시는 것이 좋습니다.',
+          '시술 후 일주일 정도는 음주, 흡연, 사우나 이용 및 과격한 운동을 삼가 주십시오.',
+          '시술을 받고 나면 붉어짐, 열감, 약간의 통증이 2~3시간 가량 나타날 수 있습니다.'
+        ]
+      },
+      '[털 고민 이제 꿋!] 여성 레이저 제모 (여성 원장님 진료)':{
+        desc:'반복되는 면도와 왁싱이 번거롭고, 자극으로 인한 색소침착이 걱정되신가요?\n\n여성 레이저 제모는 여성 원장님이 직접 진료·시술하여 민감한 부위도 편안하게 케어합니다.\n개인의 털 상태와 피부 특성을 고려해 출력과 파장을 맞춤 조정합니다.\n\n모든 제모 시술은 5회 패키지를 기준으로 운영되며, 1회 시술 비용은 5회 패키지 가격의 약 34.5%로 책정됩니다.\n*VAT 별도',
+        options:[
+          {name:'[첫 시술 EVENT] 여자 인중 or 겨드랑이 제모 1회', sub:'여성 원장님 진료, 철저한 냉각으로 통증 감소! 쿨러 O 마취X', price:100, orig:199, off:'49%', part:'얼굴/목'},
+          {name:'[EVENT] 여자 겨드랑이 제모 1년 무제한', price:55000, orig:100000, off:'45%', part:'상체'},
+          {name:'[EVENT] 여자 얼굴 전체 제모 1년 무제한', sub:'볼+구렛+인중+앞턱+턱라인 (이마 제외)', price:249000, orig:490000, off:'49%', part:'얼굴/목'},
+          {name:'[EVENT] 여자 브라질리언 제모 1년 무제한', price:299000, orig:580000, off:'48%', part:'기타'},
+          {name:'[EVENT] 여자 다리전체 제모 1년 무제한', sub:'허벅지 + 무릎 + 종아리 + 발등 + 발가락 포함', price:899000, orig:1750000, off:'49%', part:'하체'}
+        ],
+        introTitle:'제모',
+        question:'10회 넘게 제모를 받았지만 효과가 없었거나\n통증, 피부 자극 때문에 제모 시술을 망설였던 경험 있으신가요?',
+        emphasis:'저희 클리닉은 정확한 분석, 맞춤 시술을 진행하며\n고객이 시술 부위를 확인하고\nOK! 해야 시술이 종료됩니다.',
+        features:['여성 원장님 직접 진료','신경쓰이는 부위 확인 후 시술','굵은 털, 가는 털, 밝은 털 맞춤 시술','매회 출력·쿨링·파장을 세심하게 조정','제모에 특화된 악센토'],
+        precisionPhoto:true,
+        precisionIntro:'털의 굵기·색·밀도, 피부톤, 민감도까지 레이저의 작용 원리를 기반으로 정밀하게 계산하고 적용합니다.',
+        precision:[
+          {label:'굵은 털', problem:'짧은 펄스로 시술 시, 에너지가 급격히 흡수돼 표피 손상 위험', solution:'긴 펄스를 적용, 천천히 깊게 열 전달'},
+          {label:'가는 털, 밝은 털', problem:'멜라닌 함량이 적어 레이저 반응이 약함', solution:'반복 조사 or 고출력 세팅'},
+          {label:'민감성 피부', problem:'피부 자체의 멜라닌까지 빛을 받아 색소침착 위험', solution:'저자극 모드·충분한 쿨링으로 보호'}
+        ],
+        aftercare:[
+          '시술을 받는 당일 또는 하루 전, 시술할 부위의 털을 면도해 주시는 것이 좋습니다.',
+          '시술 후 일주일 정도는 음주, 흡연, 사우나 이용 및 과격한 운동을 삼가 주십시오.',
+          '시술을 받고 나면 붉어짐, 열감, 약간의 통증이 2~3시간 가량 나타날 수 있습니다.'
+        ]
+      }
+    };
+
+    /* 그 외 시술은 데이터 기반의 일반 상세를 자동 생성 */
+    function genericDetail(p){
+      var base=p.price||10000;
+      return {
+        desc:p.title+' 안내입니다.\n\n'+(p.event||'')+' 구성으로 진행되며, 개인의 상태와 피부 특성을 고려해 맞춤으로 진행합니다.\n결과는 시술과 사후관리의 합이며, 충분한 상담 후 진행해 드립니다.\n*VAT 별도',
+        options:[
+          {name:(p.event||'1회 시술'), sub:'첫 시술 특별가', price:base, orig:Math.round(base*1.9), off:'47%', part:'전체'},
+          {name:'3회 패키지', price:Math.round(base*3*0.85), orig:base*3, off:'15%', part:'전체'},
+          {name:'5회 패키지', sub:'가장 인기있는 구성', price:Math.round(base*5*0.8), orig:base*5, off:'20%', part:'전체'}
+        ],
+        introTitle:'맞춤 케어',
+        question:'반복되는 피부 고민, 효과와 안전 사이에서 망설이고 계신가요?',
+        emphasis:'저희 클리닉은 정확한 분석과 맞춤 시술로,\n고객이 충분히 확인하고 만족해야 마무리합니다.',
+        features:['1:1 맞춤 설계','정품·정량 원칙','자극 최소화 케어','꼼꼼한 사후관리'],
+        precisionPhoto:false, precisionIntro:'', precision:[],
+        aftercare:[
+          '시술 후 일주일 정도는 음주, 흡연, 사우나 및 과격한 운동을 삼가 주세요.',
+          '시술 부위는 자외선 차단에 특히 신경 써 주세요.',
+          '붉어짐·열감 등은 보통 수 시간 내 가라앉습니다. 이상 시 내원해 주세요.'
+        ]
+      };
+    }
+    /* ===== 관리자 「시술 상품 관리」 데이터로 상세 구성 ===== */
+    var DAYS=['일','월','화','수','목','금','토'];
+    /* 권종(이용 조건) 이름 — 관리자 「카테고리 관리 > 권종」 */
+    function voucherOf(id){
+      if(!id) return '';
+      try{
+        var v=(KK.get('voucherTypes', [])||[]).find(function(x){ return x.id===id; });
+        if(!v || v.on===false) return '';
+        var d=v.days||[], base='';
+        if(d.length && d.length<7){
+          var wk=[1,2,3,4,5], isWeek=wk.every(function(x){return d.indexOf(x)>=0;}) && d.indexOf(6)<0;
+          if(isWeek && d.indexOf(0)>=0) base='평일+일요일';
+          else if(isWeek && d.length===5) base='평일';
+          else if(d.length===1) base=DAYS[d[0]]+'요일';
+          else base=d.slice().sort().map(function(x){ return DAYS[x]; }).join('');
+        }
+        var cond=[base, v.before?(v.before+'시 이전'):''].filter(Boolean).join(' ');
+        if(!cond) return v.name||'';
+        return (String(v.name||'').indexOf(cond)>=0) ? v.name : ((v.name||'')+' · '+cond+' 한정');
+      }catch(e){ return ''; }
+    }
+    function realDetail(p){
+      var g=genericDetail(p), vis=p._vis||[];
+      /* 관리자 「공통 고정 내용」: 상품에 시술정보·Q&A·주의사항을 비워두면 공통 내용을 대신 보여줌 */
+      var C=(window.KK && KK.get('prodCommon', null)) || {};
+      var hasB=function(b){ return b && ['time','anesthesia','daily','duration'].some(function(k){ return String(b[k]||'').trim(); }); };
+      var pc=(Array.isArray(p.cautions) && p.cautions.length) ? p.cautions
+           : (typeof p.cautions==='string' && p.cautions.trim()) ? p.cautions.split(/\n+/).filter(Boolean) : null;
+      return {
+        desc: (p.desc && String(p.desc).trim()) ? p.desc : g.desc,
+        options: vis.map(function(dt){
+          var sub=[];
+          if(dt.perType==='range' && (dt.start||dt.end)) sub.push('기간 '+(dt.start||'')+' ~ '+(dt.end||''));
+          var vc=voucherOf(dt.voucher); if(vc) sub.push(vc);
+          if(dt.avail) sub.push(dt.avail);
+          if(dt.notice) sub.push(dt.notice);
+          var price=parseInt(dt.sale)||parseInt(dt.price)||0, orig=parseInt(dt.price)||0;
+          return {name:dt.t||'', sub:sub.join(' · '), price:price, orig:(orig>price?orig:0), off:(orig>price&&orig>0)? Math.round((1-price/orig)*100)+'%':'', part:'전체'};
+        }),
+        bodies: vis.filter(function(dt){ return dt.body && (String(dt.body).replace(/<[^>]*>/g,'').trim().length || String(dt.body).indexOf('<img')>=0); }),
+        youtube: p.youtube||'', mainBody: p.body||'',
+        stepsTitle: p.stepsTitle||'', steps: p.steps||[],
+        basic: hasB(p.basic) ? p.basic : (hasB(C.basic) ? C.basic : null),
+        points: p.points||[], qna: (p.qna && p.qna.length) ? p.qna : (C.qna||[]),
+        introTitle:g.introTitle, question:g.question, emphasis:g.emphasis, features:g.features,
+        precisionPhoto:false, precisionIntro:'', precision:[],
+        aftercare: pc || ((C.cautions && C.cautions.length) ? C.cautions : g.aftercare),
+        real:true
+      };
+    }
+    function detailOf(p){ return (p.details && p.details.length) ? realDetail(p) : (DETAILS[p.title] || genericDetail(p)); }
+
+    var detState={ p:null, q:'', sort:'none', part:'전체' };
+
+    function optHTML(o){
+      return '<div class="bg-white border border-ink/10 p-5 flex items-start justify-between gap-3">'+
+        '<div class="min-w-0">'+
+          '<p class="krhead text-[15px] text-ink leading-snug break-keep" style="font-weight:700">'+esc(o.name)+'</p>'+
+          (o.sub?'<p class="krhead text-[13px] text-ink/60 mt-1 break-keep" style="font-weight:400">'+esc(o.sub)+'</p>':'')+
+          '<p class="mt-2 flex items-baseline gap-2 flex-wrap">'+
+            '<span class="krhead text-lg text-ink" style="font-weight:900">'+dwon(o.price)+'원</span>'+
+            (o.orig?'<span class="text-xs text-muted line-through">'+dwon(o.orig)+'원</span>':'')+
+            (o.off?'<span class="text-[11px] text-pinkstrong bg-pinksoft/50 rounded-full px-2 py-0.5">'+o.off+'</span>':'')+
+          '</p>'+
+        '</div>'+
+        '<button onclick="track(\'cta_click\',{cta:\'detail_option\'});showView(\'reserve\')" class="krhead shrink-0 px-4 py-2 rounded-lg border border-pink/40 text-sm text-pinkstrong hover:bg-pink hover:text-white transition" style="font-weight:500">상담 예약</button>'+
+      '</div>';
+    }
+
+    function renderOptions(){
+      var d=detailOf(detState.p);
+      var list=d.options.slice();
+      if(detState.part!=='전체') list=list.filter(function(o){ return (o.part||'전체')===detState.part; });
+      if(detState.q.trim()){ var q=detState.q.trim().toLowerCase(); list=list.filter(function(o){ return (o.name+(o.sub||'')).toLowerCase().includes(q); }); }
+      if(detState.sort==='low') list.sort(function(a,b){return a.price-b.price;});
+      else if(detState.sort==='high') list.sort(function(a,b){return b.price-a.price;});
+      var wrap=document.getElementById('detOptList');
+      wrap.innerHTML = list.length ? list.map(optHTML).join('')
+        : '<p class="krhead text-sm text-muted py-8 text-center" style="font-weight:300">해당 조건의 상품이 없습니다.</p>';
+    }
+
+    function renderDetPills(){
+      document.getElementById('detPills').innerHTML = DETAIL_PARTS.map(function(pt){
+        var on=detState.part===pt;
+        return '<button data-pt="'+pt+'" class="detPill px-3.5 py-1.5 rounded-full text-sm transition '+
+          (on?'bg-pinkstrong text-white':'border border-ink/15 text-ink/60 hover:border-ink/40')+'">'+pt+'</button>';
+      }).join('');
+      document.querySelectorAll('#detPills .detPill').forEach(function(b){
+        b.addEventListener('click',function(){ detState.part=b.dataset.pt; renderDetPills(); renderOptions(); });
+      });
+    }
+
+    window.openDetail=function(p){
+      detState={ p:p, q:'', sort:'none', part:'전체' };
+      var d=detailOf(p);
+      var banner = (window.__catBanner ? window.__catBanner(p) : '');
+      var html=''+
+      '<div class="flex items-center justify-between gap-3 border-b border-ink/10 pb-5 mb-8">'+
+        '<div class="krhead flex items-center gap-2 text-sm break-keep min-w-0" style="font-weight:500">'+
+          '<button onclick="showView(\'category\')" class="text-pinkstrong/80 hover:text-pinkstrong transition shrink-0">'+esc(p.cat)+'</button>'+
+          '<iconify-icon icon="solar:alt-arrow-right-linear" class="text-ink/30 shrink-0"></iconify-icon>'+
+          '<span class="text-ink truncate">'+esc(p.title)+'</span>'+
+        '</div>'+
+        '<button onclick="showView(\'category\')" class="krhead text-xs text-ink/45 hover:text-pinkstrong flex items-center gap-1 shrink-0" style="font-weight:400"><iconify-icon icon="solar:list-linear"></iconify-icon> 목록</button>'+
+      '</div>'+
+
+      '<div class="grid lg:grid-cols-2 gap-8 lg:gap-12 mb-20">'+
+        '<div class="space-y-5">'+
+          '<div class="overflow-hidden">'+banner+'</div>'+
+          /* 관리자에 유튜브 주소가 있으면 영상, 관리자 데이터 상품인데 영상이 없으면 생략, 샘플 상품만 자리 표시 */
+          (function(){
+            var m=String(d.youtube||'').match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([\w-]{6,20})/);
+            if(m) return '<div class="relative aspect-video overflow-hidden bg-black"><iframe src="https://www.youtube.com/embed/'+m[1]+'" title="시술 영상" loading="lazy" style="position:absolute;inset:0;width:100%;height:100%;border:0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>';
+            if(d.real) return '';
+            return '<div class="relative aspect-video overflow-hidden bg-black grid place-items-center">'+
+              '<img src="img/tex-cream-beam.jpg" class="absolute inset-0 w-full h-full object-cover opacity-55" alt="" loading="lazy">'+
+              '<span class="relative w-16 h-16 rounded-full bg-white/90 grid place-items-center"><iconify-icon icon="solar:play-bold" width="26" class="text-ink"></iconify-icon></span>'+
+              '<span class="absolute top-3 left-3 krhead text-[11px] text-white/85 bg-black/40 px-2 py-0.5 rounded" style="font-weight:400">시술 영상</span>'+
+            '</div>';
+          })()+
+        '</div>'+
+        '<div>'+
+          '<div class="bg-white border border-ink/10 p-6 sm:p-8 mb-8">'+
+            '<h1 class="krhead text-xl text-ink break-keep" style="font-weight:700">'+esc(p.title)+'</h1>'+
+            '<div class="h-0.5 w-10 bg-pink rounded my-3"></div>'+
+            '<p class="krhead text-[14px] leading-relaxed text-ink/70 whitespace-pre-line break-keep" style="font-weight:400">'+esc(d.desc)+'</p>'+
+          '</div>'+
+          '<h3 class="krhead text-base text-ink mb-4" style="font-weight:700">시술 상품</h3>'+
+          '<div class="flex items-center gap-2 mb-3">'+
+            '<input id="detSearch" placeholder="검색(이름/설명)" class="krhead flex-1 px-3 py-2 rounded-lg border border-ink/12 text-sm focus:outline-none focus:border-pink" style="font-weight:300">'+
+            '<select id="detSort" class="krhead px-3 py-2 rounded-lg border border-ink/12 text-sm text-ink/70 focus:outline-none focus:border-pink" style="font-weight:400"><option value="none">정렬 없음</option><option value="low">낮은가격순</option><option value="high">높은가격순</option></select>'+
+          '</div>'+
+          '<div id="detPills" class="flex flex-wrap gap-1.5 mb-4"></div>'+
+          '<div id="detOptList" class="space-y-2.5"></div>'+
+        '</div>'+
+      '</div>'+
+
+      /* ----- 관리자 입력 상세 내용 (본문 HTML은 정화, 나머지 글은 escape) ----- */
+      (function(){
+        function sec(title, inner){ return '<div class="max-w-3xl mx-auto mb-20"><h3 class="krhead text-2xl text-ink mb-6 text-center" style="font-weight:700">'+title+'</h3>'+inner+'</div>'; }
+        var h='';
+        if(d.mainBody && (String(d.mainBody).replace(/<[^>]*>/g,'').trim() || String(d.mainBody).indexOf('<img')>=0))
+          h+='<div class="max-w-3xl mx-auto mb-20"><div class="note-body krhead text-[15px] text-ink/75 leading-loose break-keep" style="font-weight:300">'+cleanHtml(d.mainBody)+'</div></div>';
+        if(d.bodies && d.bodies.length)
+          h+='<div class="max-w-3xl mx-auto mb-20">'+d.bodies.map(function(dt){
+            return '<div class="mb-12"><h3 class="krhead text-xl text-ink mb-3 break-keep" style="font-weight:700">'+esc(dt.t)+'</h3><div class="h-0.5 w-10 bg-pink mb-5"></div>'+
+              '<div class="note-body krhead text-[15px] text-ink/75 leading-loose break-keep" style="font-weight:300">'+cleanHtml(dt.body)+'</div></div>'; }).join('')+'</div>';
+        if(d.steps && d.steps.length)
+          h+=sec(esc(d.stepsTitle||'시술 과정'), '<div class="space-y-2.5">'+d.steps.map(function(s,i){ return '<div class="flex items-center gap-4 bg-white border border-ink/10 px-5 py-4"><span class="marcellus shrink-0 text-[12px] tracking-[0.25em] text-pinkstrong">STEP '+(i+1)+'</span><span class="krhead text-[15px] text-ink/80 break-keep" style="font-weight:400">'+esc(s)+'</span></div>'; }).join('')+'</div>');
+        var b=d.basic||{};
+        if(b.time||b.anesthesia||b.daily||b.duration)
+          h+=sec('시술 기본정보', '<div class="grid grid-cols-2 lg:grid-cols-4 gap-3">'+[['시술시간',b.time],['마취여부',b.anesthesia],['회복기간',b.daily],['유지기간',b.duration]].map(function(x){ return x[1]? '<div class="bg-white border border-ink/10 px-4 py-5 text-center"><p class="krhead text-[12px] text-pinkstrong mb-1.5" style="font-weight:700">'+x[0]+'</p><p class="krhead text-[14px] text-ink/80 break-keep" style="font-weight:400">'+esc(x[1])+'</p></div>':''; }).join('')+'</div>');
+        if(d.points && d.points.length)
+          h+=sec('이런 분께 추천해요', '<div class="space-y-3">'+d.points.map(function(pt,i){ return '<div class="flex items-start gap-3 bg-white border border-ink/10 px-5 py-4"><span class="marcellus shrink-0 text-[12px] tracking-[0.25em] text-pinkstrong mt-0.5">POINT '+(i+1)+'</span><span class="krhead text-[15px] text-ink/80 break-keep" style="font-weight:400">'+esc(pt)+'</span></div>'; }).join('')+'</div>');
+        if(d.qna && d.qna.length)
+          h+=sec('자주 묻는 질문', d.qna.map(function(x){ return '<div class="bg-white border border-ink/10 p-5 mb-3"><p class="krhead text-[15px] text-ink mb-2 break-keep" style="font-weight:700"><span class="text-pinkstrong">Q.</span> '+esc(x.q)+'</p><p class="krhead text-[14px] text-ink/70 leading-relaxed break-keep" style="font-weight:400"><span class="text-pinkstrong" style="font-weight:700">A.</span> '+esc(x.a)+'</p></div>'; }).join(''));
+        return h;
+      })()+
+
+      '<div class="text-center max-w-2xl mx-auto mb-16">'+
+        '<h3 class="krhead text-2xl text-ink mb-8" style="font-weight:500">'+(d.introTitle||'맞춤 케어')+'</h3>'+
+        '<p class="krhead text-ink/70 leading-loose break-keep whitespace-pre-line mb-10" style="font-weight:300">'+d.question+'</p>'+
+        '<p class="krhead text-pinkstrong leading-loose break-keep whitespace-pre-line" style="font-weight:500">'+d.emphasis+'</p>'+
+      '</div>'+
+
+      (d.features&&d.features.length ?
+        '<div class="max-w-xl mx-auto space-y-3 mb-20">'+
+          d.features.map(function(f,i){ return '<div class="krhead text-center py-3.5 rounded-full '+(i%2?'bg-pink/15':'bg-pinksoft/40')+' text-ink/80 break-keep" style="font-weight:500">'+f+'</div>'; }).join('')+
+        '</div>' : '')+
+
+      (d.precision&&d.precision.length ?
+        '<div class="mb-20">'+
+          (d.precisionPhoto ? '<div class="rounded-2xl overflow-hidden mb-6 max-w-2xl mx-auto"><img src="img/space-cove-wall.jpg" class="w-full h-full object-cover" alt="" loading="lazy"></div>' : '')+
+          (d.precisionIntro ? '<p class="krhead text-center text-ink/70 leading-relaxed break-keep max-w-2xl mx-auto mb-8" style="font-weight:300">'+d.precisionIntro+'</p>' : '')+
+          '<div class="max-w-3xl mx-auto space-y-3">'+
+            d.precision.map(function(r){ return '<div class="flex flex-col sm:flex-row sm:items-stretch gap-2 sm:gap-4">'+
+              '<div class="krhead shrink-0 sm:w-40 flex items-center justify-center text-center px-4 py-3 rounded-lg bg-pinksoft/45 text-pinkstrong text-sm" style="font-weight:700">'+r.label+'</div>'+
+              '<div class="krhead flex-1 px-4 py-3 rounded-lg bg-ink/[0.03] text-sm text-ink/70 break-keep" style="font-weight:300"><span class="block">'+r.problem+'</span><span class="block text-pinkstrong mt-1" style="font-weight:500">▶ '+r.solution+'</span></div>'+
+            '</div>'; }).join('')+
+          '</div>'+
+        '</div>' : '')+
+
+      '<div class="max-w-3xl mx-auto">'+
+        '<span class="krhead inline-block text-[11px] tracking-widest text-pinkstrong border border-pink/30 rounded-full px-3 py-1 mb-3" style="font-weight:500">AFTERCARE GUIDE</span>'+
+        '<h3 class="krhead text-2xl text-ink mb-2" style="font-weight:700">주의사항</h3>'+
+        '<div class="h-0.5 w-12 bg-pink rounded mb-4"></div>'+
+        '<p class="krhead text-sm text-muted mb-6 break-keep" style="font-weight:300">결과는 시술과 사후관리의 합입니다. 아래를 꼭 지켜주세요.</p>'+
+        '<ul class="space-y-3">'+
+          d.aftercare.map(function(a){ return '<li class="krhead flex gap-3 text-[15px] text-ink/75 break-keep" style="font-weight:400"><span class="w-1.5 h-1.5 rounded-full bg-pink mt-2 shrink-0"></span><span>'+esc(a)+'</span></li>'; }).join('')+
+        '</ul>'+
+        '<p class="krhead text-[13px] text-ink/50 mt-6 break-keep" style="font-weight:400">※ 시술 효과와 부작용(붉어짐·부기·색소침착 등)은 개인에 따라 다를 수 있으며, 충분한 상담 후 진행합니다. 표시 가격은 VAT 별도입니다.</p>'+
+      '</div>'+
+
+      /* 끝까지 읽은 방문자를 위한 마지막 행동 버튼 */
+      '<div class="max-w-3xl mx-auto mt-16 bg-pink text-white p-7 sm:p-9 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-5">'+
+        '<div><p class="krhead text-[20px]" style="font-weight:700">'+esc(p.big||p.title)+', 상담부터 받아보세요</p>'+
+        '<p class="krhead text-[15px] text-white/80 mt-1.5 break-keep" style="font-weight:400">피부 상태를 먼저 확인하고, 필요한 만큼만 권해 드립니다.</p></div>'+
+        '<div class="flex gap-2.5 shrink-0">'+
+          '<a href="#reserve" onclick="track(\'cta_click\',{cta:\'detail_bottom\'});showView(\'reserve\');return false" class="krhead h-12 px-6 rounded-full bg-white text-pinkstrong inline-flex items-center gap-1.5 text-[15px]" style="font-weight:700"><iconify-icon icon="solar:calendar-linear"></iconify-icon> 상담 예약</a>'+
+          (SITE.tel?'<a href="tel:'+esc(SITE.tel)+'" onclick="track(\'call_click\',{cta:\'detail_bottom\'})" class="krhead h-12 px-6 rounded-full border border-white/50 inline-flex items-center gap-1.5 text-[15px]" style="font-weight:500"><iconify-icon icon="solar:phone-calling-linear"></iconify-icon> 전화</a>':'')+
+        '</div>'+
+      '</div>';
+
+      document.getElementById('detailBody').innerHTML=html;
+      document.getElementById('detailBarTitle').textContent=p.title;
+
+      document.getElementById('detSearch').addEventListener('input',function(e){ detState.q=e.target.value; renderOptions(); });
+      document.getElementById('detSort').addEventListener('change',function(e){ detState.sort=e.target.value; renderOptions(); });
+      renderDetPills();
+      renderOptions();
+      showView('detail', null, 'detail/'+p._seed);
+      track('view_item',{item:p.title});
+    };
+
+})();
+  </script>
+
+  <script>
+/* ===== 예약 변경/취소 스크립트 — 독립 범위 ===== */
+(function(){
+    /* ===== 예약 변경/취소 ===== */
+    document.getElementById('mngKakaoBtn').addEventListener('click', function(){
+      document.getElementById('mngAuthBox').innerHTML =
+        '<div class="rounded-2xl border border-ink/12 p-7 sm:p-9 flex flex-col items-center gap-2">'+
+        '<svg viewBox="0 0 24 24" width="34" height="34"><circle cx="12" cy="12" r="11" fill="#10b981"/><path d="M7 12.4l3.2 3.2L17 9" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>'+
+        '<p class="krhead text-emerald-600" style="font-weight:700">인증 완료</p></div>';
+      var after=document.getElementById('mngAfter');
+      after.classList.remove('hidden');
+      setTimeout(function(){ try{ scrollToY(after,true,-90); }catch(e){} }, 60);
+    });
+
+})();
+  </script>
+
+  <script>
+    /* 라우팅 (해시 기준) — 처음 들어올 때 + 뒤로/앞으로 가기 때 실행
+       예) #category, #detail/3(시술 상세), #badetail/2(전후 상세), #note/4(시술 노트 글) */
+    function route(){
+      var h=decodeURIComponent((location.hash||'').replace('#','')), parts=h.split('/'), id=+parts[1];
+      window.__routing=true;
+      try{
+        var simple={category:1,ba:1,reserve:1,manage:1,notes:1,care:1,doctors:1,noninsured:1,network:1};
+        if(h==='before-after') showView('ba');
+        else if(h==='booking') showView('reserve');
+        else if(simple[h]) showView(h);
+        else if(parts[0]==='detail' && window.__products && window.__products[id] && window.openDetail) window.openDetail(window.__products[id]);
+        else if(parts[0]==='badetail' && window.__baItems && window.__baItems[id] && window.openBADetail) window.openBADetail(window.__baItems[id]);
+        else if(parts[0]==='note' && window.__noteOpen && !isNaN(id)) window.__noteOpen(id);
+        else if(h==='about') showView('home','#about');
+        else showView('home');
+      } finally { window.__routing=false; }
+    }
+    window.addEventListener('popstate', route);
+    /* 시술 노트 스크립트가 아래에 있어 #note/.. 는 페이지 로드 후 처리 */
+    if(/^#note\//.test(location.hash)) window.addEventListener('DOMContentLoaded', route); else route();
+  </script>
+
+  <!-- ===== 팝업 모달 (admin 팝업 관리 연동) ===== -->
+  <div id="popupModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/55 px-4">
+    <div class="bg-white rounded-2xl overflow-hidden max-w-sm w-full shadow-2xl">
+      <div id="popupImg" class="h-72 grid place-items-center text-center px-6" style="background:linear-gradient(135deg,#e9e1d6,#dccfc0)"></div>
+      <div class="p-4">
+        <a id="popupLink" href="#" target="_blank" class="krhead block text-center py-3 rounded-xl bg-pink text-white text-sm font-medium hover:bg-pinkstrong transition" style="font-weight:500">자세히 보기</a>
+        <div class="flex items-center justify-between mt-3 px-1">
+          <button id="popupPrev" class="krhead text-xs text-ink/45 hover:text-ink flex items-center gap-1"><iconify-icon icon="solar:alt-arrow-left-linear"></iconify-icon> 이전</button>
+          <span id="popupDots" class="flex items-center gap-1.5"></span>
+          <button id="popupNext" class="krhead text-xs text-ink/45 hover:text-ink flex items-center gap-1">다음 <iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></button>
+        </div>
+        <div class="grid grid-cols-2 mt-3 border-t border-ink/10 pt-2">
+          <button id="popupCloseToday" class="krhead text-center text-[13px] text-ink/50 hover:text-ink py-2" style="font-weight:400">오늘 하루 보지 않기</button>
+          <button id="popupClose" class="krhead text-center text-[13px] text-ink/70 hover:text-ink py-2 border-l border-ink/10" style="font-weight:500">닫기</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  /* ===== 시술 노트 렌더 (admin 시술노트 연동: 썸네일 + 글 상세 + 블로그 위젯) ===== */
+  (function(){
+    var DEFAULT_NOTES = [
+      {t:'수두흉터치료', sub:'수두 흉터와 패인 자국 개선, 피코프락셀이 흉터에 작용하는 방식', on:true},
+      {t:'여드름흉터치료', sub:'여드름 흉터 치료, 표면 관리 vs 시크릿 RF 니들의 진피 재생.', on:true},
+      {t:'등털제모', sub:'쉐이빙 없이 등 털 제모를 편안하게 받는 방법', on:true},
+      {t:'셀엑소좀', sub:'여드름 피부에 셀엑소좀? 어떤 효과가 있길래 주목받을까요', on:true},
+      {t:'피부과잡티제거', sub:'피부과 잡티 제거, 토닝과 잡티 레이저! 당신에게 맞는 시술은?', on:true},
+      {t:'스킨부스터시술', sub:'시크릿 X 퓨라셀 MTS, 왜 환상의 시너지를 만들까?', on:true},
+      {t:'무통스킨부스터', sub:'수면마취 없이도 OK! 스킨부스터 시술 통증 줄이는 3가지 노하우', on:true},
+      {t:'콜라겐볼륨침', sub:'필러 없이 채우는 콜라겐 볼륨침, 현명한 선택을 위한 가이드', on:true},
+      {t:'엑쏘웨이브', sub:'화정 엑쏘웨이브(케이온다): 지방과 처짐, 극초단파로 동시에 케어하세요', on:true},
+    ];
+    var all = (window.KK? KK.get('notes', DEFAULT_NOTES): DEFAULT_NOTES);
+    all.forEach(function(n,i){ n._i=i; });
+    var notes = all.filter(function(n){return n.on!==false;});
+    var page=1, PER=9, query='';
+    var esc=window.esc;   /* 전역 escape 사용 (따옴표까지 처리) */
+    function filtered(){ if(!query) return notes; var q=query.toLowerCase(); return notes.filter(function(n){return ((n.t||'')+(n.sub||'')).toLowerCase().indexOf(q)>=0;}); }
+    /* ===== 노트 카드 — 시술메뉴·시술전후 카드와 같은 스타일 (각진 흰 카드·정사각형 사진·흰 제목)
+       관리자에서 올린 대표 이미지(n.img)가 있으면 사용, 없으면 사이트 이미지를 돌려가며 사용 ===== */
+    var NOTE_IMG=['img/tex-petal-water.jpg','img/kv-wide-shadow.jpg','img/tex-cream-beam.jpg','img/kv-wide-water.jpg','img/tex-gel-dome.jpg',
+                  'img/space-cove-wall.jpg','img/tex-water-ripple.jpg','img/tex-cream-gel.jpg','img/tex-gel-glitter.jpg'];
+    function media(n){
+      var img = n.img ? safeUrl(n.img) : NOTE_IMG[(n._i||0)%NOTE_IMG.length];
+      return '<div class="relative aspect-square overflow-hidden bg-beige">'
+        +'<img src="'+img+'" class="absolute inset-0 w-full h-full object-cover object-right transition duration-700 group-hover:scale-105" alt="'+esc(n.t)+'" loading="lazy">'
+        +'<div class="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/35"></div>'
+        +'<p class="absolute top-6 left-6 right-6 lg:top-7 lg:left-7 krhead text-[24px] lg:text-[26px] leading-[1.2] text-white break-keep" style="font-weight:700">'+esc(n.t)+'</p>'
+        +'<p class="absolute bottom-6 left-6 right-6 lg:bottom-7 lg:left-7 marcellus text-white/85 text-[12px] tracking-[0.25em]">XXI · PROCEDURE NOTE</p>'
+      +'</div>';
+    }
+    function card(n){
+      return '<a href="#note/'+n._i+'" onclick="__noteOpen('+n._i+');return false" class="group block bg-white border border-ink/10 hover:shadow-[0_18px_40px_rgba(47,52,58,0.12)] transition-shadow">'
+        + media(n)
+        +'<div class="p-6 min-h-[150px] flex flex-col">'
+          +'<h3 class="krhead text-[16px] text-ink leading-snug break-keep line-clamp-2 group-hover:text-pinkstrong transition-colors" style="font-weight:700">'+esc(n.sub||n.t||'')+'</h3>'
+          +'<div class="mt-auto pt-4 flex items-center justify-between gap-2">'
+            +'<span class="krhead text-[12px] text-ink/45" style="font-weight:400">'+(n.date?esc(n.date):'연오재한의원')+'</span>'
+            +'<span class="krhead shrink-0 text-[13px] text-pinkstrong flex items-center gap-0.5" style="font-weight:500">자세히 <iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></span>'
+          +'</div>'
+        +'</div>'
+      +'</a>';
+    }
+    function render(){
+      var list=filtered(); var pages=Math.max(1,Math.ceil(list.length/PER));
+      if(page>pages) page=pages;
+      var slice=list.slice((page-1)*PER, page*PER);
+      var grid=document.getElementById('noteGrid'); if(!grid) return;
+      var meta=document.getElementById('noteMeta'); if(meta) meta.textContent='총 '+list.length+'개의 시술 노트';
+      grid.innerHTML = slice.length? slice.map(card).join('') : '<p class="krhead col-span-full text-center text-ink/40 py-16" style="font-weight:300">등록된 시술 노트가 없습니다.</p>';
+      /* 페이지 번호: 실제 페이지 수만, 1페이지면 숨김 */
+      var pager=document.getElementById('notePager'); pager.style.display = pages>1 ? '' : 'none';
+      var pg='';
+      pg+='<button '+(page<=1?'disabled':'')+' onclick="__notePage('+(page-1)+')" aria-label="이전 페이지" class="w-9 h-9 rounded-full grid place-items-center border border-ink/15 text-ink/50 disabled:opacity-30"><iconify-icon icon="solar:alt-arrow-left-linear"></iconify-icon></button>';
+      for(var i=1;i<=pages;i++){ pg+='<button onclick="__notePage('+i+')" class="w-9 h-9 rounded-full grid place-items-center text-sm '+(i===page?'bg-pinkstrong text-white':'text-ink/60 hover:text-pinkstrong')+'">'+i+'</button>'; }
+      pg+='<button '+(page>=pages?'disabled':'')+' onclick="__notePage('+(page+1)+')" aria-label="다음 페이지" class="w-9 h-9 rounded-full grid place-items-center border border-ink/15 text-ink/50 disabled:opacity-30"><iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></button>';
+      pager.innerHTML=pg;
+    }
+    window.__notePage=function(p){ page=p; render(); scrollToY(document.getElementById('noteGrid'),true,-140); };
+
+    /* ===== 글 상세 보기 ===== */
+    window.__noteOpen=function(i){
+      var n=all[i]; if(!n) return;
+      var hasBody = !!(n.body && String(n.body).replace(/<[^>]*>/g,'').trim().length) || String(n.body||'').indexOf('<img')>=0;
+      var bodyHTML = hasBody ? cleanHtml(n.body)
+        : '<p>'+esc(n.sub||'')+'</p><p class="text-ink/45">자세한 내용은 카카오톡 또는 전화로 문의해주세요 :)</p>';
+      var html=''+
+        '<div class="krhead flex items-center gap-2 text-sm text-muted mb-6" style="font-weight:400">'+
+          '<button onclick="showView(\'home\')" class="hover:text-pinkstrong">홈</button><span>/</span>'+
+          '<button onclick="showView(\'notes\')" class="hover:text-pinkstrong">시술 노트</button>'+
+        '</div>'+
+        '<h1 class="krhead text-3xl sm:text-4xl text-ink break-keep leading-snug" style="font-weight:900">'+esc(n.t)+'</h1>'+
+        (n.sub?'<p class="krhead text-[15px] text-ink/55 mt-3 break-keep" style="font-weight:300">'+esc(n.sub)+'</p>':'')+
+        (n.date?'<p class="krhead text-xs text-ink/35 mt-3" style="font-weight:400">'+esc(n.date)+' · 연오재한의원</p>':'')+
+        '<div class="flex items-center gap-3 my-8"><span class="h-px flex-1 bg-ink/10"></span><span class="w-1.5 h-1.5 rotate-45 border border-ink/30"></span><span class="h-px flex-1 bg-ink/10"></span></div>'+
+        (n.img?'<div class="rounded-2xl overflow-hidden mb-8"><img src="'+safeUrl(n.img)+'" class="w-full object-cover" alt=""></div>':'')+
+        '<div class="note-body krhead text-[15px] text-ink/75 leading-loose break-keep" style="font-weight:300">'+bodyHTML+'</div>'+
+        '<div class="mt-14 flex flex-wrap items-center gap-3">'+
+          '<button onclick="showView(\'notes\')" class="krhead px-6 py-3 rounded-full border border-ink/15 text-sm hover:bg-ink hover:text-white transition flex items-center gap-2" style="font-weight:400"><iconify-icon icon="solar:alt-arrow-left-linear"></iconify-icon> 시술 노트 목록</button>'+
+          '<button onclick="showView(\'reserve\')" class="krhead px-6 py-3 rounded-full bg-ink text-white text-sm hover:bg-pinkstrong transition flex items-center gap-2" style="font-weight:500">온라인예약 하러 가기 <iconify-icon icon="solar:alt-arrow-right-linear"></iconify-icon></button>'+
+        '</div>';
+      document.getElementById('noteDetailBody').innerHTML=html;
+      showView('notedetail', null, 'note/'+i);
+    };
+
+    /* ===== 블로그 최신 글 위젯 (admin 블로그 연동) ===== */
+    (function(){
+      var posts=(window.KK? KK.get('blog', []): []).filter(function(b){return b.on!==false;});
+      var bw=document.getElementById('blogWidget');
+      if(!bw) return;
+      if(!posts.length){ bw.innerHTML=''; return; }
+      bw.innerHTML='<div class="flex items-end justify-between gap-3 mb-6"><h2 class="krhead text-[22px] text-ink" style="font-weight:700">블로그 최신 글</h2><span class="marcellus text-[12px] tracking-[0.25em] text-pinkstrong/80">BLOG</span></div>'
+        +'<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">'
+        +posts.slice(0,6).map(function(b){
+          return '<a href="'+safeUrl(b.url||'#')+'" target="_blank" rel="noopener" class="group flex items-center gap-4 bg-white border border-ink/10 p-4 hover:shadow-[0_12px_30px_rgba(47,52,58,0.10)] transition-shadow">'
+            +(b.img?'<img src="'+safeUrl(b.img)+'" class="w-16 h-16 object-cover shrink-0" alt="" loading="lazy">'
+                   :'<span class="w-16 h-16 bg-beige grid place-items-center shrink-0"><iconify-icon icon="solar:notebook-linear" width="22" class="text-pinkstrong"></iconify-icon></span>')
+            +'<span class="min-w-0 flex-1"><span class="krhead block text-[14px] text-ink/85 leading-snug break-keep line-clamp-2 group-hover:text-pinkstrong transition" style="font-weight:500">'+esc(b.t)+'</span>'
+            +(b.date?'<span class="krhead block text-[12px] text-ink/40 mt-1" style="font-weight:400">'+esc(b.date)+'</span>':'')+'</span>'
+            +'<iconify-icon icon="solar:arrow-right-up-linear" class="text-ink/30 group-hover:text-pinkstrong shrink-0"></iconify-icon>'
+            +'</a>';
+        }).join('')
+        +'</div>';
+    })();
+
+    var s=document.getElementById('noteSearch'); if(s) s.addEventListener('input', function(e){ query=e.target.value.trim(); page=1; render(); });
+    render();
+  })();
+
+  /* ===== 기본 설정 반영 (admin 기본 설정 연동) ===== */
+  (function(){
+    if(!window.KK) return;
+    var s = KK.get('settings', null); if(!s) return;
+    function set(id, val){ var el=document.getElementById(id); if(el && val) el.textContent=val; }
+    set('locAddr', (s.addr1||'') + (s.addr2? ' '+s.addr2 : ''));
+    set('locTel', s.tel);
+    var lt=document.getElementById('locTel'); if(lt && s.tel) lt.href='tel:'+String(s.tel).replace(/[^0-9+\-]/g,'');
+    /* SNS 휴대폰 목업: 관리자에 인스타·유튜브 주소가 있으면 누를 수 있게 연결 */
+    [['snsInsta',s.insta],['snsVideo',s.youtube||s.insta]].forEach(function(x){
+      var el=document.getElementById(x[0]); if(!el || !x[1] || safeUrl(x[1])==='#') return;
+      el.style.cursor='pointer'; el.setAttribute('role','link'); el.setAttribute('tabindex','0');
+      el.addEventListener('click',function(){ track('sns_click',{to:x[0]}); window.open(x[1],'_blank','noopener'); });
+    });
+    set('locWeek', (s.hWeek||'').replace(/\s*\(.*?\)\s*/g,''));
+    set('locWeekend', (s.hWeekend||'').replace(/\s*\(.*?\)\s*/g,''));
+    set('locHoliday', (s.hHoliday||'').replace(/\s*\(.*?\)\s*/g,''));
+    var biz=document.getElementById('ftBiz'); if(biz) biz.textContent='상호 : '+(s.biz||'')+' | 대표 : '+(s.ceo||'')+' | 사업자등록번호 : '+(s.reg||'');
+    var fa=document.getElementById('ftAddr'); if(fa) fa.textContent='주소 : '+(s.addr1||'')+(s.addr2? ' '+s.addr2:'');
+    /* 네이버 예약·카카오톡 버튼 링크는 빠른 연락 스크립트(data-q)가 SITE 값으로 연결 */
+
+  })();
+
+  /* ===== 병원 소개 반영 (admin intro 연동) ===== */
+  (function(){
+    if(!window.KK) return;
+    var it = KK.get('intro', null); if(!it) return;
+    if(it.img){ var im=document.getElementById('aboutImg'); if(im) im.src=it.img; }
+    if(it.body){
+      var b=document.getElementById('aboutBody');
+      if(b) b.innerHTML='<div class="note-body krhead text-ink/75 leading-loose break-keep text-left text-[16px]" style="font-weight:300">'+cleanHtml(it.body)+'</div>';
+    }
+  })();
+
+  /* ===== 팝업 노출 (admin 「팝업 관리」 연동: 이미지 · 노출 기간 · 순서 · 오늘 하루 보지 않기) ===== */
+  (function(){
+    if(!window.KK) return;
+    var now=Date.now();
+    var popups=(KK.get('popups', [])||[]).filter(function(p){
+      if(p.on===false) return false;
+      if(!p.img && !p.title) return false;
+      if(p.period){                                     /* 기간 설정한 팝업은 기간 안에만 */
+        try{
+          if(p.start && now < new Date(p.start+(String(p.start).length<=10?'T00:00':'')).getTime()) return false;
+          if(p.end   && now > new Date(p.end  +(String(p.end).length<=10?'T23:59':'')).getTime()) return false;
+        }catch(e){}
+      }
+      return true;
+    }).sort(function(a,b){return (a.order||0)-(b.order||0);});
+    if(!popups.length) return;
+    try{ if(localStorage.getItem('yj_popup_closed')===new Date().toDateString()) return; }catch(e){}
+    var idx=0, modal=document.getElementById('popupModal'), box=document.getElementById('popupImg');
+    function close(){ modal.classList.add('hidden'); modal.classList.remove('flex'); }
+    function show(){
+      var p=popups[idx];
+      if(p.img && safeUrl(p.img)!=='#'){
+        /* 관리자 권장 600×800 → 3:4 비율로 표시 (화면이 낮으면 높이에 맞춰 축소) */
+        box.className='bg-cream mx-auto'; box.style.background=''; box.style.aspectRatio='3/4'; box.style.maxHeight='68vh';
+        box.innerHTML='<img src="'+safeUrl(p.img)+'" alt="'+esc(p.title)+'" style="width:100%;height:100%;object-fit:cover;display:block'+(p.link?';cursor:pointer':'')+'">';
+        box.firstChild.onclick=function(){ if(p.link) document.getElementById('popupLink').click(); };
+      } else {
+        box.className='h-72 grid place-items-center text-center px-6'; box.style.background='linear-gradient(135deg,#e9e1d6,#dccfc0)'; box.style.aspectRatio=''; box.style.maxHeight='';
+        box.innerHTML='<div><p class="krhead text-lg text-ink" style="font-weight:700">'+esc(p.title)+'</p><p class="marcellus text-xs mt-2 tracking-[0.3em] text-pinkstrong/70">XXI</p></div>';
+      }
+      var lk=document.getElementById('popupLink');
+      if(p.link && safeUrl(p.link)!=='#'){
+        lk.href=p.link; lk.style.display='';
+        /* 우리 홈페이지 안의 주소(#category 등)는 같은 창에서 이동, 바깥 주소는 새 창 */
+        var inner = p.link.charAt(0)==='#' || p.link.indexOf(location.origin)===0;
+        lk.target = inner ? '_self' : '_blank';
+        lk.rel = inner ? '' : 'noopener';
+        lk.onclick = inner ? function(){ close(); } : null;
+      } else { lk.style.display='none'; }
+      document.getElementById('popupDots').innerHTML=popups.map(function(_,i){return '<span class="w-1.5 h-1.5 rounded-full" style="background:'+(i===idx?'#4a5d4e':'#cdc4ba')+'"></span>';}).join('');
+      document.getElementById('popupPrev').style.visibility = popups.length>1?'visible':'hidden';
+      document.getElementById('popupNext').style.visibility = popups.length>1?'visible':'hidden';
+    }
+    document.getElementById('popupPrev').onclick=function(){ idx=(idx-1+popups.length)%popups.length; show(); };
+    document.getElementById('popupNext').onclick=function(){ idx=(idx+1)%popups.length; show(); };
+    document.getElementById('popupClose').onclick=close;
+    document.getElementById('popupCloseToday').onclick=function(){ try{ localStorage.setItem('yj_popup_closed', new Date().toDateString()); }catch(e){} close(); };
+    show(); modal.classList.remove('hidden'); modal.classList.add('flex');
+    modal.addEventListener('click', function(e){ if(e.target===modal) close(); });
+  })();
+
+  /* ===== 시술 후 주의사항 / 의료진 / 비급여 / 지점 안내 렌더 ===== */
+  (function(){
+    var K = window.KK;
+    var DEF_CARE=[
+      {title:'점, 편평사마귀, 비립종, 한관종, 피지선증식증 등 돌출병변 제거', on:true, body:'시술 후 일시적으로 출혈·삼출액·딱지가 생길 수 있으며 정상적인 회복 과정입니다. 딱지는 인위적으로 제거하지 마세요. 세안·샤워는 다음 날부터 미온수로 가볍게 가능합니다.'},
+      {title:'새살레이저 (비후성 흉터)', on:true, body:'붉은기는 1개월에서 최대 6개월 이상 지속될 수 있으나 시간이 지나며 옅어집니다.'},
+      {title:'여드름 압출', on:true, body:'압출 후 붉은기와 미세한 딱지가 생길 수 있습니다. 자외선 차단제를 꼼꼼히 발라 색소침착을 예방하세요.'},
+      {title:'리프팅 시술 (슈링크, 볼뉴머, 엑쏘웨이브, 시크릿)', on:true, body:'시술 후 일시적 붉은기·부기가 있을 수 있습니다. 충분한 수분 섭취와 보습을 권장합니다.'},
+      {title:'VIP 회원권 및 환불/변경 규정', on:true, body:'할인된 금액으로 결제 후 취소 시 10%의 위약금이 차감됩니다. 환불 금액은 정상가 1회 기준으로 환산합니다.'},
+    ];
+    var DEF_DOC=[{name:'김경민', role:'대표원장 · 한의사', desc:'피부·미용 시술 전문. 연오재한의원 대표원장.', img:''}];
+    var DEF_NI=[
+      {name:'레이저 토닝 (큐 마스터 플러스)', unit:'1회', price:'9,900원'},{name:'피코 토닝 (피코하이)', unit:'2,000샷', price:'9,900원'},
+      {name:'슈링크 초음파 리프팅', unit:'100샷', price:'7,900원'},{name:'볼뉴머 고주파 리프팅', unit:'100샷', price:'89,000원'},
+      {name:'시크릿 RF 니들', unit:'1부위', price:'99,000원'},{name:'피코프락셀', unit:'1부위', price:'99,000원'},
+      {name:'퓨라셀 MTS 스킨부스터', unit:'1회', price:'20,000원'},{name:'새살침(흉터 재생)', unit:'1포인트', price:'43,000원'},
+    ];
+    var DEF_NET=[
+      {name:'연오재 (화정 본점)', addr:'경기 고양시 덕양구 화중로 60', phone:'0507-1485-2378', open:true},
+      {name:'XXI 2호점 (오픈예정)', addr:'-', phone:'-', open:false},
+      {name:'XXI 3호점 (오픈예정)', addr:'-', phone:'-', open:false},
+    ];
+
+    // care
+    var care=(K?K.get('care',DEF_CARE):DEF_CARE).filter(function(c){return c.on!==false;});
+    var cl=document.getElementById('careList');
+    if(cl) cl.innerHTML = care.map(function(c,i){
+      return '<details class="group rounded-2xl border border-ink/10 bg-white overflow-hidden"'+(i===0?' open':'')+'>'
+        +'<summary class="krhead flex items-center gap-3 px-6 py-5 cursor-pointer list-none" style="font-weight:500">'
+          +'<span class="w-7 h-7 rounded-full bg-pink/10 text-pinkstrong grid place-items-center text-xs shrink-0" style="font-weight:700">'+(i+1)+'</span>'
+          +'<span class="flex-1 text-ink/90 break-keep">'+esc(c.title)+'</span>'
+          +'<iconify-icon icon="solar:alt-arrow-down-linear" class="text-ink/40 transition group-open:rotate-180"></iconify-icon>'
+        +'</summary>'
+        +'<div class="krhead px-6 pb-6 pt-1 text-sm text-ink/65 leading-relaxed break-keep" style="font-weight:300">'+cleanHtml(c.body||'')+'</div>'
+      +'</details>';
+    }).join('');
+
+    // doctors
+    var docs=(K?K.get('doctors',DEF_DOC):DEF_DOC);
+    var dl=document.getElementById('docList');
+    if(dl) dl.innerHTML = docs.map(function(d){
+      return '<div class="rounded-2xl border border-ink/10 bg-white overflow-hidden shadow-sm flex">'
+        +'<div class="w-32 shrink-0 grid place-items-center overflow-hidden" style="background:linear-gradient(135deg,#e9e1d6,#d8cabb)">'
+        +(d.img?'<img src="'+safeUrl(d.img)+'" class="w-full h-full object-cover" alt="">':'<iconify-icon icon="solar:user-rounded-bold" width="44" class="text-pinkstrong/60"></iconify-icon>')
+        +'</div>'
+        +'<div class="p-6">'
+          +'<h3 class="krhead text-xl text-ink/90" style="font-weight:700">'+esc(d.name)+'</h3>'
+          +'<p class="krhead text-sm text-pinkstrong mt-1" style="font-weight:500">'+esc(d.role)+'</p>'
+          +'<p class="krhead text-sm text-ink/60 mt-3 break-keep leading-relaxed" style="font-weight:300">'+esc(d.desc)+'</p>'
+        +'</div></div>';
+    }).join('');
+
+    // non-insured
+    var ni=(K?K.get('noninsured',DEF_NI):DEF_NI);
+    var nl=document.getElementById('niList');
+    if(nl) nl.innerHTML = ni.map(function(it){
+      return '<tr class="border-t border-ink/8"><td class="px-6 py-3.5 text-ink/85">'+esc(it.name)+'</td><td class="px-4 py-3.5 text-ink/50">'+esc(it.unit)+'</td><td class="px-6 py-3.5 text-right text-pinkstrong" style="font-weight:600">'+esc(it.price)+'</td></tr>';
+    }).join('');
+
+    // network
+    var net=(K?K.get('network',DEF_NET):DEF_NET);
+    var netl=document.getElementById('netList');
+    if(netl) netl.innerHTML = net.map(function(n){
+      return '<div class="rounded-2xl border border-ink/10 bg-white p-6 shadow-sm">'
+        +'<div class="flex items-center justify-between mb-2"><h3 class="krhead text-lg text-ink/90" style="font-weight:700">'+esc(n.name)+'</h3>'
+        +(n.open?'<span class="krhead text-[11px] px-2 py-0.5 rounded-full bg-pink/10 text-pinkstrong" style="font-weight:500">운영중</span>':'<span class="krhead text-[11px] px-2 py-0.5 rounded-full bg-ink/8 text-ink/45" style="font-weight:500">오픈예정</span>')+'</div>'
+        +'<p class="krhead text-sm text-ink/55 break-keep" style="font-weight:300"><iconify-icon icon="solar:map-point-linear" class="text-ink/35"></iconify-icon> '+esc(n.addr)+'</p>'
+        +'<p class="krhead text-sm text-ink/55 mt-1" style="font-weight:300"><iconify-icon icon="solar:phone-linear" class="text-ink/35"></iconify-icon> '+esc(n.phone||'-')+'</p>'
+      +'</div>';
+    }).join('');
+  })();
+
+  /* ===== 실시간 동기화: 다른 탭(어드민)에서 저장 시 자동 반영 ===== */
+  window.addEventListener('storage', function(e){
+    if(e.key && e.key.indexOf('kkeut:')===0){ location.reload(); }
+  });
+  </script>
+  <div id="scrollBar" aria-hidden="true"></div>
+  <!-- 관성 스크롤 라이브러리 (버전 고정) -->
+  <script src="https://cdn.jsdelivr.net/npm/lenis@1.3.26/dist/lenis.min.js"></script>
+  <script>
+  /* ===== 스크롤 반응 (전체 화면 공통) =====
+     - 제목·글 묶음: 화면에 들어오면 아래에서 떠오르며 등장
+     - 카드 목록: 순서대로 하나씩 등장 (필터·페이지 이동으로 새로 그려져도 자동 적용)
+     - 하위 화면 상단 배너: 살짝 확대 → 제자리 / 메인 첫 화면 사진: 느린 패럴랙스
+     - 맨 위 진행 막대 / '움직임 줄이기' 설정 시 모두 끔 */
+  (function(){
+    var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reduce || !window.IntersectionObserver){ document.documentElement.classList.add('no-motion'); return; }
+
+    /* 0) 관성 스크롤 — 마우스 휠을 쓰는 PC에서만 (휴대폰 터치는 기본 스크롤이 이미 부드러움)
+          지도(iframe)·팝업·모바일 입력창 위에서는 원래대로 동작 */
+    if(window.Lenis && matchMedia('(pointer:fine)').matches){
+      var lenis = new Lenis({ lerp:0.085, smoothWheel:true, syncTouch:false, wheelMultiplier:1,
+        prevent:function(node){ return !!(node && node.closest && node.closest('#sheet,#popupModal,iframe,[data-lenis-prevent]')); } });
+      window.__lenis = lenis;
+      (function raf(t){ lenis.raf(t); requestAnimationFrame(raf); })(0);
+    }
+
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold:0, rootMargin:'0px 0px -6% 0px' });   /* threshold 0: 아주 긴 영역도 윗부분이 들어오면 바로 등장 */
+    function watch(el, cls, delay){
+      if(!el || el.dataset.rv) return; el.dataset.rv='1';
+      el.classList.add(cls||'reveal'); if(delay) el.style.animationDelay=delay+'ms';
+      io.observe(el);
+    }
+
+    /* 1) 제목·글 묶음 */
+    var BLOCKS = ['main section h2', 'main section > div > p', '#about .max-w-md', '#sns .flex > div', '#location .grid > *',
+                  '#view-reserve section > div', '#view-manage section > div', '#detailBody > div', '#baDetailBody > div', '#noteDetailBody > *',
+                  '#progTrack'];   /* 가로로 넘기는 카드 줄은 줄 전체가 한 번에 등장 (화면 밖 카드가 투명하게 남지 않게) */
+    /* 2) 카드 목록 (자식이 순서대로 등장) */
+    var GRIDS = ['#catGrid', '#baGrid', '#ssGrid', '#noteGrid', '#docList', '#netList', '#careList', '#detOptList', '#niList'];
+
+    function scan(){
+      document.querySelectorAll('.reveal:not(.in)').forEach(function(el){ io.observe(el); });
+      BLOCKS.forEach(function(sel){ document.querySelectorAll(sel).forEach(function(el){
+        if(el.closest('#top,#quickBook,#consult,#sheet,.fixed')) return;   /* 첫 화면 예약 카드·고정 요소는 제외 */
+        watch(el);
+      }); });
+      GRIDS.forEach(function(sel){ var g=document.querySelector(sel); if(!g) return;
+        Array.prototype.forEach.call(g.children, function(ch,i){ watch(ch, 'reveal', (i%4)*90); });
+      });
+      /* 3) 하위 화면 상단 배너 사진 */
+      document.querySelectorAll('main[id^="view-"]:not(#view-home) > section:first-child > img').forEach(function(img){ watch(img,'rv-zoom'); });
+    }
+    scan();
+    /* 목록이 새로 그려지거나(필터·페이지·상세 열기) 화면이 바뀌면 다시 적용 */
+    var t=0; new MutationObserver(function(){ clearTimeout(t); t=setTimeout(scan,30); })
+      .observe(document.body, { childList:true, subtree:true });
+
+    /* 4) 메인 첫 화면 사진 패럴랙스 (PC) + 진행 막대 */
+    var heroImg=document.querySelector('#top picture img'), bar=document.getElementById('scrollBar'), ticking=false;
+    function onScroll(){
+      var y=window.scrollY, h=document.documentElement.scrollHeight-innerHeight;
+      bar.style.transform='scaleX('+(h>0? Math.min(1,y/h):0)+')';
+      if(heroImg && innerWidth>=1024 && y<innerHeight*1.2) heroImg.style.transform='translateY('+(y*0.18)+'px) scale(1.04)';
+      ticking=false;
+    }
+    window.addEventListener('scroll', function(){ if(!ticking){ ticking=true; requestAnimationFrame(onScroll); } }, { passive:true });
+    onScroll();
+  })();
+  </script>
+</body>
+</html>
